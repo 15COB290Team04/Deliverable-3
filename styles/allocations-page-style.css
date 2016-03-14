@@ -1,0 +1,170 @@
+/*
+Team 12
+Loughborough University
+November 2015
+
+Timetabling Prototype Website
+Allocations page's stylesheet
+Used for allocations page styles ONLY
+*/
+
+/* 
+Frequent colours:
+off-white background: #FAFAFA;
+LU dark purple: #361163;
+*/
+
+#allocations-container {
+  margin-top:20px;
+  margin-bottom:20px;
+}
+
+/* Form */
+.form-label {
+  margin-right:20px;
+}
+
+#allocations-form {
+  padding:20px;
+}
+#allocations-form-roomSearch {
+  width:100px;
+}
+#allocations-form-searchResults {
+  width:250px;
+  margin-top:10px;
+}
+#allocations-form-searchResults option:hover {
+  cursor:pointer;
+  background-color:rgba(0,0,0,0.1);
+}
+#help-allocationsForm {
+  float:right;
+  margin-right:0px;
+}
+
+#submissions-container {
+  margin-top:30px;
+  padding:40px;
+}
+#submissions-header {
+}
+#help-allocationsYourSubmissions {
+  float:right;
+  margin-right:0px;
+}
+
+
+/* YOUR SUBMISSIONS */
+
+#submissions-tabs {
+  width:100%;
+  /*	background-color:rgba(230,230,240,0.7);*/
+  margin-left:auto;
+  margin-right:auto;
+  height:40px;  /* (.nav-tab height) + 2*(.nav-tab vertical padding) */
+  display: none;
+}
+#submissions-tabs {
+  list-style:none;
+}
+.submissions-tab {
+  float:left;
+  padding:5px 10px;
+  margin:4px 3px 0px 0px;
+  display:block;
+  background-color:rgb(220,220,220);
+  font-size:1.2em;
+  height:25px;
+  transition-duration:0.3s;
+  border:1px solid black;
+}
+.tab-active {
+  background-color:rgb(255,255,255);
+  border-bottom:1px solid white;
+}
+
+.submission-tabs-content {
+  height:auto;
+  min-height:100px;
+  display:block;
+  padding:10px;
+  border:1px solid rgba(0,0,0,1);
+  margin-top:20px;
+  max-height:600px;
+  overflow-y: scroll;
+}
+.submissions-tab:not(.tab-active):hover {
+  cursor:pointer;
+  background-color:rgba(0,0,0,0.3);
+}
+.yoursubs-show {
+  display:block;
+}
+.yoursubs-hidden {
+  display:none;
+}
+
+#submissions-lastYr {
+  margin-left:10px;
+  margin-right:2px;
+}
+#submissions-thisYr {
+  margin-left:2px;
+}
+.submissions-year-disabled {
+  color:grey;
+}
+.submissions-year-active {
+  font-weight:700;
+  color:dodgerblue;
+}
+
+/* LOGS */
+.log-group {
+  /*  background-color:lightgray;*/
+  height:50px;
+  transition-duration: 0.1s;
+}
+.log-group:hover {
+  cursor:pointer;
+  /*  background-color:rgba(70,70,70,0.05);*/
+}
+.log-group-container {
+  border:1px solid rgba(0,0,0,0.5);
+  /*	pointer-events: none;*/
+}
+.log-heading {
+  padding:15px;
+}
+.log-moduleCode {
+  float:left;
+}
+.log-moduleTitle {
+  float:left;
+  margin-left:10px;
+}
+.log-status {
+  float:right;
+  margin-right:10px;
+}
+.log-icon {
+  float:right;
+}
+.log-icon:hover {
+  opacity:0.7;
+  cursor:pointer;
+}
+.log-contents-container {
+  display:none;
+}
+.log-contents-container-hidden {
+  display:none;
+}
+.log-entry-status {
+  float:right;
+  margin:10px 20px 0 20px;
+}
+.log-entry-room, .log-entry-semester, .log-entry-day, .log-entry-time {
+  margin-left:20px;
+}

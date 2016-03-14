@@ -1,0 +1,53 @@
+/*
+Team 12
+Loughborough University
+November 2015
+
+Timetabling Prototype Website
+Login page's stylesheet
+Used for login page styles ONLY
+*/
+
+/* 
+Frequent colours:
+off-white background: #FAFAFA;
+LU dark purple: #361163;
+*/
+
+#page-content-container {
+  width:1170px; 
+  margin:auto; 
+  height:auto; 
+  overflow:hidden;
+  margin-top:130px;
+  /*	background-color:white;*/
+  padding:10px;
+}
+
+.login-input {
+  display: block;
+  width: 200px;
+  height: auto;
+  padding: 6px 12px;
+  font-size: 14px;
+  line-height: 1.42857;
+}
+.login-submit {    
+  background-color: #330099;
+  background-image: none;
+  border-radius: 3px;
+  color: #ffffff;
+  cursor: pointer;
+  font-size:1.1em;
+  font-weight: 700;
+  line-height: 1.42857;
+  padding: 10px 16px 12px;
+  text-align: center;
+  text-decoration: none;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.login-submit:hover {
+  transition-duration: 0.3s; 
+  background-color:#000033;
+}
