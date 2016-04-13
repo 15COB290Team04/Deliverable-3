@@ -1,0 +1,26 @@
+﻿@{
+  var db = Database.Open("SQLServerConnectionString");
+
+  @functions {
+    //Retrieve and Sanitize input from the Client-Side 
+    public string input(string queryid) {
+      var id = Request.Params[queryid];
+      char[] invalidChars = { ';', '<', '>', '-', '{', '}', '[', ']' };
+      id = String.Join("", id.Split(invalidChars));
+      return id;
+    }
+  }
+
+  //Test SQL Result
+  //TODO: Create libDatabase functions to perform SQL query
+  if (input("requestid") == "getBuildingPark") {
+    var SQL = "SELECT * FROM dbo.building";
+
+    var res = db.Query(SQL);
+    var data = res.ToArray();
+
+    Json.Write(data, Response.Output);
+    Response.ContentType = "application/json";
+  }
+
+}
