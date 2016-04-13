@@ -1,0 +1,16 @@
+﻿<!DOCTYPE html>
+<html>
+  <!-- Include the dependencies file -->
+  @{
+    var pageName = "modulemanager";
+    @RenderPage("dependencies.cshtml", pageName);
+  }  
+
+  <body>
+    <!-- Include the navigation bar file -->
+    @RenderPage("navigation.cshtml", pageName);
+    
+    <!-- MAIN CONTENT -->
+
+  </body>
+</html>

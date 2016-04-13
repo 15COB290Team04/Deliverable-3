@@ -73,7 +73,7 @@ $(document).ready(function () {
     idList = idList.substr(0, idList.length - 1);
     console.log(idList);
     //Call set Post
-    $.post("https://co-project.lboro.ac.uk/crew12/Deliverable%202/api.php", {requestid: "setNotifications", idlist: idList},
+    $.post("https://co-project.lboro.ac.uk/crew12/Deliverable%202/api.php", { requestid: "setNotifications", idlist: idList },
     function (JSONresult) {
       if (JSONresult) {
         $('.notification-container').html("");
