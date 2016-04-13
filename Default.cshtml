@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+﻿@{
+  
+}
+
+<!DOCTYPE html>
 <html>
   <!-- Include the dependencies file -->
   @{
@@ -10,11 +14,29 @@
     <!-- Include the navigation bar file -->
     @RenderPage("navigation.cshtml", pageName);
     
-    <!-- Dummy Data -->
     <script>
-      //Relocate to booking page for now
-      window.location.replace("booking.cshtml");
+      //Example javascript AJAX Call to the API file
+      function getData() {
+
+        $.post("api.cshtml", { requestid: "getBuildingPark", buildingcode: "CC.0.12" },
+        function (JSONresult) {
+          //Manipulate the JSONresult from the Database
+          console.log(JSONresult);
+          var res = "";
+          for (var i = 0; i < JSONresult.length; i++) {
+            res += JSONresult[i].building_code + ", " + JSONresult[i].building_name + ", " + JSONresult[i].park + "</br>";
+          }
+          $('#result').html(res);
+        }, 'json');
+
+      }
     </script>
+
+    <p style="color:blue;cursor:pointer;margin-top:180px;" onclick="window.location.replace('booking.cshtml')">Click me to go to Booking Page</p>
+
+    <p style="margin-top:30px;">Database retrieve data test:</p>
+    <p style="color:blue;cursor:pointer;" onclick="getData()">Click me to retrieve data</p>
+    <div id="result"></div>
 
   </body>
 </html>
