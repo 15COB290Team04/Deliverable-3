@@ -1,26 +1,248 @@
 ﻿@{
   var db = Database.Open("SQLServerConnectionString");
 
-  @functions {
-    //Retrieve and Sanitize input from the Client-Side 
-    public string input(string queryid) {
-      var id = Request.Params[queryid];
-      char[] invalidChars = { ';', '<', '>', '-', '{', '}', '[', ']' };
-      id = String.Join("", id.Split(invalidChars));
-      return id;
+//Handle the requests retrieved from client
+  var requestid = input("requestid");
+
+  //TODO: Sort out sessions for deptcode
+  var deptcode = "CO";
+
+  if (requestid.Substring(0,3) == "get") {
+    //Get functions
+    if (requestid == "getStuff") { //TEST FUNCTION FOR DEFAULT PAGE
+      encodeJSON( testFunction(db,"example") );
+    }
+
+    if (requestid == "getDeptModuleList") {
+      encodeJSON(getModuleList(db,deptcode));
+    } 
+	  else if (requestid == "getSuitableRooms") {
+      encodeJSON(getRoomSearch(db,
+			  input("park"),
+			  input("capacity"),
+			  input("buildingcode"),
+			  input("lab"),
+			  input("wheelchair"), input("hearingloop"), input("computer"), input("projector"), input("dprojector"), input("ohp"), input("visualiser"), input("video"), input("bluray"), input("vhs"), input("whiteboard"), input("chalkboard"), input("plasma"), input("pasystem"), input("radiomic"), input("review"))
+		  );
+    } 
+	  else if (requestid == "getBuildingName") {
+      encodeJSON(getBuildingName(db,input("buildingcode")));  //this buildingcode variable must be validated
+    } 
+	  else if (requestid == "getParkBuildings") {
+      encodeJSON(getBuildings_Park(db,input("park")));
+    } 
+	  else if (requestid == "getBuildingPark") {
+      encodeJSON(getParkName(db,input("buildingcode")));
+    } 
+	  else if (requestid == "getRoomTimetable") {
+      encodeJSON(getRequestTimetable(db,input("roomcode"), input("semester"), input("weeks")));
+    } 
+	  else if (requestid == "getRoomLogsBooking") {
+      encodeJSON(getRequestLog_Booking(db,input("semester"), deptcode));
+    } 
+	  else if (requestid == "getRoomLogsAllocation") {
+      encodeJSON(getRequestLog_Allocation(db,input("semester"), input("year"), deptcode));
+    } 
+	  else if (requestid == "getNotifications") {
+      encodeJSON(getNotifications(db));	//TODO: Include deptcode in here
+    } 
+	  else if (requestid == "getReqs") {
+      encodeJSON(getRoomReqs(db,input("roomcode")));
+    } 
+	  else if (requestid == "getModuleTimetable") {
+      encodeJSON(getRequestTimetable_ModuleInfo(db,input("modulecode"), input("semester"), input("weeks")));
+    } 
+	  else if (requestid == "getReqList") {
+      encodeJSON(getReqsList(db));
     }
   }
-
-  //Test SQL Result
-  //TODO: Create libDatabase functions to perform SQL query
-  if (input("requestid") == "getBuildingPark") {
-    var SQL = "SELECT * FROM dbo.building";
-
-    var res = db.Query(SQL);
-    var data = res.ToArray();
-
-    Json.Write(data, Response.Output);
-    Response.ContentType = "application/json";
+  else if (requestid.Substring(0,3) == "set") {
+    //Set functions
+    //TODO
   }
 
+//Functions used by api file and library database get/set
+@functions {
+
+//API File helper functions
+    //Retrieve and Sanitize inputs from the Client-Side 
+    string input(string queryid) {
+      var id = Request.Params[queryid];
+      char[] invalidChars = { ';', '<', '>', '-', '{', '}', '[', ']' };
+      if(id != null) {
+        id = String.Join("", id.Split(invalidChars));
+        return id;
+      }
+      else {
+        Response.Write("You submitted a missing parameter. Contact an admin.");
+        return null;
+      }
+    }
+
+    //Encode result as JSON and return data
+    void encodeJSON(dynamic data) {
+      Json.Write(data, Response.Output);
+      Response.ContentType = "application/json";   
+    }
+
+    //Function to check the month in the year and decide if it is current academic year or previous
+    //Eg. If it's Month 8 (August) = 2016/17 academic year, so return int: 2016
+    //Eg. If it's Month 4 (April) = 2015/16 academic year, so return int: 2015
+    int yearCheck(int month) {
+      if (month > 6) {
+        return @DateTime.Now.Year;
+      }
+      else {
+        return @DateTime.Now.AddYears(-1).Year;
+      }
+    }
+
+//libDatabaseGet functions
+    //Test function pulling data from the server
+    dynamic testFunction(Database db,string test) {
+      var SQL = "SELECT * FROM dbo.building";
+      var res = db.Query(SQL);
+      return res;
+    }
+
+    //Get the department name from a code
+    dynamic getDeptName(Database db, string deptcode) {
+      var SQL = "SELECT department_name FROM dbo.department WHERE department_code = "+deptcode+";";
+      var res = db.Query(SQL);
+      return res;
+    }
+
+    //Get a list of all modules with their corresponding codes matching a pattern
+    dynamic getModuleList(Database db, string deptcode) {
+      var SQL = "SELECT CONCAT(dept_code,module_part,module_code) AS module_code, module_title FROM dbo.module WHERE dept_code LIKE '"+deptcode+"';";
+      //SELECT CONCAT(dept_code,module_part,module_code) AS module_code, module_title FROM dbo.module WHERE dept_code LIKE 'CO';
+      var res = db.Query(SQL);
+      return res;
+    }
+
+    //BEN TO CONTINUE HERE WITH TRANSFER OF libDatabaseGet.php FUNCTIONS
+
+    //Get a Module Title based on a Module Code
+    dynamic getModuleTitle(Database db, string modulecode) {
+      
+      return false;
+    }
+    
+    //Get a Module Code from a Title
+    dynamic getModuleCode(Database db, string moduletitle) {
+      
+      return false;
+    }
+    
+    //Get a Building Name based on a Building Code
+    dynamic getBuildingName(Database db, string buildingcode) { 
+    
+      return false;
+    }
+    
+    //Get a Building's park from it's Building Code
+    dynamic getParkName(Database db, string buildingcode) {
+      
+      return false;
+    } 
+    
+    //Get all buildings in a park
+    dynamic getBuildings_Park(Database db, string park) { 
+    
+      return false;
+    }
+
+    //Get all facilities from a park? (currently unused)
+    dynamic getEnabledFacilities_Park(Database db, string park) {
+      
+      return false;
+    }
+
+    //Get facilities from a building? (currently unused)
+    dynamic getEnabledFacilities_Building(Database db, string buildingcode) {
+      
+      return false;
+    }
+
+    //Get all rooms in a park
+    dynamic getRooms_Park(Database db, string park) {
+      
+      return false;
+    }
+
+    //Get all rooms in a building
+    dynamic getRooms_Building(Database db, string buildingcode) {
+      
+      return false;
+    }
+
+    //Get all Building Names
+    dynamic getBuildings(Database db) {
+      
+      return false;
+    }
+
+    //Get all Parks
+    dynamic getParks(Database db) {
+      
+      return false;
+    }
+
+    //Get all Room Codes
+    dynamic getRooms(Database db) {
+      
+      return false;
+    }
+
+    //Get a list of Suitable Rooms from an input of requirements (Some of these may have to be int - but try string first)
+    dynamic getRoomSearch(Database db, string park, string students, string buildingcode, string lab, string wheelchair, string hearingloop, string computer, string projector, string dprojector, string ohp, string visualiser, string video, string bluray, string vhs, string whiteboard, string chalkboard, string plasma, string pasystem, string radiomic, string review) {
+      
+      return false;
+    }
+
+    //Get a Room's Timetable
+    dynamic getRequestTimetable(Database db, string roomCode, string semester, string weeks) {
+      
+      return false;
+    }
+
+    //Get a Module's Timetable
+    dynamic getRequestTimetable_ModuleInfo(Database db, string modulecode, string semester, string weeks) {
+      
+      return false;
+    }
+
+    //Get the Submissions log data (on the Booking Page)
+    dynamic getRequestLog_Booking(Database db, string semester, string deptcode) {
+      
+      return false;
+    }
+
+    //Get the Submissions log data (on the Allocations Page)
+    dynamic getRequestLog_Allocation(Database db, string semester, string year, string deptcode) { //TODO: (Fix) Currently gives duplicate entries for multiple weeks
+    
+      return false;
+    }
+
+    //Get the notifications (all unread requests)
+    dynamic getNotifications(Database db) {	//TODO: This needs to incorporate the department code to ONLY show notifications for a specific department rather than all
+
+      return false;
+    }
+
+    //Get a Room's requirements
+    dynamic getRoomReqs(Database db, string roomcode) {
+      
+      return false;
+    }
+
+    //Get all Facilities
+    dynamic getReqsList(Database db) {
+      
+      return false;
+    }
+
+//libDatabaseSet functions
+    
+}
 }
