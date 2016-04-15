@@ -58,7 +58,20 @@
   }
   else if (requestid.Substring(0,3) == "set") {
     //Set functions
-    //TODO
+    if (requestid == "setNewModule") {
+      var json = getJSON();
+      encodeJSON(setNewModule(db, json["modulecode"], json["moduletitle"], json["deptcode"]));
+      //Can be tested with: LOCALHOST/api?requestid=setNewModule&json={'deptcode':'CO','modulecode':'COZ000','moduletitle':'Test Title'}
+    }
+    else if (requestid == "setUpdateModule") {
+      var json = getJSON();
+      encodeJSON(setUpdateModule(db, json["modulecode"], json["moduletitle"], json["deptcode"]));
+      //Can be tested with: LOCALHOST/api?requestid=setUpdateModule&json={'deptcode':'CO','modulecode':'COZ000','moduletitle':'Updated Test Title'}
+    } 
+    else if (requestid == "setDeleteModule") {
+      var json = getJSON();
+      encodeJSON(setDeleteModule(db, json["modulecode"], json["moduletitle"], json["deptcode"]));
+    }
   }
 
 //Functions used by api file and library database get/set
@@ -79,10 +92,22 @@
       }
     }
 
+    //Retrieve and Sanitize JSON inputs from the Client-Side
+    dynamic getJSON() {
+      var jsonInput = Request.Params["json"];
+      //TODO: Sanitize this input
+      return Json.Decode(jsonInput);
+    } 
+
     //Encode result as JSON and return data
     void encodeJSON(dynamic data) {
       Json.Write(data, Response.Output);
       Response.ContentType = "application/json";   
+    }
+
+    //Verify success or failure from database response (SET Functions)
+    Boolean verify(dynamic res) {
+      return true;
     }
 
     //Function to check the month in the year and decide if it is current academic year or previous
@@ -107,7 +132,7 @@
 
     //Get the department name from a code
     dynamic getDeptName(Database db, string deptcode) {
-      var SQL = "SELECT department_name FROM dbo.department WHERE department_code = "+deptcode+";";
+      var SQL = "SELECT department_name FROM dbo.department WHERE department_code LIKE '"+deptcode+"';";
       var res = db.Query(SQL);
       return res;
     }
@@ -115,7 +140,6 @@
     //Get a list of all modules with their corresponding codes matching a pattern
     dynamic getModuleList(Database db, string deptcode) {
       var SQL = "SELECT CONCAT(dept_code,module_part,module_code) AS module_code, module_title FROM dbo.module WHERE dept_code LIKE '"+deptcode+"';";
-      //SELECT CONCAT(dept_code,module_part,module_code) AS module_code, module_title FROM dbo.module WHERE dept_code LIKE 'CO';
       var res = db.Query(SQL);
       return res;
     }
@@ -243,6 +267,46 @@
     }
 
 //libDatabaseSet functions
-    
+    //Insert a new module into the database
+    dynamic setNewModule(Database db, string modulecode, string moduletitle, string deptcode) {
+      if (deptcode != modulecode.Substring(0,2) ) {
+        return false;
+      }
+      var modulepart = modulecode.Substring(2,1);
+      modulecode = modulecode.Substring(3);
+
+      var SQL = "INSERT INTO dbo.module (dept_code,module_part,module_code,module_title) VALUES ('"+deptcode+"','"+modulepart+"','"+modulecode+"','"+moduletitle+"');";
+      try {
+        db.Query(SQL);
+        return true;
+      }
+      catch { return false; }   
+    }
+
+    //Update a module's details in the database
+    dynamic setUpdateModule(Database db, string modulecode, string moduletitle, string deptcode) {
+      if (deptcode != modulecode.Substring(0,2) ) {
+        return false;
+      }
+      var SQL = "UPDATE dbo.module SET module_title='"+moduletitle+"' WHERE CONCAT(dept_code,module_part,module_code)='"+modulecode+"';";
+      try {
+        db.Query(SQL);
+        return true;
+      }
+      catch { return false; } 
+    }
+
+    //Delete a module from the database
+    dynamic setDeleteModule(Database db, string modulecode, string moduletitle, string deptcode) {
+      if (deptcode != modulecode.Substring(0,2) ) {
+        return false;
+      }
+      var SQL = "DELETE FROM dbo.module WHERE CONCAT(dept_code,module_part,module_code) LIKE '"+modulecode+"' AND module_title LIKE '"+moduletitle+"';";
+      try {
+        db.Query(SQL);
+        return true;
+      }
+      catch { return false; } 
+    }
 }
 }
