@@ -1,4 +1,22 @@
-﻿<!DOCTYPE html>
+@{
+  //Manage User Session
+  if (Session["dept-code"] != null) {
+    var db = Database.Open("SQLServerConnectionString");
+    var user = Session["dept-code"];
+    var SQL = "SELECT * FROM dbo.department WHERE department_code = '"+user+"'";
+    var dbres = db.Query(SQL);
+    if (dbres.Count() != 1) {
+      Session.Abandon();
+      Response.Redirect("login.cshtml");
+    } 
+  } 
+  else {
+    Session.Abandon();
+    Response.Redirect("login.cshtml");
+  }  
+}
+
+<!DOCTYPE html>
 <html>
   <!-- Include the dependencies file -->
   @{
