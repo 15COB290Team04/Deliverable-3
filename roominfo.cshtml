@@ -1,29 +1,5 @@
 <!DOCTYPE html>
-@{
-//Database Configuration
-include_once ("dbconnect/database.cshtml");
 
-//HTTPS IMPLEMENTATION - DO NOT TOUCH!
-require_once ("dbconnect/httpsAuth.cshtml");
-
-Session_start()
-if (Session["dept-code"] != null) {  
-  var user = Session["dept-code"];
-  var SQL = "SELECT * FROM department WHERE department_code == 'user'";
-//  var res = &$db->queryAll(SQL);
-  if (count(res) == 1) {
-  } else {
-    Session_destroy()
-    header('Location: https://co-web-1.lboro.ac.uk/team04web/Deliverable%203/login.cshtml');
-  }
-} else {
-  Session_destroy()
-  header('Location: https://co-web-1.lboro.ac.uk/team04wed/Deliverable%203/login.cshtml');
-}
-
-}
-
-<html>
   <!-- Include the dependencies file -->
   @{
     var pageName = "roominfo";
