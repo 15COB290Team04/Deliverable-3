@@ -56,7 +56,7 @@ function allRoomBookings() {
   }
   var modulecode = $('#input-moduleInfo').text().substring(0, $('#input-moduleInfo').val().indexOf(' '));
   var output = JSON.stringify(master);
-  $.post("https://co-project.lboro.ac.uk/crew12/Deliverable%202/api.php", {requestid: "setBookingsInterpret", json: output, modulecode: modulecode},
+  $.post("api.cshtml", {requestid: "setBookingsInterpret", json: output, modulecode: modulecode},
   function (JSONresult) {
     if (JSONresult) {
 			resetPreferences(1);
