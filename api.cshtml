@@ -354,17 +354,32 @@
     //Get the notifications (all unread requests)
     dynamic getNotifications(Database db) {	//TODO: This needs to incorporate the department code to ONLY show notifications for a specific department rather than all
       var sql = "SELECT a.request_id, a.request_day, a.request_timestart, a.room_code, a.module_code, a.request_child, a.request_status, a.notification_status FROM dbo.request AS a WHERE a.notification_status=1 AND a.request_status IN('approved', 'rejected');";
-      var res = db.Query(sql);
-      var requestArrayLength = res.Count();
-      for (var i = 0; i < requestArrayLength; i++) {
-        //res[i]["request-details"] = requestArray2[i];
-        var sqlWeekCheck = "SELECT week_number FROM dbo.[request-week] WHERE request_id='"+res[i]["request_id"]+"';";
-        var week = db.Query(sqlWeekCheck);
-        res[i]["weeks-list"] = week;
-        res[i]["weeks-range"] = getRanges(week); 
-
+      var result = db.Query(sql);
+      var requestArrayLength = result.Count();
+      new {res = new []{
+          new{request-details="", weeks-activE = "", weeks-range = ""}
+          }
       }
-      return res;
+
+      //dynamic[,] res = new dynamic[1,3];
+      
+      
+      
+      res[0, 0] = "penis";
+      res[0, 1] = "Butt";
+
+      string[] test = {"request-details", "weeks-Active", "weeks-range"};
+      
+      /*for (var i = 0; i < requestArrayLength; i++) {
+        res[i]["request-details"] = result[i];
+
+        var sqlWeekCheck = "SELECT week_number FROM dbo.[request-week] WHERE request_id='"+result[i]["request_id"]+"';";
+        var week = db.Query(sqlWeekCheck);
+        res[i]["weeks-active"] = week;
+        res[i]["weeks-range"] = getRanges(week);
+      }*/
+
+      return test;
     }
 
     //Get a Room's requirements
