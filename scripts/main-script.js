@@ -215,39 +215,25 @@ function notificationLoad() {
   console.log("notificationLoad() called");
 
   //Call get Post
-  $.post("api.cshtml", {requestid: "getNotifications"},
+  $.post("api.cshtml", { requestid: "getNotifications" },
   function (JSONresult) {
-    var notificationList = ""
+    var notificationList = "";
     for (var i = 0; i < JSONresult.length; i++) {
-
-      if (JSONresult[i]['request-details'].request_status == "approved") {
+      if (JSONresult[i]['request_details'].request_status == "approved") {
         notificationList += "<div class='notification-accepted log-group-accepted'>";
-        notificationList += JSONresult[i]['request-details'].module_code + "&nbsp;&nbsp;Room: ";
-        notificationList += JSONresult[i]['request-details'].room_code + "&nbsp;&nbsp; <br/>Day: ";
-        notificationList += JSONresult[i]['request-details'].request_day + "&nbsp;&nbsp; Time: ";
-        notificationList += JSONresult[i]['request-details'].request_timestart + "&nbsp;&nbsp; ";
-        notificationList += "Weeks: ";
-        for (var j = 0; j < JSONresult[i]['weeks-range'].length; j++) {
-          notificationList += JSONresult[i]['weeks-range'][j] + ", ";
-        }
-        notificationList += "<span class='notification-id' style='display:none;'>";
-        notificationList += JSONresult[i]['request-details'].request_id + "</span></div>";
       }
       else {
         notificationList += "<div class='notification-rejected log-group-rejected'>";
-        notificationList += JSONresult[i]['request-details'].module_code + "&nbsp;&nbsp;Room: ";
-        notificationList += JSONresult[i]['request-details'].room_code + "&nbsp;&nbsp; <br/>Day: ";
-        notificationList += JSONresult[i]['request-details'].request_day + "&nbsp;&nbsp; Time: ";
-        notificationList += JSONresult[i]['request-details'].request_timestart + "&nbsp;&nbsp; ";
-        notificationList += "Weeks: ";
-        for (var j = 0; j < JSONresult[i]['weeks-range'].length; j++) {
-          notificationList += JSONresult[i]['weeks-range'][j] + ", ";
-        }
-        notificationList += "<span class='notification-id' style='display:none;'>";
-        notificationList += JSONresult[i]['request-details'].request_id + "</span></div>";
       }
+      notificationList += JSONresult[i]['request_details'].module_code + "&nbsp;&nbsp;Room: ";
+      notificationList += JSONresult[i]['request_details'].room_code + "&nbsp;&nbsp; <br/>Day: ";
+      notificationList += JSONresult[i]['request_details'].request_day + "&nbsp;&nbsp; Time: ";
+      notificationList += JSONresult[i]['request_details'].request_timestart + "&nbsp;&nbsp; ";
+      notificationList += "Weeks: ";
+      notificationList += JSONresult[i]['weeks_range'];
+      notificationList += "<span class='notification-id' style='display:none;'>";
+      notificationList += JSONresult[i]['request_details'].request_id + "</span></div>";
     }
-
     //console.log(notificationList);
     if (notificationList !== "") {
       $('#user-notification-alert').css('display', 'inline');

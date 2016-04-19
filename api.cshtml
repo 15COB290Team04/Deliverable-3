@@ -79,7 +79,11 @@
 
 //API File helper functions
     //Retrieve and Sanitize inputs from the Client-Side 
+<<<<<<< HEAD
     dynamic input(string queryid) {
+=======
+    dynamic input(dynamic queryid) {
+>>>>>>> refs/remotes/origin/master
       var id = Request.Params[queryid];
       char[] invalidChars = { ';', '<', '>', '-', '{', '}', '[', ']' };
       if(id != null) {
@@ -125,11 +129,19 @@
     //Does something useful
     dynamic getRanges(dynamic nums) {
       var ranges = "";
+<<<<<<< HEAD
       var len = nums.Length;
       for (var i = 0; i < len; i++) {
         var rStart = nums[i]["week_number"];
         var rEnd = rStart;
         while ((nums[i + 1]["week_number"]) != null && (nums[i + 1]["week_number"] - nums[i]["week_number"] == 1) != null){
+=======
+      var len = nums.Count;
+      for (var i = 0; i < len; i++) {
+        var rStart = nums[i]["week_number"];
+        var rEnd = rStart;
+        while (i < (len-1) && (nums[i + 1]["week_number"] - nums[i]["week_number"] == 1) != null){
+>>>>>>> refs/remotes/origin/master
           rEnd = nums[++i]["week_number"];
         }
         ranges = rStart == rEnd ? rStart : rStart + " - " + rEnd;
@@ -355,10 +367,23 @@
     dynamic getNotifications(Database db) {	//TODO: This needs to incorporate the department code to ONLY show notifications for a specific department rather than all
       var sql = "SELECT a.request_id, a.request_day, a.request_timestart, a.room_code, a.module_code, a.request_child, a.request_status, a.notification_status FROM dbo.request AS a WHERE a.notification_status=1 AND a.request_status IN('approved', 'rejected');";
       var result = db.Query(sql);
+<<<<<<< HEAD
       var requestArrayLength = result.Count();
       new {res = new []{
           new{request-details="", weeks-activE = "", weeks-range = ""}
           }
+=======
+
+      var resultArrayLength = result.Count(); //number of rows returned
+      var resultArray = result.ToArray(); 
+
+      dynamic[] res = new dynamic[resultArrayLength];
+
+      for (var i = 0; i < resultArrayLength; i++) {
+        var sqlWeekCheck = "SELECT week_number FROM dbo.[request-week] WHERE request_id='"+resultArray[i]["request_id"]+"';";
+        var week = db.Query(sqlWeekCheck);
+        res[i] = new {request_details = resultArray[i], weeks_active = week, weeks_range = getRanges(week)};
+>>>>>>> refs/remotes/origin/master
       }
 
       //dynamic[,] res = new dynamic[1,3];
