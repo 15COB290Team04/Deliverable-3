@@ -1,5 +1,5 @@
 ﻿@{
-  
+  Response.Redirect("login.cshtml");
 }
 
 <!DOCTYPE html>
@@ -30,13 +30,38 @@
         }, 'json');
 
       }
+
+     function setData() {/*
+        var modDepCode = "CO";
+        var modCode = "COZ209META";
+        var modtitle = "New Module Example";
+        var json = JSON.stringify({deptcode: modDepCode, modulecode: modCode, moduletitle: modtitle});
+        $.post("api.cshtml", { requestid: "getStuff", buildingcode: "CC.0.12" },
+        function (JSONresult) {
+          //Manipulate the JSONresult from the Database
+          console.log(JSONresult);
+          var res = "";
+          for (var i = 0; i < JSONresult.length; i++) {
+            res += JSONresult[i].building_code + ", " + JSONresult[i].building_name + ", " + JSONresult[i].park + "</br>";
+          }
+          $('#result').html(res);
+        }, 'json');
+        */
+      }
     </script>
 
     <p style="color:blue;cursor:pointer;margin-top:180px;" onclick="window.location.replace('booking.cshtml')">Click me to go to Booking Page</p>
 
     <p style="margin-top:30px;">Database retrieve data test:</p>
-    <p style="color:blue;cursor:pointer;" onclick="getData()">Click me to retrieve data</p>
+    <p style="color:blue;cursor:pointer;" onclick="getData()">Click me to GET data</p>
     <div id="result"></div>
+
+    <p style="margin-top:30px;">Database send data test:</p>
+    <p style="color:blue;cursor:pointer;" onclick="setData()">Click me to SET data</p>
+    <div id="result2"></div>
+    @{
+      //var test = "{'deptcode':'CO','modulecode':'COB209','moduletitle':'New Module Titre'}";    
+    }
 
   </body>
 </html>
