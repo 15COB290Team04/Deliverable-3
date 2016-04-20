@@ -79,11 +79,7 @@
 
 //API File helper functions
     //Retrieve and Sanitize inputs from the Client-Side 
-<<<<<<< HEAD
-    dynamic input(string queryid) {
-=======
     dynamic input(dynamic queryid) {
->>>>>>> refs/remotes/origin/master
       var id = Request.Params[queryid];
       char[] invalidChars = { ';', '<', '>', '-', '{', '}', '[', ']' };
       if(id != null) {
@@ -129,19 +125,11 @@
     //Does something useful
     dynamic getRanges(dynamic nums) {
       var ranges = "";
-<<<<<<< HEAD
-      var len = nums.Length;
-      for (var i = 0; i < len; i++) {
-        var rStart = nums[i]["week_number"];
-        var rEnd = rStart;
-        while ((nums[i + 1]["week_number"]) != null && (nums[i + 1]["week_number"] - nums[i]["week_number"] == 1) != null){
-=======
       var len = nums.Count;
       for (var i = 0; i < len; i++) {
         var rStart = nums[i]["week_number"];
         var rEnd = rStart;
         while (i < (len-1) && (nums[i + 1]["week_number"] - nums[i]["week_number"] == 1) != null){
->>>>>>> refs/remotes/origin/master
           rEnd = nums[++i]["week_number"];
         }
         ranges = rStart == rEnd ? rStart : rStart + " - " + rEnd;
@@ -295,84 +283,7 @@
      var year = yearCheck(@DateTime.Now.Month);	//Have already converted yearCheck() in api.cshtml - Insert: @DateTime.Now.Month into the function
       var sql = "SELECT a.request_id, a.request_day, a.request_timestart, a.request_round, a.request_semester, a.request_year, a.room_code, a.building_code, a.park, a.capacity, a.module_code, a.request_priority, a.request_status, a.request_child, a.notification_status FROM dbo.request a LEFT JOIN dbo.[request-week] b ON a.request_id=b.request_id WHERE a.request_status LIKE 'approved' AND a.request_semester LIKE '"+semester+"' AND a.request_year LIKE '"+year+"' AND a.room_code='"+roomCode+"' AND week_number IN('"+weeks+"') GROUP BY a.request_id;";
 
-      var requestArray = db.Query(sql);
-      var requestArray2 = requestArray.ToArray();
-      var res = new dynamic[requestArray2.Length];		//create array $res
-      dynamic week;
-      for (var i = 0; i < requestArray2.Length; i++) {	//loop through database entries
-        res[i]["request-details"] = requestArray2[i];
-        var sqlWeekCheck = "SELECT week_number FROM dbo.[request-week] WHERE request_id='" + requestArray2[i]["'request_id'"] + "';";
-        week = db.Query(sqlWeekCheck);
-        res[i]["weeks-list"] = week;
-        res[i]["weeks-range"] = getRanges(week);
-      }      
-      return res;
-}
-
-    //Get a Module's Timetable
-    dynamic getRequestTimetable_ModuleInfo(Database db, string modulecode, string semester, string weeks) {
-      var year = yearCheck(@DateTime.Now.Month);	//Have already converted yearCheck() in api.cshtml - Insert: @DateTime.Now.Month into the function
-      var sql = "SELECT a.request_id, a.request_day, a.request_timestart, a.request_round, a.request_semester, a.request_year, a.room_code, a.building_code, a.park, a.capacity, a.module_code, a.request_priority, a.request_status, a.request_child, a.notification_status FROM dbo.request a LEFT JOIN dbo.[request-week] b ON a.request_id=b.request_id WHERE a.request_status LIKE 'approved' AND a.request_semester='"+semester+"' AND a.request_year='"+year+"' AND a.module_code='"+modulecode+"' AND week_number IN('"+weeks+"') GROUP BY a.request_id;";
-      var requestArray = db.Query(sql);
-      var requestArray2 = requestArray.ToArray();
-      var res = new dynamic[requestArray2.Length];		//create array $res
-      dynamic week;
-      for (var i = 0; i < requestArray2.Length; i++) {	//loop through database entries
-        res[i]["request-details"] = requestArray2[i];
-        var sqlWeekCheck = "SELECT week_number FROM dbo.[request-week] WHERE request_id='" + requestArray2[i]["'request_id'"] + "';";
-        week = db.Query(sqlWeekCheck);
-        res[i]["weeks-list"] = week;
-        res[i]["weeks-range"] = getRanges(week);
-      }      
-      return res;
-    }
-
-    //Get the Submissions log data (on the Booking Page)
-    dynamic getRequestLog_Booking(Database db, string semester, string deptcode) {
-      //TODO: (After Conversion) Currently gives duplicate entries for multiple weeks
-      var year = yearCheck(@DateTime.Now.Month);
-      var sql = "SELECT a.request_id, a.request_day, a.request_timestart, a.request_round, a.request_semester, a.request_year, a.room_code, a.building_code, a.park, a.capacity, a.module_code, a.request_priority, a.request_status, a.request_child, a.notification_status, b.building_name, c.module_title FROM dbo.request a LEFT JOIN dbo.building b ON a.building_code=b.building_code LEFT JOIN dbo.module c ON a.module_code = CONCAT(c.dept_code,c.module_part,c.module_code) WHERE request_semester='"+semester+"' AND request_year='"+year+"' AND request_status IN('pending', 'rejected') AND a.module_code LIKE '"+deptcode+"';";
-      var requestArray = db.Query(sql);
-      var requestArray2 = requestArray.ToArray();
-      var res = new dynamic[requestArray2.Length];		//create array $res
-      dynamic week;
-      for (var i = 0; i < requestArray2.Length; i++) {	//loop through database entries
-        res[i]["request-details"] = requestArray2[i];
-        var sqlWeekCheck = "SELECT week_number FROM dbo.[request-week] WHERE request_id='" + requestArray2[i]["'request_id'"] + "';";
-        week = db.Query(sqlWeekCheck);
-        res[i]["weeks-list"] = week;
-        res[i]["weeks-range"] = getRanges(week);
-      }      
-      return res;
-    }
-
-    //Get the Submissions log data (on the Allocations Page)
-    dynamic getRequestLog_Allocation(Database db, string semester, string year, string deptcode) { //TODO: (After Conversion) Currently gives duplicate entries for multiple weeks
-      var sql = "SELECT a.request_id, a.request_day, a.request_timestart, a.request_round, a.request_semester, a.request_year, a.room_code, a.building_code, a.park, a.capacity, a.module_code, a.request_priority, a.request_status, a.request_child, a.notification_status, b.building_name, c.module_title FROM dbo.request a LEFT JOIN dbo.building b ON a.building_code=b.building_code LEFT JOIN dbo.module c ON a.module_code=CONCAT(c.dept_code,c.module_part,c.module_code) WHERE request_semester='"+semester+"' AND request_year='"+year+"' AND a.module_code LIKE '"+deptcode+"';";
-      var requestArray = db.Query(sql);
-      var requestArray2 = requestArray.ToArray();
-      var res = new dynamic[requestArray2.Length];		//create array $res
-      dynamic week;
-      for (var i = 0; i < requestArray2.Length; i++) {	//loop through database entries
-        res[i]["request-details"] = requestArray2[i];
-        var sqlWeekCheck = "SELECT week_number FROM dbo.[request-week] WHERE request_id='" + requestArray2[i]["'request_id'"] + "';";
-        week = db.Query(sqlWeekCheck);
-        res[i]["weeks-list"] = week;
-        res[i]["weeks-range"] = getRanges(week);
-      }      
-      return res;
-    }
-
-    //Get the notifications (all unread requests)
-    dynamic getNotifications(Database db) {	//TODO: This needs to incorporate the department code to ONLY show notifications for a specific department rather than all
-      var sql = "SELECT a.request_id, a.request_day, a.request_timestart, a.room_code, a.module_code, a.request_child, a.request_status, a.notification_status FROM dbo.request AS a WHERE a.notification_status=1 AND a.request_status IN('approved', 'rejected');";
       var result = db.Query(sql);
-<<<<<<< HEAD
-      var requestArrayLength = result.Count();
-      new {res = new []{
-          new{request-details="", weeks-activE = "", weeks-range = ""}
-          }
-=======
 
       var resultArrayLength = result.Count(); //number of rows returned
       var resultArray = result.ToArray(); 
@@ -383,28 +294,83 @@
         var sqlWeekCheck = "SELECT week_number FROM dbo.[request-week] WHERE request_id='"+resultArray[i]["request_id"]+"';";
         var week = db.Query(sqlWeekCheck);
         res[i] = new {request_details = resultArray[i], weeks_active = week, weeks_range = getRanges(week)};
->>>>>>> refs/remotes/origin/master
       }
+      return res;
+}
 
-      //dynamic[,] res = new dynamic[1,3];
-      
-      
-      
-      res[0, 0] = "penis";
-      res[0, 1] = "Butt";
+    //Get a Module's Timetable
+    dynamic getRequestTimetable_ModuleInfo(Database db, string modulecode, string semester, string weeks) {
+      var year = yearCheck(@DateTime.Now.Month);	//Have already converted yearCheck() in api.cshtml - Insert: @DateTime.Now.Month into the function
+      var sql = "SELECT a.request_id, a.request_day, a.request_timestart, a.request_round, a.request_semester, a.request_year, a.room_code, a.building_code, a.park, a.capacity, a.module_code, a.request_priority, a.request_status, a.request_child, a.notification_status FROM dbo.request a LEFT JOIN dbo.[request-week] b ON a.request_id=b.request_id WHERE a.request_status LIKE 'approved' AND a.request_semester='"+semester+"' AND a.request_year='"+year+"' AND a.module_code='"+modulecode+"' AND week_number IN('"+weeks+"');";//GROUP BY a.request_id usually in there need to have a play and figure out what this is about
+      var result = db.Query(sql);
 
-      string[] test = {"request-details", "weeks-Active", "weeks-range"};
-      
-      /*for (var i = 0; i < requestArrayLength; i++) {
-        res[i]["request-details"] = result[i];
+      var resultArrayLength = result.Count(); //number of rows returned
+      var resultArray = result.ToArray(); 
 
-        var sqlWeekCheck = "SELECT week_number FROM dbo.[request-week] WHERE request_id='"+result[i]["request_id"]+"';";
+      dynamic[] res = new dynamic[resultArrayLength];
+
+      for (var i = 0; i < resultArrayLength; i++) {
+        var sqlWeekCheck = "SELECT week_number FROM dbo.[request-week] WHERE request_id='"+resultArray[i]["request_id"]+"';";
         var week = db.Query(sqlWeekCheck);
-        res[i]["weeks-active"] = week;
-        res[i]["weeks-range"] = getRanges(week);
-      }*/
+        res[i] = new {request_details = resultArray[i], weeks_active = week, weeks_range = getRanges(week)};
+      }
+      return res;
+    }
 
-      return test;
+    //Get the Submissions log data (on the Booking Page)
+    dynamic getRequestLog_Booking(Database db, string semester, string deptcode) {
+      //TODO: (After Conversion) Currently gives duplicate entries for multiple weeks
+      var year = yearCheck(@DateTime.Now.Month);
+      var sql = "SELECT a.request_id, a.request_day, a.request_timestart, a.request_round, a.request_semester, a.request_year, a.room_code, a.building_code, a.park, a.capacity, a.module_code, a.request_priority, a.request_status, a.request_child, a.notification_status, b.building_name, c.module_title FROM dbo.request a LEFT JOIN dbo.building b ON a.building_code=b.building_code LEFT JOIN dbo.module c ON a.module_code = CONCAT(c.dept_code,c.module_part,c.module_code) WHERE request_semester='"+semester+"' AND request_year='"+year+"' AND request_status IN('pending', 'rejected') AND a.module_code LIKE '"+deptcode+"';";
+      var result = db.Query(sql);
+
+      var resultArrayLength = result.Count(); //number of rows returned
+      var resultArray = result.ToArray(); 
+
+      dynamic[] res = new dynamic[resultArrayLength];
+
+      for (var i = 0; i < resultArrayLength; i++) {
+        var sqlWeekCheck = "SELECT week_number FROM dbo.[request-week] WHERE request_id='"+resultArray[i]["request_id"]+"';";
+        var week = db.Query(sqlWeekCheck);
+        res[i] = new {request_details = resultArray[i], weeks_active = week, weeks_range = getRanges(week)};
+      }
+      return res;
+    }
+
+    //Get the Submissions log data (on the Allocations Page)
+    dynamic getRequestLog_Allocation(Database db, string semester, string year, string deptcode) { //TODO: (After Conversion) Currently gives duplicate entries for multiple weeks
+      var sql = "SELECT a.request_id, a.request_day, a.request_timestart, a.request_round, a.request_semester, a.request_year, a.room_code, a.building_code, a.park, a.capacity, a.module_code, a.request_priority, a.request_status, a.request_child, a.notification_status, b.building_name, c.module_title FROM dbo.request a LEFT JOIN dbo.building b ON a.building_code=b.building_code LEFT JOIN dbo.module c ON a.module_code=CONCAT(c.dept_code,c.module_part,c.module_code) WHERE request_semester='"+semester+"' AND request_year='"+year+"' AND a.module_code LIKE '"+deptcode+"';";
+      var result = db.Query(sql);
+
+      var resultArrayLength = result.Count(); //number of rows returned
+      var resultArray = result.ToArray(); 
+
+      dynamic[] res = new dynamic[resultArrayLength];
+
+      for (var i = 0; i < resultArrayLength; i++) {
+        var sqlWeekCheck = "SELECT week_number FROM dbo.[request-week] WHERE request_id='"+resultArray[i]["request_id"]+"';";
+        var week = db.Query(sqlWeekCheck);
+        res[i] = new {request_details = resultArray[i], weeks_active = week, weeks_range = getRanges(week)};
+      }
+      return resultArray;
+    }
+
+    //Get the notifications (all unread requests)
+    dynamic getNotifications(Database db) {	//TODO: This needs to incorporate the department code to ONLY show notifications for a specific department rather than all
+      var sql = "SELECT a.request_id, a.request_day, a.request_timestart, a.room_code, a.module_code, a.request_child, a.request_status, a.notification_status FROM dbo.request AS a WHERE a.notification_status=1 AND a.request_status IN('approved', 'rejected');";
+      var result = db.Query(sql);
+
+      var resultArrayLength = result.Count(); //number of rows returned
+      var resultArray = result.ToArray(); 
+
+      dynamic[] res = new dynamic[resultArrayLength];
+
+      for (var i = 0; i < resultArrayLength; i++) {
+        var sqlWeekCheck = "SELECT week_number FROM dbo.[request-week] WHERE request_id='"+resultArray[i]["request_id"]+"';";
+        var week = db.Query(sqlWeekCheck);
+        res[i] = new {request_details = resultArray[i], weeks_active = week, weeks_range = getRanges(week)};
+      }
+      return res;
     }
 
     //Get a Room's requirements
