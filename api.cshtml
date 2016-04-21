@@ -17,13 +17,8 @@
       encodeJSON(getModuleList(db,deptcode));
     } 
 	  else if (requestid == "getSuitableRooms") {
-      encodeJSON(getRoomSearch(db,
-			  input("park"),
-			  input("capacity"),
-			  input("buildingcode"),
-			  input("lab"),
-			  input("wheelchair"), input("hearingloop"), input("computer"), input("projector"), input("dprojector"), input("ohp"), input("visualiser"), input("video"), input("bluray"), input("vhs"), input("whiteboard"), input("chalkboard"), input("plasma"), input("pasystem"), input("radiomic"), input("review"))
-		  );
+      encodeJSON(getRoomSearch(db, input("park"), input("capacity"), input("buildingcode"), input("lab"), input("wheelchair"), input("hearingloop"), input("computer"), input("projector"), input("dprojector"), input("ohp"), input("visualiser"), input("video"), input("bluray"), input("vhs"), input("whiteboard"), input("chalkboard"), input("plasma"), input("pasystem"), input("radiomic"), input("review")));
+      //encodeJSON(getRoomSearch(db, "central", "100", "CC", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
     } 
 	  else if (requestid == "getBuildingName") {
       encodeJSON(getBuildingName(db,input("buildingcode")));  //this buildingcode variable must be validated
