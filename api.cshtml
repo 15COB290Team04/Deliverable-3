@@ -17,13 +17,8 @@
       encodeJSON(getModuleList(db,deptcode));
     } 
 	  else if (requestid == "getSuitableRooms") {
-      encodeJSON(getRoomSearch(db,
-			  input("park"),
-			  input("capacity"),
-			  input("buildingcode"),
-			  input("lab"),
-			  input("wheelchair"), input("hearingloop"), input("computer"), input("projector"), input("dprojector"), input("ohp"), input("visualiser"), input("video"), input("bluray"), input("vhs"), input("whiteboard"), input("chalkboard"), input("plasma"), input("pasystem"), input("radiomic"), input("review"))
-		  );
+      encodeJSON(getRoomSearch(db, input("park"), input("capacity"), input("buildingcode"), input("lab"), input("wheelchair"), input("hearingloop"), input("computer"), input("projector"), input("dprojector"), input("ohp"), input("visualiser"), input("video"), input("bluray"), input("vhs"), input("whiteboard"), input("chalkboard"), input("plasma"), input("pasystem"), input("radiomic"), input("review")));
+      //encodeJSON(getRoomSearch(db, "central", "100", "CC", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
     } 
 	  else if (requestid == "getBuildingName") {
       encodeJSON(getBuildingName(db,input("buildingcode")));  //this buildingcode variable must be validated
@@ -83,7 +78,12 @@
       var id = Request.Params[queryid];
       char[] invalidChars = { ';', '<', '>', '-', '{', '}', '[', ']' };
       if(id != null) {
-        id = String.Join("", id.Split(invalidChars));
+        id = String.Join("", id.Split(invalidChars)); 
+        if( id == "1" ){
+          return 1;
+        } else if( id == "0") {
+          return 0;
+        }
         return id;
       }
       else {
@@ -247,7 +247,6 @@
     }
 
     //Get a list of Suitable Rooms from an input of requirements (Some of these may have to be int - but try string first) 
-    //**Try testing shortly**
     dynamic getRoomSearch(Database db, string park, string students, string buildingcode, int lab, int wheelchair, int hearingloop, int computer, int projector, int dprojector, int ohp, int visualiser, int video, int bluray, int vhs, int whiteboard, int chalkboard, int plasma, int pasystem, int radiomic, int review) {
 
     var location = "";
@@ -268,10 +267,10 @@
         requirements = "'Start'," + ((lab == 1) ? "'Laboratory'," : "") + ((wheelchair == 1) ? "'Wheelchair Access'," : "") + ((hearingloop == 1) ? "'Hearing Induction Loop Fitted'," : "") + ((computer == 1) ? "'Computer'," : "") + ((projector == 1) ? "'Projector'," : "") + ((dprojector == 1) ? "'Dual Projector'," : "") + ((ohp == 1) ? "'OverHead Projector'," : "") + ((visualiser == 1) ? "'Visualiser'," : "") + ((video == 1) ? "'Video Player'," : "") + ((bluray == 1) ? "'BluRay Player'," : "") + ((vhs == 1) ? "'VHS Player'," : "") + ((whiteboard == 1) ? "'Whiteboard'," : "") + ((chalkboard == 1) ? "'Chalkboard'," : "") + ((plasma == 1) ? "'Plasma'," : "") + ((pasystem == 1) ? "'PA System'," : "") + ((radiomic == 1) ? "'Radio Mic'," : "") + ((review == 1) ? "'ReVIEW Lecture Capture'," : "") + "'End'";
 
       if (requirements.Length > 13) { //if user has specified requirements
-        sql = "+location+" + "c.room_capacity >= $students AND a.facility_id IN (SELECT facility_id FROM dbo.facility WHERE facility_name IN ('"+requirements+"')) GROUP BY a.room_code HAVING COUNT(a.facility_id)=(SELECT COUNT(facility_id) FROM dbo.facility WHERE facility_name IN ('"+requirements+"'));";
+        sql = location + "c.room_capacity >= '"+students+"' AND a.facility_id IN (SELECT facility_id FROM dbo.facility WHERE facility_name IN ('"+requirements+"')) GROUP BY a.room_code HAVING COUNT(a.facility_id)=(SELECT COUNT(facility_id) FROM dbo.facility WHERE facility_name IN ('"+requirements+"'));";
       } 
 	    else { //to prevent breaking when no requirements selected
-        sql = "+location+" + "c.room_capacity>="+students+" GROUP BY a.room_code;";
+        sql = location + "c.room_capacity>="+students+" GROUP BY a.room_code;";
       }
     var res = db.Query(sql);
     return res;
