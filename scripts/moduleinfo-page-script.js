@@ -1,10 +1,3 @@
-/*
- Loughborough University (February 2016)
- 
- Timetabling Website
- Moduleinfo page's script file (includes jQuery)
- Used for scripts on the module information page ONLY
- */
 
 $(document).ready(function () {
 
@@ -13,7 +6,7 @@ $(document).ready(function () {
     var availableTags = [];
 
     //getDeptModuleList with deptCode = "CO" returns all modules with CO at start of code, in form "COB106 AI Methods"
-    $.post("https://co-project.lboro.ac.uk/crew12/Deliverable%202/api.php", {requestid: "getDeptModuleList"},
+    $.post("https://co-project.lboro.ac.uk/crew12/Deliverable%202/api.cshtml", {requestid: "getDeptModuleList"},
     function (JSONresult) {
 
       for (var i = 0; i < JSONresult.length; i++) {
@@ -59,7 +52,7 @@ function getModuleTimetable() {
   var sem = $('#select-semester').val();
   var moduleCode = $('#input-moduleInfo').val().substring(0, 6);
 
-  $.post("https://co-project.lboro.ac.uk/crew12/Deliverable%202/api.php", {requestid: "getModuleTimetable", modulecode: moduleCode, weeks: weeks, semester: sem},
+  $.post("https://co-project.lboro.ac.uk/crew12/Deliverable%202/api.cshtml", {requestid: "getModuleTimetable", modulecode: moduleCode, weeks: weeks, semester: sem},
   function (JSONresult) {
     for (var i = 0; i < JSONresult.length; i++) {
       var day = JSONresult[i]['request-details'].request_day;
