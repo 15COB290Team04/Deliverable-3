@@ -182,9 +182,10 @@ a {
 }
 .user-notification-dropdown {
   display: none;
-  width:270px;
+  /*width:270px;*/
+  max-width:350px;
   max-height: 400px;
-  overflow:scroll;
+  overflow-y:scroll;
   height:150px;
   position: absolute;
   right: 35px;
