@@ -89,7 +89,7 @@ $(document).ready(function () {
       $.post("api.cshtml", {requestid: "getBuildingPark", buildingcode: buildingcode},
       function (JSONresult) {
 
-        $("#select-park").val(JSONresult);
+        $("#select-park").val(JSONresult[0].park);
         fillBuildingsList(building);
         getSuitableRooms();
 
@@ -305,8 +305,8 @@ function getRoomTimetable() {
       function (JSONresult) {
 
         for (var i = 0; i < JSONresult.length; i++) {
-          var day = JSONresult[i]['request-details'].request_day;
-          var time = JSONresult[i]['request-details'].request_timestart;
+          var day = JSONresult[i]['request_details'].request_day;
+          var time = JSONresult[i]['request_details'].request_timestart;
 
           //if this slot is currently clear
           if (!$('.timetable-table tbody tr[class*="' + day + '"]').find('td[class*="period' + time + '"]').hasClass("timetable-taken")) {
@@ -319,9 +319,9 @@ function getRoomTimetable() {
             var popContent = "<b>Information for a booked timetable slot.</b><br/>";
             popContent += "Day: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + day + "<br/>";
             popContent += "Period: &nbsp;" + time + "<br/><br/>";
-            popContent += "The module <b>" + JSONresult[i]['request-details'].module_code + "</b> has booked this slot for weeks:<br/>";
-            for (var j = 0; j < JSONresult[i]['weeks-range'].length; j++) {
-              popContent += JSONresult[i]['weeks-range'][j] + ", ";
+            popContent += "The module <b>" + JSONresult[i]['request_details'].module_code + "</b> has booked this slot for weeks:<br/>";
+            for (var j = 0; j < JSONresult[i]['weeks_range'].length; j++) {
+              popContent += JSONresult[i]['weeks_range'][j] + ", ";
             }
             popContent += "<p></p>";
             popContent += "<p class='close'>Close</p>";
@@ -340,9 +340,9 @@ function getRoomTimetable() {
             var contentStart = currentContent.substring(0, currentContent.indexOf("<p></p>"));
             var contentEnd = currentContent.substring(currentContent.indexOf("<p></p>"));
 
-            contentStart += "<br/><br/>The module <b>" + JSONresult[i]['request-details'].module_code + "</b> has booked this slot for weeks:<br/>";
-            for (var j = 0; j < JSONresult[i]['weeks-range'].length; j++) {
-              contentStart += JSONresult[i]['weeks-range'][j] + ", ";
+            contentStart += "<br/><br/>The module <b>" + JSONresult[i]['request_details'].module_code + "</b> has booked this slot for weeks:<br/>";
+            for (var j = 0; j < JSONresult[i]['weeks_range'].length; j++) {
+              contentStart += JSONresult[i]['weeks_range'][j] + ", ";
             }
 
             newContent = contentStart + contentEnd;
