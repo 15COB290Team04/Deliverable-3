@@ -13,7 +13,7 @@ $(document).ready(function () {
     var availableTags = [];
 
     //getDeptModuleList with deptCode = "CO" returns all modules with CO at start of code, in form "COB106 AI Methods"
-    $.post("https://co-project.lboro.ac.uk/crew12/Deliverable%202/api.php", {requestid: "getDeptModuleList"},
+    $.post("api.cshtml", {requestid: "getDeptModuleList"},
     function (JSONresult) {
 
       for (var i = 0; i < JSONresult.length; i++) {
