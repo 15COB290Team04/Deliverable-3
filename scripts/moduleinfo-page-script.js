@@ -13,7 +13,7 @@ $(document).ready(function () {
     var availableTags = [];
 
     //getDeptModuleList with deptCode = "CO" returns all modules with CO at start of code, in form "COB106 AI Methods"
-    $.post("https://co-project.lboro.ac.uk/crew12/Deliverable%202/api.php", {requestid: "getDeptModuleList"},
+    $.post("api.cshtml", {requestid: "getDeptModuleList"},
     function (JSONresult) {
 
       for (var i = 0; i < JSONresult.length; i++) {
@@ -53,13 +53,13 @@ $(document).ready(function () {
   });
 });
 
-function getModuleTimetable() {
+function getRoomTimetable() {
   clearTimetable();
   var weeks = "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15";
   var sem = $('#select-semester').val();
-  var moduleCode = $('#input-moduleInfo').val().substring(0, 6);
+  var roomcode = $('#input-roomcode').val().substring(0, 6);
 
-  $.post("https://co-project.lboro.ac.uk/crew12/Deliverable%202/api.php", {requestid: "getModuleTimetable", modulecode: moduleCode, weeks: weeks, semester: sem},
+  $.post("api.cshtml", {requestid: "getRoomTimetable", roomcode: roomcode, weeks: weeks, semester: sem},
   function (JSONresult) {
     for (var i = 0; i < JSONresult.length; i++) {
       var day = JSONresult[i]['request-details'].request_day;
@@ -75,9 +75,9 @@ function getModuleTimetable() {
         var popContent = "<b>Information for a booked timetable slot.</b><br/>";
         popContent += "Day: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + day + "<br/>";
         popContent += "Period: &nbsp;" + time + "<br/><br/>";
-        popContent += "The module <b>" + JSONresult[i]['request-details'].module_code + "</b> has booked this slot for weeks:<br/>";
+        popContent += "The room <b>" + JSONresult[i]['request-details'].room_code + "</b> has been booked by this module for weeks:<br/>";
         for (var j = 0; j < JSONresult[i]['weeks-range'].length; j++) {
-          popContent += JSONresult[i]['weeks-range'][j] + ", ";
+        popContent += JSONresult[i]['weeks-range'][j] + ", ";
         }
         popContent += "<p></p>";
         popContent += "<p class='close'>Close</p>";
