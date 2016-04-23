@@ -6,7 +6,6 @@
  Used for scripts on the room information page ONLY
  */
 
-
 $(document).ready(function () {
 
   //AUTOFILL SEARCH FOR MODULE TITLE
@@ -15,7 +14,7 @@ $(document).ready(function () {
 
     //get list of modules for logged in user
     //getDeptModuleList with deptCode = "CO" returns all modules with CO at start of code, in form "COB106 AI Methods"
-    $.post("https://co-project.lboro.ac.uk/crew12/Deliverable%202/api.php", {requestid: "getDeptModuleList"},
+    $.post("api.cshtml", {requestid: "getDeptModuleList"},
     function (JSONresult) {
 
       for (var i = 0; i < JSONresult.length; i++) {
@@ -87,7 +86,7 @@ $(document).ready(function () {
     }
 
     if (building != "Any") {
-      $.post("https://co-project.lboro.ac.uk/crew12/Deliverable%202/api.php", {requestid: "getBuildingPark", buildingcode: buildingcode},
+      $.post("api.cshtml", {requestid: "getBuildingPark", buildingcode: buildingcode},
       function (JSONresult) {
 
         $("#select-park").val(JSONresult);
@@ -229,7 +228,7 @@ function getSuitableRooms() {
     }
   }
 
-  $.post("https://co-project.lboro.ac.uk/crew12/Deliverable%202/api.php", {
+  $.post("api.cshtml", {
     requestid: "getSuitableRooms", park: park, capacity: capacity, buildingcode: buildingcode, lab: lab, wheelchair: wheelchair,
     hearingloop: hearingloop, computer: computer, projector: projector, dprojector: dprojector, ohp: ohp, visualiser: visualiser, video: dvd,
     bluray: bluray, vhs: vhs, whiteboard: whiteboard, chalkboard: chalkboard, plasma: plasma, pasystem: pasystem, radiomic: radiomic, review: review
@@ -254,7 +253,7 @@ function getSuitableRooms() {
 function fillBuildingsList(building) {
   //when park is selected, grab the new value, and update buildingList choice with buildings in that park
 
-  $.post("https://co-project.lboro.ac.uk/crew12/Deliverable%202/api.php#json", {requestid: "getParkBuildings", park: $('#select-park').val()},
+  $.post("api.cshtml#json", {requestid: "getParkBuildings", park: $('#select-park').val()},
   function (JSONresult) {
 
     var buildingList = "<option>Any</option>";
@@ -273,7 +272,7 @@ function fillBuildingsList(building) {
 function getRoomInfo() {
   if (checkRoomIsValid($('#form-booking-roomCode').val())) {
     //Perform API call to retrieve facilities of a specific room
-    $.post("https://co-project.lboro.ac.uk/crew12/Deliverable%202/api.php", {requestid: "getReqs", roomcode: $('#form-booking-roomCode').val()},
+    $.post("api.cshtml", {requestid: "getReqs", roomcode: $('#form-booking-roomCode').val()},
     function (JSONresult) {
       var facilityList = "<table style='table-layout:fixed; width:100%;'><tr>";
       for (var i = 0; i < JSONresult.length; i++) {
@@ -302,7 +301,7 @@ function getRoomTimetable() {
 
 
       //Perform API call to retrieve timetable bookings for times and weeks
-      $.post("https://co-project.lboro.ac.uk/crew12/Deliverable%202/api.php", {requestid: "getRoomTimetable", roomcode: $('#form-booking-roomCode').val(), weeks: weeks, semester: sem},
+      $.post("api.cshtml", {requestid: "getRoomTimetable", roomcode: $('#form-booking-roomCode').val(), weeks: weeks, semester: sem},
       function (JSONresult) {
 
         for (var i = 0; i < JSONresult.length; i++) {
@@ -391,8 +390,8 @@ function loadRoomBuildingInfo(roomCode) {
       buildingCode = "LUSAD";
     }
 
-    //call api.php with "buildingCode" to return the buildingName
-    $.post("https://co-project.lboro.ac.uk/crew12/Deliverable%202/api.php", {requestid: "getBuildingName", buildingcode: buildingCode},
+    //call api.cshtml with "buildingCode" to return the buildingName
+    $.post("api.cshtml", {requestid: "getBuildingName", buildingcode: buildingCode},
     function (JSONresult) {
       $('#form-booking-roomName').text(JSONresult);
       getRoomTimetable();

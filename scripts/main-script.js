@@ -11,17 +11,20 @@
 $(document).ready(function () {
 
   notificationLoad();
-  /* SCRIPT FOR HELP CLICKS */
+
+  //DETECT USER PREFS ON LOADING PAGE
   if (typeof pref_zoom != 'undefined') {
-    if (pref_zoom === 1) {
+    if (pref_zoom == 1) {
       zoomFunction();
     }
   }
   if (typeof pref_colour != 'undefined') {
-    if (pref_colour === 1) {
+    if (pref_colour == 1) {
       colorFunction();
     }
   }
+
+  //HELP ICON CLICKS
   $(".help-icon").click(function () {
     //Get id
     var id = $(this).attr('id');
@@ -103,7 +106,7 @@ function checkInp(type, input) {
 
 function zoomFunction() {
   if (parseInt($('#page-content-container').css('font-size')) == 16) {
-    $.post("https://co-project.lboro.ac.uk/crew12/Deliverable%202/updateprefs.php", {prefid: "zoom", prefval: "1"},
+    $.post("updateprefs.cshtml", {prefid: "zoom", prefval: "1"},
     function (JSONresult) {
       //Reserved
     }, 'json');
@@ -120,7 +123,7 @@ function zoomFunction() {
 
   }
   else {
-    $.post("https://co-project.lboro.ac.uk/crew12/Deliverable%202/updateprefs.php", {prefid: "zoom", prefval: "0"},
+    $.post("updateprefs.cshtml", {prefid: "zoom", prefval: "0"},
     function (JSONresult) {
       //Reserved
     }, 'json');
@@ -140,7 +143,7 @@ function zoomFunction() {
 function colorFunction() {
   console.log($('#main-heading').css('color'));
   if ($('#main-heading').css('color') == "rgb(250, 250, 250)") {
-    $.post("https://co-project.lboro.ac.uk/crew12/Deliverable%202/updateprefs.php", {prefid: "colour", prefval: "1"},
+    $.post("updateprefs.cshtml", {prefid: "colour", prefval: "1"},
     function (JSONresult) {
       //Reserved
     }, 'json');
@@ -174,7 +177,7 @@ function colorFunction() {
     $('.btn.del').css('background-color', 'lightgrey');
   }
   else {
-    $.post("https://co-project.lboro.ac.uk/crew12/Deliverable%202/updateprefs.php", {prefid: "colour", prefval: "0"},
+    $.post("updateprefs.cshtml", {prefid: "colour", prefval: "0"},
     function (JSONresult) {
       //Reserved
     }, 'json');
