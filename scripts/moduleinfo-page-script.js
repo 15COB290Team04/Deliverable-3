@@ -87,7 +87,7 @@ function getRoomTimetable() {
         var contentStart = currentContent.substring(0, currentContent.indexOf("<p></p>"));
         var contentEnd = currentContent.substring(currentContent.indexOf("<p></p>"));
 
-        contentStart += "<br/><br/>The room <b>" + JSONresult[i]['request-details'].module_code + "</b> has been booked by this module for weeks:<br/>";
+        contentStart += "<br/><br/>The room <b>" + JSONresult[i]['request-details'].room_code + "</b> has been booked by this module for weeks:<br/>";
         for (var j = 0; j < JSONresult[i]['weeks-range'].length; j++) {
           contentStart += JSONresult[i]['weeks-range'][j] + ", ";
         }
