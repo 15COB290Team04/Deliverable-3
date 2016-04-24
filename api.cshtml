@@ -10,7 +10,9 @@
   if (requestid.Substring(0,3) == "get") {
     //Get functions
     if (requestid == "getStuff") { //TEST FUNCTION FOR DEFAULT PAGE
-      encodeJSON( testFunction(db,"example") );
+      //encodeJSON( testFunction(db,"example") );
+      //Response.Write(getLastID(db));
+      encodeJSON(gridDayToArray("3, 5, "));
     }
 
     if (requestid == "getDeptModuleList") {
@@ -66,6 +68,16 @@
     else if (requestid == "setDeleteModule") {
       var json = getJSON();
       encodeJSON(setDeleteModule(db, json["modulecode"], json["moduletitle"], json["deptcode"]));
+    }
+    else if (requestid == "setNotifications") {
+      encodeJSON(setNotificationStatus(db, input("idlist")));
+    }
+    else if (requestid == "setBookingsInterpret") {
+      //var json = getJSON();
+      var json = Request.Params["json"];
+      //encodeJSON(interpretData(db, json, input("modulecode")));
+      Response.Write(interpretData(db, json, input("modulecode")));
+      //LOCALHOST/api?requestid=setBookingsInterpret&json=[["Any","Any","30","COZ000",null,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,"","2, 4, ","3, 5, ","6, ","","CC.0.29a"]]&modulecode=COZ000
     }
   }
 
@@ -123,7 +135,7 @@
       }
     }
 
-    //Does something useful
+    //Converts the weeks returned from database into a range eg. 1-15
     dynamic getRanges(dynamic nums) {
       var ranges = "";
       var len = nums.Count;
@@ -136,6 +148,82 @@
         ranges = rStart == rEnd ? rStart : rStart + " - " + rEnd;
       }
       return ranges;
+    }
+
+    //Takes in day 'number' and converts to day string
+    string calcDay(int dayNum) {
+      switch (dayNum) {
+        case 1:
+          return "monday";
+        case 2:
+          return "tuesday";
+        case 3:
+          return "wednesday";
+        case 4:
+          return "thursday";
+        case 5:
+          return "friday";
+      }
+      return null;
+    }
+
+    //Gets the last request ID from the database
+    int getLastID(Database db) {
+      var SQL = "WITH rows AS (SELECT ROW_NUMBER() OVER (ORDER BY request_id DESC) row, request_id FROM dbo.request) SELECT request_id FROM rows WHERE row = 1;";
+      var res = db.QuerySingle(SQL);
+      return res[0];
+    }
+
+    //Function to take the day grid input (as a string in form "3, 5, " for example) and return an array [0,0,1,0,1,0,0,0,0]
+    dynamic gridDayToArray(string input) {
+      input = input.Trim();                         //remove whitespace from input
+      var res = input.Split(',');										//Split the string by the commas and put into array 'res'
+      int[] datetime = new int[] { 0,0,0,0,0,0,0,0,0 };       //Start with array of 9x 0's (this means no periods are selected as 0=No)
+
+      for (var k = 0; k < res.Count(); k++) {		    //For each of the elements in res
+        var val = res[k].AsInt();
+        if (val > 0) {															//If the element is active (ie the time period in the day is selected)
+          datetime[val - 1] = 1;										//Set the datetime array slot to 1 (1=Yes)
+        }
+      }
+      //var test = "";
+      //foreach(var item in datetime) { test += item.ToString(); }
+      //return test;
+      return datetime;														  //Return the array of selected periods in a day
+    }
+
+    //Function to condense a timetable state into an array with all booking info & the Time/Day/Room params
+    dynamic requestPushBack(dynamic state, int para_t, int para_d, int para_r) {		//State, Time, Day, Room number (ie. from slot 1 (index 0), 2 (1), or 3 (2) of room booking UI [for multi rooms])
+      var res = new {
+        day = calcDay(para_d),
+        roomcode = state["roomcode"],
+        weeklist = state["weeklist"],
+        facilities = state["facilities"],
+        buildingcode = state["building"],
+        park = state["park"],
+        capacity = state["capacity"],
+        modulecode = state["modulecode"],
+        priority = state["priority"],
+        child = "",             //TODO: This was null
+        request_timestart = para_t,
+        request_year = yearCheck(DateTime.Now.Month),
+        para_d = para_d,
+        para_r = para_r
+      };
+      return res;
+    }
+
+    //Verify if 2 slots are LINKED (ie. if they are multiple rooms, or a double/triple period)
+    bool verifyLinked(int t1, int d1, int r1, int t2, int d2, int r2) {	//inputs are time,day,roomnumber (in UI) for each
+	
+      if ((t1 == t2) && (d1 == d2) && (r1 < r2)) {	//Case when it is a MULTIPLE ROOM (ie. same slot (time/day) but different room from UI)
+        return true;
+      }
+      if ((t1 + 1 == t2) && (d1 == d2)) {	//Case when it is a DOUBLE LENGTH slot (ie. the time of second is 1 hour after (next period) but day is same)
+        return true;
+      }
+
+      return false;	//otherwise return false, as they are not linked
     }
 
 //libDatabaseGet functions
@@ -159,8 +247,6 @@
       var res = db.Query(SQL);
       return res;
     }
-
-    //BEN TO CONTINUE HERE WITH TRANSFER OF libDatabaseGet.php FUNCTIONS
 
     //Get a Module Title based on a Module Code
     dynamic getModuleTitle(Database db, string modulecode) {
@@ -281,10 +367,15 @@
 
     //Get a Room's Timetable
     dynamic getRequestTimetable(Database db, string roomCode, string semester, string weeks) {
-      //Note: var weeks input is in string form similar to "1,2,3,7,10"
-      var year = yearCheck(@DateTime.Now.Month);	//Have already converted yearCheck() in api.cshtml - Insert: @DateTime.Now.Month into the function
-      var sql = "SELECT a.request_id, a.request_day, a.request_timestart, a.request_round, a.request_semester, a.request_year, a.room_code, a.building_code, a.park, a.capacity, a.module_code, a.request_priority, a.request_status, a.request_child, a.notification_status FROM dbo.request a LEFT JOIN dbo.[request-week] b ON a.request_id=b.request_id WHERE a.request_status LIKE 'approved' AND a.request_semester LIKE '"+semester+"' AND a.request_year LIKE '"+year+"' AND a.room_code='"+roomCode+"' AND week_number IN('"+weeks+"') GROUP BY a.request_id;";
-
+      //Note: var weeks input is in string form similar to "1,2,3,7,10,"  ...  Must convert it to "'1','2','3','7'"
+      if (weeks[weeks.Length-1] == ',') {
+        weeks = weeks.Substring(0,weeks.Length-1);
+      }
+      weeks = "'"+weeks+"'";
+      weeks = weeks.Replace("," , "','");
+ 
+      var year = yearCheck(@DateTime.Now.Month);
+      var sql = "SELECT a.request_id, a.request_day, a.request_timestart, a.request_round, a.request_semester, a.request_year, a.room_code, a.building_code, a.park, a.capacity, a.module_code, a.request_priority, a.request_status, a.request_child, a.notification_status FROM dbo.request a LEFT JOIN dbo.[request-week] b ON a.request_id=b.request_id WHERE a.request_status LIKE 'approved' AND a.request_semester='"+semester+"' AND a.request_year='"+year+"' AND a.room_code='"+roomCode+"' AND week_number IN("+weeks+") GROUP BY a.request_id, a.request_day, a.request_timestart, a.request_round, a.request_semester, a.request_year, a.room_code, a.building_code, a.park, a.capacity, a.module_code, a.request_priority, a.request_status, a.request_child, a.notification_status;";
       var result = db.Query(sql);
 
       var resultArrayLength = result.Count(); //number of rows returned
@@ -341,10 +432,10 @@
     }
 
     //Get the Submissions log data (on the Allocations Page)
-    dynamic getRequestLog_Allocation(Database db, string semester, string year, string deptcode) { //TODO: (After Conversion) Currently gives duplicate entries for multiple weeks
-      var sql = "SELECT a.request_id, a.request_day, a.request_timestart, a.request_round, a.request_semester, a.request_year, a.room_code, a.building_code, a.park, a.capacity, a.module_code, a.request_priority, a.request_status, a.request_child, a.notification_status, b.building_name, c.module_title FROM dbo.request a LEFT JOIN dbo.building b ON a.building_code=b.building_code LEFT JOIN dbo.module c ON a.module_code=CONCAT(c.dept_code,c.module_part,c.module_code) WHERE request_semester='"+semester+"' AND request_year='"+year+"' AND a.module_code LIKE '"+deptcode+"';";
+    dynamic getRequestLog_Allocation(Database db, dynamic semester, string year, string deptcode) { //TODO: (After Conversion) Currently gives duplicate entries for multiple weeks
+      var sql = "SELECT a.request_id, a.request_day, a.request_timestart, a.request_round, a.request_semester, a.request_year, a.room_code, a.building_code, a.park, a.capacity, a.module_code, a.request_priority, a.request_status, a.request_child, a.notification_status, b.building_name, c.module_title FROM dbo.request a LEFT JOIN dbo.building b ON a.building_code=b.building_code LEFT JOIN dbo.module c ON a.module_code=CONCAT(c.dept_code,c.module_part,c.module_code) WHERE request_semester='"+semester+"' AND request_year='"+year+"' AND a.module_code LIKE '"+deptcode+"%';";
       var result = db.Query(sql);
-
+      return result;
       var resultArrayLength = result.Count(); //number of rows returned
       var resultArray = result.ToArray(); 
 
@@ -399,12 +490,20 @@
       var modulepart = modulecode.Substring(2,1);
       modulecode = modulecode.Substring(3);
 
-      var SQL = "INSERT INTO dbo.module (dept_code,module_part,module_code,module_title) VALUES ('"+deptcode+"','"+modulepart+"','"+modulecode+"','"+moduletitle+"');";
+      var SQL = "INSERT INTO dbo.module (dept_code,module_part,module_code,module_titl) VALUES ('"+deptcode+"','"+modulepart+"','"+modulecode+"','"+moduletitle+"');";
       try {
-        db.Query(SQL);
-        return true;
+        var res = db.Execute(SQL);
+        if (res == 1) { //if execution updated 1 row
+          return true;
+        }
+        else { return false; }
       }
-      catch { return false; }   
+      catch { return false; }  
+      //TEST WITH: http://localhost:44715/api.cshtml?requestid=setNewModule&json={%22deptcode%22:%22CO%22,%22modulecode%22:%22COZ007%22,%22moduletitle%22:%22Test%22}
+      //How to verify SQL at stages:
+      //var res = db.Execute(SQL);
+      //If res returns 0 then no rows were changes - thus set flag to false
+      //If catch block thrown then set flag to false 
     }
 
     //Update a module's details in the database
@@ -414,8 +513,9 @@
       }
       var SQL = "UPDATE dbo.module SET module_title='"+moduletitle+"' WHERE CONCAT(dept_code,module_part,module_code)='"+modulecode+"';";
       try {
-        db.Query(SQL);
-        return true;
+        var res = db.Execute(SQL);
+        if (res == 1) { return true; }
+        else { return false; }
       }
       catch { return false; } 
     }
@@ -427,10 +527,239 @@
       }
       var SQL = "DELETE FROM dbo.module WHERE CONCAT(dept_code,module_part,module_code) LIKE '"+modulecode+"' AND module_title LIKE '"+moduletitle+"';";
       try {
-        db.Query(SQL);
-        return true;
+        var res = db.Execute(SQL);
+        if (res > 0) { return true; }
+        else { return false; }
       }
       catch { return false; } 
+    }
+
+    //Sets the notification status of a list of request ID's to 0 (From unread to READ)
+    dynamic setNotificationStatus(Database db, string idlist) {
+      var SQL = "UPDATE dbo.request SET notification_status=0 WHERE request_id IN ("+idlist+");";
+      try {
+        var res = db.Execute(SQL);
+        if (res > 0) { return true; }
+        else { return false; }
+      } 
+      catch { return false; } 
+    }
+
+    //Interprets the JSON data read in from clientside
+    //This is for BOOKING a room for multiple slots (times/days of a week)
+    //This also includes multiple rooms
+    //The booking from client side also sends through the list of 'Room Requirements' in the JSON data (ie. Park, Capacity, Projectors etc.)
+    dynamic interpretData(Database db, dynamic json, string modulecode) {
+
+      //json input will be length 1, 2 or 3 - eg. json[0][elements], json[1][elements], json[2][elements]
+
+      Dictionary<dynamic, dynamic> newState = new Dictionary<dynamic, dynamic>();
+
+      json = Json.Decode(json);
+      var old = json;
+
+      //try old to array?
+      //figure out how to count elements in json/old
+
+      //return old[0][3];
+
+/*      $queue = array();									//Create array queue and newState
+      $newState = array();
+      $old = $json;											//Array 'old' is assigned the JSON input
+      $returnStatus = true;							
+
+	    //Loop through the INPUT data to construct the 'newState' array
+      for ($x = 0; $x < sizeof($old); $x++) {						//Loop through input data ('old' array)
+        for ($y = 0; $y < sizeof($old[$x]); $y++) {			//For each element of old, then loop through each of the sub-elements ie. old[0], old[1], ...
+          switch ($y) {																					//IF-ELSE (SWITCH)
+            case 0:																							//If the current element is in index 0 of old (the input data) then it is the PARK	
+              $newState[$x]['park'] = $old[$x][$y];							//So fill newState array with this data
+              break;
+            case 1:
+              $newState[$x]['building'] = substr($old[$x][$y], strpos($old[$x][$y], ' '));
+              break;
+            case 2:
+              $newState[$x]['capacity'] = empty($old[$x][$y]) ? 0 : $old[$x][$y];
+              break;
+            case 3:
+              $newState[$x]['modulecode'] = $old[$x][$y];
+              break;
+            case 4:
+              $newState[$x]['priority'] = $old[$x][$y];
+              break;
+            case 5:																							//If the current element is in index 5 of old, go through all 15 of the next indeces to input the WEEKS they want the room for
+              $newState[$x]['weeklist'][0] = $old[$x][$y];
+              $newState[$x]['weeklist'][1] = $old[$x][$y + 1];
+              $newState[$x]['weeklist'][2] = $old[$x][$y + 2];
+              $newState[$x]['weeklist'][3] = $old[$x][$y + 3];
+              $newState[$x]['weeklist'][4] = $old[$x][$y + 4];
+              $newState[$x]['weeklist'][5] = $old[$x][$y + 5];
+              $newState[$x]['weeklist'][6] = $old[$x][$y + 6];
+              $newState[$x]['weeklist'][7] = $old[$x][$y + 7];
+              $newState[$x]['weeklist'][8] = $old[$x][$y + 8];
+              $newState[$x]['weeklist'][9] = $old[$x][$y + 9];
+              $newState[$x]['weeklist'][10] = $old[$x][$y + 10];
+              $newState[$x]['weeklist'][11] = $old[$x][$y + 11];
+              $newState[$x]['weeklist'][12] = $old[$x][$y + 12];
+              $newState[$x]['weeklist'][13] = $old[$x][$y + 13];
+              $newState[$x]['weeklist'][14] = $old[$x][$y + 14];
+              break;
+            case 21:																						//If the current element is index 21, go through all 17 of the next indeces to input the FACILITIES they require
+              $newState[$x]['facilities'][0] = $old[$x][$y];		//This will be 1's and 0's (1=Yes, 0=No)
+              $newState[$x]['facilities'][1] = $old[$x][$y + 1];
+              $newState[$x]['facilities'][2] = $old[$x][$y + 2];
+              $newState[$x]['facilities'][3] = $old[$x][$y + 3];
+              $newState[$x]['facilities'][4] = $old[$x][$y + 4];
+              $newState[$x]['facilities'][5] = $old[$x][$y + 5];
+              $newState[$x]['facilities'][6] = $old[$x][$y + 6];
+              $newState[$x]['facilities'][7] = $old[$x][$y + 7];
+              $newState[$x]['facilities'][8] = $old[$x][$y + 8];
+              $newState[$x]['facilities'][9] = $old[$x][$y + 9];
+              $newState[$x]['facilities'][10] = $old[$x][$y + 10];
+              $newState[$x]['facilities'][11] = $old[$x][$y + 11];
+              $newState[$x]['facilities'][12] = $old[$x][$y + 12];
+              $newState[$x]['facilities'][13] = $old[$x][$y + 13];
+              $newState[$x]['facilities'][14] = $old[$x][$y + 14];
+              $newState[$x]['facilities'][15] = $old[$x][$y + 15];
+              $newState[$x]['facilities'][16] = $old[$x][$y + 16];
+              break;
+            case 38:																											//If the index is 38, this is the start of the 'Timetable Grid'. Each index following is a new day (mon, tues, ...)
+              $newState[$x]['grid'][0] = gridDayToArray($old[$x][$y]);		//Use the gridDayToArray() function to convert this into an array for each day	
+              $newState[$x]['grid'][1] = gridDayToArray($old[$x][$y + 1]);
+              $newState[$x]['grid'][2] = gridDayToArray($old[$x][$y + 2]);
+              $newState[$x]['grid'][3] = gridDayToArray($old[$x][$y + 3]);
+              $newState[$x]['grid'][4] = gridDayToArray($old[$x][$y + 4]);
+              break;
+            case 43:																						//Index 43 contains the room code
+              $newState[$x]['roomcode'] = $old[$x][$y];
+              break;
+          }
+        }
+      }
+
+	    //Algorithm Sort     //debug here by "return $newState"
+      $index = 0;
+      $flag = false;
+	    //Find multiple room bookings
+      for ($i = 0; $i < sizeof($newState[0]['grid']); $i++) {				//For each element in the newState[0]'s timetable grid (ie. Monday grid, Tuesday grid, Weds grid, ...)
+        for ($j = 0; $j < sizeof($newState[0]['grid'][$i]); $j++) {	//For each element in each day's grid
+			
+          if ($newState[0]['grid'][$i][$j] == 1) {					//If this current day's grid is 1 (ie the slot has been selected for booking)
+				
+            if (sizeof($queue) == 0) {														//If the queue array is currently empty
+              $index = null;																				//Set the index to null
+            }
+            array_push($queue, requestPushBack($newState[0], ($j + 1), ($i + 1), 0, null));		//Use requestPushBack() to add this booking slot (with all it's info) to the queue array 
+				
+            if (sizeof($newState) > 1) {													//If the newState array still has data (2nd multiple room booking)		
+              if ($newState[1]['grid'][$i][$j]) {										//If the next element (newState[1]) ALSO has a 1 at the same grid slot (ie. This is a multiple room booking)
+                if ($index == null) {																	//And If the index is null
+                  $index = 0;																						//Set index back to 0
+                }
+                $flag = true;																					//Set flag as true (ie. It IS a multiple room booking)
+                array_push($queue, requestPushBack($newState[1], ($j + 1), ($i + 1), 1, (sizeof($queue) - 1)));		//Add this booking slot to the queue array
+              }
+            }
+				
+            if (sizeof($newState) > 2) {													//If the newState array has data for a 3rd multiple room booking
+              if ($newState[2]['grid'][$i][$j]) {										//If this ALSO has a 1 at same grid slot (ie. This is a multiple room booking)
+                if ($index == null) {
+                  $index = 0;
+                }
+                array_push($queue, requestPushBack($newState[2], ($j + 1), ($i + 1), 2, ($flag) ? (sizeof($queue) - 2) : (sizeof($queue) - 1)));
+                $flag = false;
+              }
+            }
+				
+          }
+			
+        }
+      }
+	
+	    //Map Request Children
+      $lastID = getLastID($db);				//Variable lastID is assigned the return of getLastID() function
+      for ($i = 0; $i < sizeof($queue) - 1; $i++) {					//For each element in the queue array
+		
+		    //If they are linked rooms (multiple and if one is rejected all are) - using verifyLinked() function
+        if (verifyLinked($queue[$i]['request-timestart'], $queue[$i]['para_d'], $queue[$i]['para_r'], $queue[$i + 1]['request-timestart'], $queue[$i + 1]['para_d'], $queue[$i + 1]['para_r'])) {
+          $queue[$i]['child'] = $lastID + $i + 2;		//Set the child element of first element to the second element's ID number in the database
+        }
+		
+      }
+	
+	    //Add requests to database
+      for ($i = 0; $i < sizeof($queue); $i++) {	//For each element in the queue array
+		    //Declare variables
+        $queueElem = $queue[$i];					//queueElem is the current element of the queue array
+        $sql_day = $queueElem['day'];
+        $sql_time = $queueElem['request-timestart'];
+        $sql_round = 'round1';
+        $sql_semester = '2';
+        $sql_year = yearCheck(date('m'));
+        $sql_roomcode = $queueElem['roomcode'];
+        $sql_building = $queueElem['buildingcode'];
+        $sql_park = $queueElem['park'];
+        $sql_capacity = $queueElem['capacity'];
+        $sql_modulecode = $queueElem['modulecode'];
+        $sql_priority = (empty($queueElem['priority'])) ? "" : $queueElem['priority'];
+        $sql_status = 'pending';					//TODO: This should be assigned 'approved' if currently in AD-HOC or Private room
+        $sql_child = $queueElem['child'];
+        $sql_notif = '0';
+		
+		    //SQL - Add the request to the 'dbo.request' table in the database
+        $sql = "";
+        if ($queueElem['child'] === null) {		//If the element doesnt have a child
+          $sql = "INSERT INTO request (request_day, request_timestart, request_round, request_semester, request_year, room_code, building_code, park, capacity, module_code, "
+                  . "request_priority, request_status, notification_status) VALUES "
+                  . "('$sql_day', $sql_time, '$sql_round', $sql_semester, $sql_year, '$sql_roomcode', '$sql_building', '$sql_park', $sql_capacity, '$sql_modulecode',"
+                  . " '$sql_priority', '$sql_status', $sql_notif)";
+        } 
+		    else {	//If the element DOES have a child
+          $sql = "INSERT INTO request (request_day, request_timestart, request_round, request_semester, request_year, room_code, building_code, park, capacity, module_code, "
+                  . "request_priority, request_status, request_child, notification_status) VALUES "
+                  . "('$sql_day', $sql_time, '$sql_round', $sql_semester, $sql_year, '$sql_roomcode', '$sql_building', '$sql_park', $sql_capacity, '$sql_modulecode',"
+                  . " '$sql_priority', '$sql_status', $sql_child, $sql_notif)";
+        }		
+        $res = & $db->queryOne($sql);		//Query the database
+
+        $returnStatus = $returnStatus && verify($res); 		//To test for success, returnStatus = current returnStatus (true/false) AND verify() of this recent request
+
+		    //SQL - Insert the weeks into the 'dbo.request-week' table
+        for ($j = 0; $j < sizeof($queueElem['weeklist']); $j++) {	//For each element of the week list
+			
+          $sqlWeek = "";																					//variable sqlWeek (for the SQL string)	
+          if ($queueElem['weeklist'][$j] == 1) {									//If the week has been selected (1=Yes)
+            $weekNum = $j + 1;																			
+            $lid = $lastID + $i + 1;																//The ID of the request
+            $sqlWeek = "INSERT INTO `request-week` VALUES ($lid,$weekNum)";	//Make SQL statement to insert weeks
+          } 
+			    else {																									//If the week has NOT been selected
+            $sqlWeek = "SELECT request_id FROM request LIMIT 1;";		//Execute this simple SQL statement rather than doing nothing (to prevent db issues)
+          }
+          $res = & $db->queryOne($sqlWeek);		//Query the database
+
+          $returnStatus = $returnStatus && verify($res);		//To test for success, returnStatus = current returnStatus (true/false) AND verify() of this recent request
+        }
+		
+		    //SQL - Insert the facilities into the 'dbo.facility-request' table
+        for ($j = 0; $j < sizeof($queueElem['facilities']); $j++) {	//For each element of the facilities list
+			
+          $sqlFak = "";																		//variable sqlFac (for the SQL string)				
+          if ($queueElem['facilities'][$j] == 1) {				//If the facility has been selected (it is required)
+            $fakID = $j + 1;																//Facility ID
+            $lid = $lastID + $i + 1;												//The ID of the request
+            $sqlFak = "INSERT INTO `facility-request` VALUES ($lid,$fakID)";	//Make the SQL statement to insert facility
+          } 
+			    else {																					//If the week has NOT been selected
+            $sqlFak = "SELECT request_id FROM request LIMIT 1;";	//Execute this simple SQL statement rather than doing nothing (to prevent db issues)
+          }
+          $res = & $db->queryOne($sqlFak);		//Query the database
+			
+          $returnStatus = $returnStatus && verify($res);		//To test for success, returnStatus = current returnStatus (true/false) AND verify() of this recent request
+        }
+      }
+      return $returnStatus;		//Return true or false (True if all db queries were a success)*/
+      return false;
     }
 }
 }
