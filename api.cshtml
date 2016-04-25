@@ -145,7 +145,7 @@
         while (i < (len-1) && (nums[i + 1]["week_number"] - nums[i]["week_number"] == 1) != null){
           rEnd = nums[++i]["week_number"];
         }
-        ranges = rStart == rEnd ? rStart : rStart + " - " + rEnd;
+        ranges = rStart == rEnd ? rStart.ToString() : rStart + " - " + rEnd;  //if 1 entry, return the week, otherwise return in form "1 - 5"
       }
       return ranges;
     }
@@ -418,7 +418,6 @@
       var result = db.Query(sql);
 
       var resultArrayLength = result.Count; //number of rows returned
-      //var resultArray = result.ToArray(); 
       var resultArray = result;
 
       dynamic[] res = new dynamic[resultArrayLength];
@@ -432,12 +431,12 @@
     }
 
     //Get the Submissions log data (on the Allocations Page)
-    dynamic getRequestLog_Allocation(Database db, dynamic semester, string year, string deptcode) { //TODO: (After Conversion) Currently gives duplicate entries for multiple weeks
+    dynamic getRequestLog_Allocation(Database db, dynamic semester, dynamic year, string deptcode) { //TODO: (After Conversion) Currently gives duplicate entries for multiple weeks
       var sql = "SELECT a.request_id, a.request_day, a.request_timestart, a.request_round, a.request_semester, a.request_year, a.room_code, a.building_code, a.park, a.capacity, a.module_code, a.request_priority, a.request_status, a.request_child, a.notification_status, b.building_name, c.module_title FROM dbo.request a LEFT JOIN dbo.building b ON a.building_code=b.building_code LEFT JOIN dbo.module c ON a.module_code=CONCAT(c.dept_code,c.module_part,c.module_code) WHERE request_semester='"+semester+"' AND request_year='"+year+"' AND a.module_code LIKE '"+deptcode+"%';";
       var result = db.Query(sql);
-      return result;
-      var resultArrayLength = result.Count(); //number of rows returned
-      var resultArray = result.ToArray(); 
+
+      var resultArrayLength = result.Count; //number of rows returned
+      var resultArray = result; 
 
       dynamic[] res = new dynamic[resultArrayLength];
 
@@ -446,7 +445,7 @@
         var week = db.Query(sqlWeekCheck);
         res[i] = new {request_details = resultArray[i], weeks_active = week, weeks_range = getRanges(week)};
       }
-      return resultArray;
+      return res;
     }
 
     //Get the notifications (all unread requests)
@@ -499,11 +498,7 @@
         else { return false; }
       }
       catch { return false; }  
-      //TEST WITH: http://localhost:44715/api.cshtml?requestid=setNewModule&json={%22deptcode%22:%22CO%22,%22modulecode%22:%22COZ007%22,%22moduletitle%22:%22Test%22}
-      //How to verify SQL at stages:
-      //var res = db.Execute(SQL);
-      //If res returns 0 then no rows were changes - thus set flag to false
-      //If catch block thrown then set flag to false 
+      //TEST WITH: http://localhost:44715/api.cshtml?requestid=setNewModule&json={%22deptcode%22:%22CO%22,%22modulecode%22:%22COZ007%22,%22moduletitle%22:%22Test%22} 
     }
 
     //Update a module's details in the database
@@ -552,16 +547,16 @@
     dynamic interpretData(Database db, dynamic json, string modulecode) {
 
       //json input will be length 1, 2 or 3 - eg. json[0][elements], json[1][elements], json[2][elements]
+      //return old[0].Length;
+      //return old[0][3];
 
       Dictionary<dynamic, dynamic> newState = new Dictionary<dynamic, dynamic>();
 
-      json = Json.Decode(json);
-      var old = json;
+      var old = Json.Decode(json);          //Array 'old' is assigned the JSON input
 
-      //try old to array?
-      //figure out how to count elements in json/old
+      bool returnStatus = true;
 
-      //return old[0][3];
+      //Loop through the INPUT data to construct the 'newState' array
 
 /*      $queue = array();									//Create array queue and newState
       $newState = array();
