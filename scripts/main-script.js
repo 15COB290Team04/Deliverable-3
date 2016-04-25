@@ -71,7 +71,7 @@ $(document).ready(function () {
     //Calc ID String
     var idList = "";
     $('.notification-id').each(function () {
-      idList += $(this).text() + ',';
+      idList += "'" + $(this).text() + "',";
     });
     idList = idList.substr(0, idList.length - 1);
     console.log(idList);
@@ -83,8 +83,6 @@ $(document).ready(function () {
         $('#user-notification-alert').css("display", "none");
         notificationLoad();
         alert("Notifications read!");
-
-        //Tarun - Remove and Reset Notifications, Query Success
       }
     }, 'json');
   });
