@@ -11,17 +11,20 @@
 $(document).ready(function () {
 
   notificationLoad();
-  /* SCRIPT FOR HELP CLICKS */
+
+  //DETECT USER PREFS ON LOADING PAGE
   if (typeof pref_zoom != 'undefined') {
-    if (pref_zoom === 1) {
+    if (pref_zoom == 1) {
       zoomFunction();
     }
   }
   if (typeof pref_colour != 'undefined') {
-    if (pref_colour === 1) {
+    if (pref_colour == 1) {
       colorFunction();
     }
   }
+
+  //HELP ICON CLICKS
   $(".help-icon").click(function () {
     //Get id
     var id = $(this).attr('id');
@@ -68,7 +71,7 @@ $(document).ready(function () {
     //Calc ID String
     var idList = "";
     $('.notification-id').each(function () {
-      idList += $(this).text() + ',';
+      idList += "'" + $(this).text() + "',";
     });
     idList = idList.substr(0, idList.length - 1);
     console.log(idList);
@@ -80,8 +83,6 @@ $(document).ready(function () {
         $('#user-notification-alert').css("display", "none");
         notificationLoad();
         alert("Notifications read!");
-
-        //Tarun - Remove and Reset Notifications, Query Success
       }
     }, 'json');
   });
@@ -103,7 +104,7 @@ function checkInp(type, input) {
 
 function zoomFunction() {
   if (parseInt($('#page-content-container').css('font-size')) == 16) {
-    $.post("https://co-project.lboro.ac.uk/crew12/Deliverable%202/updateprefs.php", {prefid: "zoom", prefval: "1"},
+    $.post("updateprefs.cshtml", {prefid: "zoom", prefval: "1"},
     function (JSONresult) {
       //Reserved
     }, 'json');
@@ -120,7 +121,7 @@ function zoomFunction() {
 
   }
   else {
-    $.post("https://co-project.lboro.ac.uk/crew12/Deliverable%202/updateprefs.php", {prefid: "zoom", prefval: "0"},
+    $.post("updateprefs.cshtml", {prefid: "zoom", prefval: "0"},
     function (JSONresult) {
       //Reserved
     }, 'json');
@@ -140,7 +141,7 @@ function zoomFunction() {
 function colorFunction() {
   console.log($('#main-heading').css('color'));
   if ($('#main-heading').css('color') == "rgb(250, 250, 250)") {
-    $.post("https://co-project.lboro.ac.uk/crew12/Deliverable%202/updateprefs.php", {prefid: "colour", prefval: "1"},
+    $.post("updateprefs.cshtml", {prefid: "colour", prefval: "1"},
     function (JSONresult) {
       //Reserved
     }, 'json');
@@ -174,7 +175,7 @@ function colorFunction() {
     $('.btn.del').css('background-color', 'lightgrey');
   }
   else {
-    $.post("https://co-project.lboro.ac.uk/crew12/Deliverable%202/updateprefs.php", {prefid: "colour", prefval: "0"},
+    $.post("updateprefs.cshtml", {prefid: "colour", prefval: "0"},
     function (JSONresult) {
       //Reserved
     }, 'json');
@@ -215,39 +216,25 @@ function notificationLoad() {
   console.log("notificationLoad() called");
 
   //Call get Post
-  $.post("api.cshtml", {requestid: "getNotifications"},
+  $.post("api.cshtml", { requestid: "getNotifications" },
   function (JSONresult) {
-    var notificationList = ""
+    var notificationList = "";
     for (var i = 0; i < JSONresult.length; i++) {
-
-      if (JSONresult[i]['request-details'].request_status == "approved") {
+      if (JSONresult[i]['request_details'].request_status == "approved") {
         notificationList += "<div class='notification-accepted log-group-accepted'>";
-        notificationList += JSONresult[i]['request-details'].module_code + "&nbsp;&nbsp;Room: ";
-        notificationList += JSONresult[i]['request-details'].room_code + "&nbsp;&nbsp; <br/>Day: ";
-        notificationList += JSONresult[i]['request-details'].request_day + "&nbsp;&nbsp; Time: ";
-        notificationList += JSONresult[i]['request-details'].request_timestart + "&nbsp;&nbsp; ";
-        notificationList += "Weeks: ";
-        for (var j = 0; j < JSONresult[i]['weeks-range'].length; j++) {
-          notificationList += JSONresult[i]['weeks-range'][j] + ", ";
-        }
-        notificationList += "<span class='notification-id' style='display:none;'>";
-        notificationList += JSONresult[i]['request-details'].request_id + "</span></div>";
       }
       else {
         notificationList += "<div class='notification-rejected log-group-rejected'>";
-        notificationList += JSONresult[i]['request-details'].module_code + "&nbsp;&nbsp;Room: ";
-        notificationList += JSONresult[i]['request-details'].room_code + "&nbsp;&nbsp; <br/>Day: ";
-        notificationList += JSONresult[i]['request-details'].request_day + "&nbsp;&nbsp; Time: ";
-        notificationList += JSONresult[i]['request-details'].request_timestart + "&nbsp;&nbsp; ";
-        notificationList += "Weeks: ";
-        for (var j = 0; j < JSONresult[i]['weeks-range'].length; j++) {
-          notificationList += JSONresult[i]['weeks-range'][j] + ", ";
-        }
-        notificationList += "<span class='notification-id' style='display:none;'>";
-        notificationList += JSONresult[i]['request-details'].request_id + "</span></div>";
       }
+      notificationList += JSONresult[i]['request_details'].module_code + "&nbsp;&nbsp;Room: ";
+      notificationList += JSONresult[i]['request_details'].room_code + "&nbsp;&nbsp; <br/>Day: ";
+      notificationList += JSONresult[i]['request_details'].request_day + "&nbsp;&nbsp; Time: ";
+      notificationList += JSONresult[i]['request_details'].request_timestart + "&nbsp;&nbsp; ";
+      notificationList += "Weeks: ";
+      notificationList += JSONresult[i]['weeks_range'];
+      notificationList += "<span class='notification-id' style='display:none;'>";
+      notificationList += JSONresult[i]['request_details'].request_id + "</span></div>";
     }
-
     //console.log(notificationList);
     if (notificationList !== "") {
       $('#user-notification-alert').css('display', 'inline');

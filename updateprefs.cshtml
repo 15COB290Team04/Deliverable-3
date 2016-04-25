@@ -1,0 +1,57 @@
+﻿@{
+  //Manage User Session
+  if (Session["dept-code"] != null) {
+    var db = Database.Open("SQLServerConnectionString");
+    var user = Session["dept-code"];
+    var SQL = "SELECT * FROM dbo.department WHERE department_code = '"+user+"'";
+    var dbres = db.Query(SQL);
+    if (dbres.Count() != 1) {
+      Session.Abandon();
+      Response.Redirect("login.cshtml");
+    } 
+  } 
+  else {
+    Session.Abandon();
+    Response.Redirect("login.cshtml");
+  }
+
+  @functions {
+    //Retrieve and Sanitize inputs from the Client-Side 
+    dynamic input(dynamic queryid) {
+      var id = Request.Params[queryid];
+      char[] invalidChars = { ';', '<', '>', '-', '{', '}', '[', ']' };
+      if(id != null) {
+        id = String.Join("", id.Split(invalidChars));
+        return id;
+      }
+      else {
+        Response.Write("You submitted a missing parameter. Contact an admin.");
+        return null;
+      }
+    }
+  }
+
+  if (!String.IsNullOrEmpty(Request.Params["prefid"]) && !String.IsNullOrEmpty(Request.Params["prefval"])) {
+    if (input("prefid") == "zoom") { //Zoom Preferences
+      if (input("prefval") == "1") {
+        Session["pref-zoom"] = 1;
+        @Html.Raw("zoom = 1");
+      } 
+      else {
+        Session["pref-zoom"] = 0;
+        @Html.Raw("zoom = 0");
+      }
+    } 
+    else if (input("prefid") == "colour") { //Colour Preferences
+      if (input("prefval") == "1") {
+        Session["pref-colour"] = 1;
+        @Html.Raw("zoom = 1");
+      } 
+      else {
+        Session["pref-colour"] = 0;
+        @Html.Raw("zoom = 0");
+      }
+    }
+  }
+
+}

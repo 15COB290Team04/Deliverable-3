@@ -342,8 +342,8 @@ label.full {
 }
 
 .panel-title a{ position: relative;}
-.panel-title a:after{ position: absolute; top: 6px; right: 20px; content: "\f102"; font-family: 'FontAwesome'; font-size: 30px; color: #666;}
-.panel-title a.collapsed:after{ position: absolute; top: 6px; right: 20px; content: "\f103"; font-family: 'FontAwesome'; font-size: 30px; color: #666;}
+.panel-title a:after{ position: absolute; top: 6px; right: 20px; content: "\f102"; font-size: 30px; color: #666;}
+.panel-title a.collapsed:after{ position: absolute; top: 6px; right: 20px; content: "\f103"; font-size: 30px; color: #666;}
 
 .page-outer-book {
   margin:auto; height:auto; min-height:120px; padding:20px;
