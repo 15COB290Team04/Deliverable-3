@@ -551,86 +551,97 @@
       //return old[0][3];
 
       Dictionary<dynamic, dynamic> newState = new Dictionary<dynamic, dynamic>();
+      Dictionary<dynamic, dynamic> current;
+      //$queue = array();
 
       var old = Json.Decode(json);          //Array 'old' is assigned the JSON input
 
       bool returnStatus = true;
 
       //Loop through the INPUT data to construct the 'newState' array
+      for (var x = 0; x < old.Length; x++) {              //Loop through input data ('old' array)
 
-/*      $queue = array();									//Create array queue and newState
-      $newState = array();
-      $old = $json;											//Array 'old' is assigned the JSON input
-      $returnStatus = true;							
+        current = new Dictionary<dynamic, dynamic>();     //Create the Dictionary 'current' for this particular request
 
-	    //Loop through the INPUT data to construct the 'newState' array
-      for ($x = 0; $x < sizeof($old); $x++) {						//Loop through input data ('old' array)
-        for ($y = 0; $y < sizeof($old[$x]); $y++) {			//For each element of old, then loop through each of the sub-elements ie. old[0], old[1], ...
-          switch ($y) {																					//IF-ELSE (SWITCH)
-            case 0:																							//If the current element is in index 0 of old (the input data) then it is the PARK	
-              $newState[$x]['park'] = $old[$x][$y];							//So fill newState array with this data
+        for (var y = 0; y < old[x].Length; y++) {         //For each element of old, then loop through each of the sub-elements ie. old[0], old[1], ...
+          switch (y) {
+            case 0:                                       //If current element is in index 0 of old (the input data) then it is the PARK
+              current.Add("park", old[x][y]);             //Add park to the current dictionary
               break;
             case 1:
-              $newState[$x]['building'] = substr($old[$x][$y], strpos($old[$x][$y], ' '));
+              string builCode = old[x][y].IndexOf(' ') > 0 ? old[x][y].Substring(0, old[x][y].IndexOf(' ')) : old[x][y];
+              current.Add("building", builCode);
               break;
             case 2:
-              $newState[$x]['capacity'] = empty($old[$x][$y]) ? 0 : $old[$x][$y];
+              current.Add("capacity", String.IsNullOrEmpty(old[x][y]) ? 0 : old[x][y] );
               break;
             case 3:
-              $newState[$x]['modulecode'] = $old[$x][$y];
+              current.Add("modulecode", old[x][y]);
               break;
             case 4:
-              $newState[$x]['priority'] = $old[$x][$y];
+              current.Add("priority", old[x][y]);
               break;
-            case 5:																							//If the current element is in index 5 of old, go through all 15 of the next indeces to input the WEEKS they want the room for
-              $newState[$x]['weeklist'][0] = $old[$x][$y];
-              $newState[$x]['weeklist'][1] = $old[$x][$y + 1];
-              $newState[$x]['weeklist'][2] = $old[$x][$y + 2];
-              $newState[$x]['weeklist'][3] = $old[$x][$y + 3];
-              $newState[$x]['weeklist'][4] = $old[$x][$y + 4];
-              $newState[$x]['weeklist'][5] = $old[$x][$y + 5];
-              $newState[$x]['weeklist'][6] = $old[$x][$y + 6];
-              $newState[$x]['weeklist'][7] = $old[$x][$y + 7];
-              $newState[$x]['weeklist'][8] = $old[$x][$y + 8];
-              $newState[$x]['weeklist'][9] = $old[$x][$y + 9];
-              $newState[$x]['weeklist'][10] = $old[$x][$y + 10];
-              $newState[$x]['weeklist'][11] = $old[$x][$y + 11];
-              $newState[$x]['weeklist'][12] = $old[$x][$y + 12];
-              $newState[$x]['weeklist'][13] = $old[$x][$y + 13];
-              $newState[$x]['weeklist'][14] = $old[$x][$y + 14];
+            case 5:                                       //If the current element is in index 5 of old, go through all 15 of the next indeces to input the WEEKS they requested
+              Dictionary<dynamic, dynamic> currentweeklist = new Dictionary<dynamic, dynamic>();
+              currentweeklist.Add(0, old[x][y]);
+              currentweeklist.Add(1, old[x][y+1]);
+              currentweeklist.Add(2, old[x][y+2]);
+              currentweeklist.Add(3, old[x][y+3]);
+              currentweeklist.Add(4, old[x][y+4]);
+              currentweeklist.Add(5, old[x][y+5]);
+              currentweeklist.Add(6, old[x][y+6]);
+              currentweeklist.Add(7, old[x][y+7]);
+              currentweeklist.Add(8, old[x][y+8]);
+              currentweeklist.Add(9, old[x][y+9]);
+              currentweeklist.Add(10, old[x][y+10]);
+              currentweeklist.Add(11, old[x][y+11]);
+              currentweeklist.Add(12, old[x][y+12]);
+              currentweeklist.Add(13, old[x][y+13]);
+              currentweeklist.Add(14, old[x][y+14]);
+              current.Add("weeklist", currentweeklist);
               break;
-            case 21:																						//If the current element is index 21, go through all 17 of the next indeces to input the FACILITIES they require
-              $newState[$x]['facilities'][0] = $old[$x][$y];		//This will be 1's and 0's (1=Yes, 0=No)
-              $newState[$x]['facilities'][1] = $old[$x][$y + 1];
-              $newState[$x]['facilities'][2] = $old[$x][$y + 2];
-              $newState[$x]['facilities'][3] = $old[$x][$y + 3];
-              $newState[$x]['facilities'][4] = $old[$x][$y + 4];
-              $newState[$x]['facilities'][5] = $old[$x][$y + 5];
-              $newState[$x]['facilities'][6] = $old[$x][$y + 6];
-              $newState[$x]['facilities'][7] = $old[$x][$y + 7];
-              $newState[$x]['facilities'][8] = $old[$x][$y + 8];
-              $newState[$x]['facilities'][9] = $old[$x][$y + 9];
-              $newState[$x]['facilities'][10] = $old[$x][$y + 10];
-              $newState[$x]['facilities'][11] = $old[$x][$y + 11];
-              $newState[$x]['facilities'][12] = $old[$x][$y + 12];
-              $newState[$x]['facilities'][13] = $old[$x][$y + 13];
-              $newState[$x]['facilities'][14] = $old[$x][$y + 14];
-              $newState[$x]['facilities'][15] = $old[$x][$y + 15];
-              $newState[$x]['facilities'][16] = $old[$x][$y + 16];
+            case 21:                                      //If the current element is index 21, go through all 17 of the next indeces to input the FACILITIES they require
+              Dictionary<dynamic, dynamic> currentfaclist = new Dictionary<dynamic, dynamic>();
+              currentfaclist.Add(0, old[x][y]);
+              currentfaclist.Add(1, old[x][y+1]);
+              currentfaclist.Add(2, old[x][y+2]);
+              currentfaclist.Add(3, old[x][y+3]);
+              currentfaclist.Add(4, old[x][y+4]);
+              currentfaclist.Add(5, old[x][y+5]);
+              currentfaclist.Add(6, old[x][y+6]);
+              currentfaclist.Add(7, old[x][y+7]);
+              currentfaclist.Add(8, old[x][y+8]);
+              currentfaclist.Add(9, old[x][y+9]);
+              currentfaclist.Add(10, old[x][y+10]);
+              currentfaclist.Add(11, old[x][y+11]);
+              currentfaclist.Add(12, old[x][y+12]);
+              currentfaclist.Add(13, old[x][y+13]);
+              currentfaclist.Add(14, old[x][y+14]);
+              currentfaclist.Add(15, old[x][y+15]);
+              currentfaclist.Add(16, old[x][y+16]);
+              current.Add("facilities", currentfaclist);
               break;
-            case 38:																											//If the index is 38, this is the start of the 'Timetable Grid'. Each index following is a new day (mon, tues, ...)
-              $newState[$x]['grid'][0] = gridDayToArray($old[$x][$y]);		//Use the gridDayToArray() function to convert this into an array for each day	
-              $newState[$x]['grid'][1] = gridDayToArray($old[$x][$y + 1]);
-              $newState[$x]['grid'][2] = gridDayToArray($old[$x][$y + 2]);
-              $newState[$x]['grid'][3] = gridDayToArray($old[$x][$y + 3]);
-              $newState[$x]['grid'][4] = gridDayToArray($old[$x][$y + 4]);
+            case 38:                                      //If the index is 38, this is the start of the 'Timetable Grid'. Each index following is a new day (mon, tues, ...)
+              Dictionary<dynamic, dynamic> currentgridlist = new Dictionary<dynamic, dynamic>();
+              currentgridlist.Add(0, gridDayToArray(old[x][y]));          //Use the gridDayToArray() function to convert this into an array for each day
+              currentgridlist.Add(1, gridDayToArray(old[x][y+1]));
+              currentgridlist.Add(2, gridDayToArray(old[x][y+2]));
+              currentgridlist.Add(3, gridDayToArray(old[x][y+3]));
+              currentgridlist.Add(4, gridDayToArray(old[x][y+4]));
+              current.Add("grid", currentgridlist);
               break;
-            case 43:																						//Index 43 contains the room code
-              $newState[$x]['roomcode'] = $old[$x][$y];
+            case 43:
+              current.Add("roomcode", old[x][y]);
               break;
           }
-        }
+        }      
+        newState.Add(x,current);                          //Add to newstate array such that newState[x][element] returns the value inserted into 'current'         
       }
+
+      return newState[0]["roomcode"];
+
+
+/*  						
 
 	    //Algorithm Sort     //debug here by "return $newState"
       $index = 0;
