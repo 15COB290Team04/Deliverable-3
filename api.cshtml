@@ -365,7 +365,7 @@
     }
 
     //Get a Room's Timetable
-    dynamic getRequestTimetable(Database db, string roomCode, string semester, string weeks) {
+    dynamic getRequestTimetable(Database db, string roomCode, dynamic semester, dynamic weeks) {
       //Note: var weeks input is in string form similar to "1,2,3,7,10,"  ...  Must convert it to "'1','2','3','7'"
       if (weeks[weeks.Length-1] == ',') {
         weeks = weeks.Substring(0,weeks.Length-1);
@@ -377,8 +377,8 @@
       var sql = "SELECT a.request_id, a.request_day, a.request_timestart, a.request_round, a.request_semester, a.request_year, a.room_code, a.building_code, a.park, a.capacity, a.module_code, a.request_priority, a.request_status, a.request_child, a.notification_status FROM dbo.request a LEFT JOIN dbo.[request-week] b ON a.request_id=b.request_id WHERE a.request_status LIKE 'approved' AND a.request_semester='"+semester+"' AND a.request_year='"+year+"' AND a.room_code='"+roomCode+"' AND week_number IN("+weeks+") GROUP BY a.request_id, a.request_day, a.request_timestart, a.request_round, a.request_semester, a.request_year, a.room_code, a.building_code, a.park, a.capacity, a.module_code, a.request_priority, a.request_status, a.request_child, a.notification_status;";
       var result = db.Query(sql);
 
-      var resultArrayLength = result.Count(); //number of rows returned
-      var resultArray = result.ToArray(); 
+      var resultArrayLength = result.Count; //number of rows returned
+      var resultArray = result; 
 
       dynamic[] res = new dynamic[resultArrayLength];
 
@@ -391,13 +391,13 @@
     }
 
     //Get a Module's Timetable
-    dynamic getRequestTimetable_ModuleInfo(Database db, string modulecode, string semester, string weeks) {
+    dynamic getRequestTimetable_ModuleInfo(Database db, string modulecode, dynamic semester, dynamic weeks) {
       var year = yearCheck(@DateTime.Now.Month);	//Have already converted yearCheck() in api.cshtml - Insert: @DateTime.Now.Month into the function
       var sql = "SELECT a.request_id, a.request_day, a.request_timestart, a.request_round, a.request_semester, a.request_year, a.room_code, a.building_code, a.park, a.capacity, a.module_code, a.request_priority, a.request_status, a.request_child, a.notification_status FROM dbo.request a LEFT JOIN dbo.[request-week] b ON a.request_id=b.request_id WHERE a.request_status LIKE 'approved' AND a.request_semester='"+semester+"' AND a.request_year='"+year+"' AND a.module_code='"+modulecode+"' AND week_number IN('"+weeks+"');";//GROUP BY a.request_id usually in there need to have a play and figure out what this is about
       var result = db.Query(sql);
 
-      var resultArrayLength = result.Count(); //number of rows returned
-      var resultArray = result.ToArray(); 
+      var resultArrayLength = result.Count; //number of rows returned
+      var resultArray = result.ToArray; 
 
       dynamic[] res = new dynamic[resultArrayLength];
 

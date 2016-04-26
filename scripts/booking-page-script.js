@@ -50,6 +50,7 @@ $(document).ready(function () {
     console.log("Load state: " + $(this).attr('id').charAt(8));
     $(this).addClass('tab-active');
     //if ($(this).attr('id').charAt(8) == 2 || $(this).attr('id').charAt(8) == 3) {
+    getSuitableRooms();
     getRoomTimetable();
 
 
