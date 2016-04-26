@@ -1,11 +1,3 @@
-/*
- Loughborough University (February 2016)
- 
- Timetabling Website
- Moduleinfo page's script file (includes jQuery)
- Used for scripts on the module information page ONLY
- */
-
 $(document).ready(function () {
 
   //AUTOFILL SEARCH FOR MODULE TITLE
@@ -35,8 +27,7 @@ $(document).ready(function () {
     $("#select-semester").on('change input', function () {
       getModuleTimetable();
     });
-
-    //TIMETABLE POPUP
+  //TIMETABLE POPUP
     $(".timetable-data").click(function () {
       if ($(this).hasClass("timetable-taken")) {	//if it isnt a slot with a Booked (taken) class
         $('.pop').html($(this).find('.timetable-content-empty').html());
@@ -96,7 +87,7 @@ function getRoomTimetable() {
         var contentStart = currentContent.substring(0, currentContent.indexOf("<p></p>"));
         var contentEnd = currentContent.substring(currentContent.indexOf("<p></p>"));
 
-        contentStart += "<br/><br/>The module <b>" + JSONresult[i]['request-details'].module_code + "</b> has booked this slot for weeks:<br/>";
+        contentStart += "<br/><br/>The room <b>" + JSONresult[i]['request-details'].room_code + "</b> has been booked by this module for weeks:<br/>";
         for (var j = 0; j < JSONresult[i]['weeks-range'].length; j++) {
           contentStart += JSONresult[i]['weeks-range'][j] + ", ";
         }
