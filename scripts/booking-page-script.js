@@ -99,17 +99,24 @@ $(document).ready(function () {
   //ROOM TAB NUMBER DROPDOWN
   $('#select-tab-number').change(function () {
     var tabnum = $('#select-tab-number').val();
+    var prevtab = parseInt($('.tab-active').attr('id').substring(8));
+
     if (tabnum == 1) {
       $('#room-tabs ul').html('<li class="room-tab tab-active" id="tab-room1">Room 1</li>');
+      loadState(1);
     }
     else if (tabnum == 2) {
       $('#room-tabs ul').html('<li class="room-tab tab-active" id="tab-room1">Room 1</li><li class="room-tab" id="tab-room2">Room 2</li>');
+      saveState(prevtab);
+      loadState(1);
       //			$('#tab-room1').addClass('tab-active');
       //			$('#tab-room2').removeClass('tab-disabled');
       //			$('#tab-room3').addClass('tab-disabled');
     }
     else {
       $('#room-tabs ul').html('<li class="room-tab tab-active" id="tab-room1">Room 1</li><li class="room-tab" id="tab-room2">Room 2</li><li class="room-tab" id="tab-room3">Room 3</li>');
+      saveState(prevtab);
+      loadState(1);
       //			$('#tab-room1').addClass('tab-active');
       //			$('#tab-room2').removeClass('tab-disabled');
       //			$('#tab-room3').removeClass('tab-disabled');
@@ -520,7 +527,7 @@ function loadRoomBuildingInfo(roomCode) {
     //call api.cshtml with "buildingCode" to return the buildingName
     $.post("api.cshtml", {requestid: "getBuildingName", buildingcode: buildingCode},
     function (JSONresult) {
-      $('#form-booking-roomName').text(JSONresult);
+      $('#form-booking-roomName').text(JSONresult[0].building_name);
       getRoomTimetable();
     }, 'json');
 
