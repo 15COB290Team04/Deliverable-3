@@ -1,0 +1,372 @@
+/*
+Timetabling Prototype Website
+Room info page's stylesheet
+Used for roominfo page styles ONLY
+*/
+
+/* 
+Frequent colours:
+off-white background: #FAFAFA;
+LU dark purple: #361163;
+*/
+
+#page-content-container {
+  width:1170px; 
+  margin:auto; 
+  height:auto; 
+  overflow:hidden;
+  margin-top:130px;
+  padding:20px;
+}
+/* ROOM TABS */
+#room-tabs {
+  width:100%;
+  /*	background-color:rgba(230,230,240,0.7);*/
+  margin-left:30px;
+  margin-right:auto;
+  height:40px;  /* (.nav-tab height) + 2*(.nav-tab vertical padding) */
+}
+#room-tabs {
+  list-style:none;
+}
+.room-tab {
+  float:left;
+  padding:5px 10px;
+  margin:4px 3px 0px 0px;
+  display:block;
+  background-color:rgb(220,220,220);
+  font-size:1em;
+  height:25px;
+  transition-duration:0.3s;
+  border:1px solid black;
+}
+.tab-active {
+  background-color:rgba(249,247,250,1);
+  border-bottom:1px solid rgba(249,247,250,1);
+}
+.room-tab:not(.tab-active):hover {
+  cursor:pointer;
+  background-color:rgba(0,0,0,0.3);
+}
+
+/* Room Search Drop-down Specific code */
+.roomSearch-header {
+  height:50px;
+  margin-top:20px;
+  padding-left:20px;
+  transition-duration:0.2s;
+}
+.roomSearch-container {
+  /*	background-color:#EDEDED;*/
+  height:250px;
+  padding:20px 20px 10px;
+}
+.roomSearch-header-bottomBorder {
+}
+#roomSearch-icon {
+  margin-left:10px;
+  margin-right:20px;
+  margin-top:10px;
+  transition-duration:0.2s;
+}
+#roomSearch-reset {
+  font-size:1em;
+  margin-top:20px;
+  position:absolute;
+  margin-left: 200px;
+}
+#roomSearch-reset:hover {
+  color:rgba(0,0,0,0.7);
+  transition-duration: 0.2s;
+  cursor:pointer;
+}
+#roomSearch-title {
+  font-size:1.25em;
+  margin-top:15px;
+  position:absolute;
+  font-weight:700;
+}
+#roomSearch-booking {
+  font-size:1.25em;
+  margin-top:15px;
+  position:absolute;
+  font-weight:700;
+  padding-left:none;
+}
+#wdytknbt {
+  height:100px;
+  margin-top:40px;
+}
+
+#form-roomSelection {
+  max-height:270px;
+  overflow:scroll;
+  border-bottom:none;
+  padding:0;
+  color:black;
+}
+#form-roomSelection option {
+  padding-bottom: 3px;
+  padding-top: 2px;
+}
+#form-roomSelection option:hover {
+  cursor:pointer;
+  background-color:rgba(54,17,99,0.1);
+}
+
+/* WEEK SELECTOR */
+#form-requiredWeeks {
+  height:80px;
+  padding:5px 0 10px 0;
+}
+#form-requiredWeeks-title {
+  float:left;
+  position: absolute;
+  margin-left:20px;
+  margin-top:20px;
+}
+#form-requiredWeeks-list {
+  float:left;
+  margin-left:160px;
+}
+#form-requiredWeeks-list table {
+  text-align: center;
+}
+#form-requiredWeeks-list table td {
+  margin-right:-10px;
+  border-right: 1px solid rgba(0,0,0,0.5);
+  padding:5px 7px 5px 7px;
+}
+#form-requiredWeeks-row1 {
+  border-top: 1px solid rgba(0,0,0,0.5);
+}
+#form-requiredWeeks-row1 input:hover {
+  cursor:pointer;
+}
+#form-requiredWeeks-row2 {
+  border-bottom: 1px solid rgba(0,0,0,0.5);
+}
+.form-requiredWeeks-checkbox {
+  /*
+          width:30px;
+          height:30px;
+          -webkit-transform: scale(3,3);
+  */
+  -webkit-transform: scale(2);
+  -moz-transform: scale(2);
+  -ms-transform: scale(2);
+  -o-transform: scale(2);
+  transform: scale(2);
+}
+.matrix3d {
+  -webkit-transform: matrix3d(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1); /* safari and chrome */
+}
+.form-requiredWeeks-all {
+  background-color: #90add6;
+  border-left: 1px solid rgba(0,0,0,0.5);
+}
+
+/* General form edits */
+.form-label {
+  margin-right:20px;
+}
+
+/* Form */
+.page-form-header {
+  margin-top:30px;
+}
+.page-form-container {
+  margin: 20px 0 0;
+}
+.submissionLog-container {
+  margin:20px 0;
+}
+.form-content { /* content within submission log container */
+  margin:auto; 
+  height:auto; 
+  padding:20px;
+}
+
+.page-form-container h1{ font-size: 1.25em; color: #000; font-weight:700; padding-bottom:20px;}
+.page-form-container h2{ font-size: 1em; color: #000;}
+
+.title_bar{ font-weight:700; text-align: center; padding:10px; font-size: 2.5em; color: #000; position: relative; line-height:30px;}
+.semester-choice-text { 
+  font-size: 0.4em;
+}
+.active-semester-choice {
+  /*	color:#6da0e8;*/
+  color:black;
+  cursor:default;
+}
+.deactive-semester-choice {
+  transition-duration: 0.2s;
+  cursor:pointer;
+  color:rgba(150,150,150,0.8);
+}
+.deactive-semester-choice:hover {
+  color:rgba(50,50,50,1);
+}
+#next-semester,#current-semester {
+  margin:0 5px;
+}
+.disabled-semester-choice {
+  cursor:default;
+  color:rgba(100,100,100,0.2);
+}
+.title_bar .clock{ 
+  font-size: 0.4em; width: 200px; text-align: center; position: absolute; top: 15px; right: 0;
+}
+.form-inline .form-group {
+  display: inline-block;
+  margin-bottom: 0px;
+  vertical-align: middle;
+  font-weight:400;
+}
+.mo_info .form-group {
+  margin: 0px 15px 15px 0px;
+}
+.mo_info label {
+  width: 100px;
+}
+label {
+  display: inline-block;
+  max-width: 100%;
+  margin-bottom: 5px;
+}
+#input-moduleInfo {
+  min-width:400px;
+}
+.form-inline .form-control {
+  display: inline-block;
+  width: auto;
+  vertical-align: middle;
+}
+#form-priority {
+  width:330px;
+  /*  font-size:0.85em;*/
+}
+#form-capacity {
+  width:88px;
+}
+
+ul.my_tabs{ margin:20px 0 0; padding: 0 0 0 20px;}
+ul.my_tabs li{ display: inline-block; margin: 0; padding: 0;}
+ul.my_tabs li a.active{ background-color: #90add6;}
+ul.my_tabs li span{ font-size: 0.85em; color: #cf2a28; padding: 0 10px;}
+ul.my_tabs li span i{ font-size: 18px;}
+ul.my_tabs li a{ padding: 10px 20px; background: #ddd; display: inline-block; border:1px #000 solid; color: #000; font-size: 0.85em; text-decoration: none; border-bottom: none;}
+
+.tab-content{ 
+  margin-left:auto;
+  margin-right:auto;
+}
+.tab-content .section {
+  display:block;
+  float:left;
+  position: relative;
+  box-sizing: border-box;
+}
+#form-building-info {
+  width:48%;
+}
+#form-specific-reqs {
+  border-left:1px solid black;
+  padding-left:10px;
+  width:28%;
+  height:270px;
+}
+#form-suitable-rooms {
+  border-left:1px solid black;
+  border-bottom:0;
+  padding-left:10px;
+  width:24%;
+  height:270px;
+}
+.gray_box{ border-top:1px #000 solid; border-bottom:1px #000 solid; padding: 10px 20px; margin: 20px 0; background: #eee; overflow:auto;}
+.gray_box h1{ margin: 0; padding: 0;}
+.pt20{ padding-top: 25px;margin-bottom:25px;}
+.gray_box h2 { font-weight:700; padding-bottom:15px;}
+.gray_box  { font-size:12px;}
+.select_width  {width:100%!important;}
+
+ul.spe_list{ list-style: none; margin: 0; padding: 0; width: 95%; display: inline-block; vertical-align: top;}
+ul.spe_list li { 
+  display: block; 
+  vertical-align: top; 
+  padding-bottom: 3px;
+  padding-top: 2px;
+  padding-left:2px;
+}
+ul.spe_list li:hover {
+  background-color:rgba(54,17,99,0.1);
+}
+.mt0 { 
+  font-weight: 400;
+  margin-left: -15px;
+  margin-top: -30px;
+  position: absolute;
+}
+
+.spe_list li span {	/* each selectable special requirement */
+  color:rgba(150,150,150,1);
+}
+.spe_list li span:hover {
+  cursor:pointer;
+  color:black;
+}
+.list-activeFacility {
+  color:black !important;
+}
+
+input.roomcode{ width: 130px!important; margin-right: 10px;}
+label.full{ width: auto;}
+.mb0{margin-bottom: 0;}
+
+table.calander { border:1px #ddd solid;}
+table.calander th{ padding: 10px; font-size: 1em; color: #000; border:1px #666 solid; text-align: center; width: 9%; height: 60px; background: #b4a7d6;}
+table.calander td{ padding: 10px; font-size: 1em; color: #000; border:1px #666 solid; position: relative;}
+table.calander td.blue{ background: #00ffff;}
+table.calander td.red{ background: #cf2a27;}
+table.calander td .fa{ position: absolute; top: 5px; right: 5px; }
+.blue_bg{ background: #9fc5f8!important;}
+.td_red{ background: #ea9999;}
+.td_blue{ background: #00ffff;}
+.td_gray{ background: #eeeeee;}
+.submission{ border:1px #666 solid;}
+.submission td{ border-top:1px #666 solid; padding: 5px;}
+.submission td a .fa{ font-size: 1.25em; margin: 0 5px; color: #666;}
+.submission td span{ padding-right: 10px;}
+label.full {
+  width: auto; font-size:12px;
+}
+
+.panel-title a{ position: relative;}
+.panel-title a:after{ position: absolute; top: 6px; right: 20px; content: "\f102"; font-size: 30px; color: #666;}
+.panel-title a.collapsed:after{ position: absolute; top: 6px; right: 20px; content: "\f103"; font-size: 30px; color: #666;}
+
+.page-outer-book {
+  margin:auto; height:auto; min-height:120px; padding:20px;
+}
+.page-outer-book .section {
+  width:33.3333%;
+  display:block;
+  float:left;
+  position: relative;
+  box-sizing: border-box;
+}
+#selected-room-info {
+  width:96%;
+  margin-left:auto;
+  margin-right: auto;
+  background-color: #90add6;
+  padding:2px;
+  min-height:60px;
+}
+.selected-room-facilities {
+  font-size:0.85em;
+  width:auto;
+  padding:2px;
+  text-align: center;
+  vertical-align: center;
+}
