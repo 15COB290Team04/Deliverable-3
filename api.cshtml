@@ -75,8 +75,8 @@
     else if (requestid == "setBookingsInterpret") {
       //var json = getJSON();
       var json = Request.Params["json"];
-      //encodeJSON(interpretData(db, json, input("modulecode")));
-      Response.Write(interpretData(db, json, input("modulecode")));
+      encodeJSON(interpretData(db, json, input("modulecode")));
+      //Response.Write(interpretData(db, json, input("modulecode")));
       //LOCALHOST/api?requestid=setBookingsInterpret&json=[["Any","Any","30","COZ000",null,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,"","2, 4, ","3, 5, ","6, ","","CC.0.29a"]]&modulecode=COZ000
     }
   }
@@ -545,6 +545,9 @@
     //The booking from client side also sends through the list of 'Room Requirements' in the JSON data (ie. Park, Capacity, Projectors etc.)
     dynamic interpretData(Database db, dynamic json, string modulecode) {
 
+      if (String.IsNullOrEmpty(modulecode)) {
+        return false;
+      }
       //json input will be length 1, 2 or 3 - eg. json[0][elements], json[1][elements], json[2][elements]
 
       Dictionary<dynamic, dynamic> queue = new Dictionary<dynamic, dynamic>();
@@ -697,7 +700,7 @@
         var sql_day = queueElem["day"];
         var sql_time = queueElem["request-timestart"];
         var sql_round = "round1";                        //TODO: Convert this to UI's Round
-        var sql_semester = "1";                          //TODO: Convert this to UI's Semester
+        var sql_semester = "2";                          //TODO: Convert this to UI's Semester
         var sql_year = yearCheck(DateTime.Now.Month);
         var sql_roomcode = queueElem["roomcode"];
         var sql_building = queueElem["buildingcode"];
@@ -748,43 +751,30 @@
               var resWeek = db.Execute(sqlWeek);
               if (resWeek != 1) { verifyWeek = false; }
             } 
-            catch { verify = false; } 
+            catch { verifyWeek = false; } 
             returnStatus = returnStatus && verifyWeek;           //Test for success
           }
         }
 
         //SQL - Insert the facilities into the 'dbo.facility-request' table
+        for (var j = 0; j < queueElem["facilities"].Count; j++) {     //For each element of the facilities list
+          var sqlFac = "";
+          if (queueElem["facilities"][j] == 1) {                      //If the facility has been selected (it is required)
+            var facID = j+1;
+            var lid = lastID + i + 1;
+            sqlFac = "INSERT INTO dbo.[facility-request] VALUES ("+lid+","+facID+")";
 
-      }
-      
-/*  						
-      //Stuff from algorithm sort
-      array_push($queue, requestPushBack($newState[0], ($j + 1), ($i + 1), 0, null));		//Use requestPushBack() to add this booking slot (request, time, day, room (0), null) to the queue array 
-      array_push($queue, requestPushBack($newState[1], ($j + 1), ($i + 1), 1, (sizeof($queue) - 1)));		//Add this booking slot to the queue array
-      array_push($queue, requestPushBack($newState[2], ($j + 1), ($i + 1), 2, ($flag) ? (sizeof($queue) - 2) : (sizeof($queue) - 1)));
-	
-	    //Add requests to database
-      for ($i = 0; $i < sizeof($queue); $i++) {	//For each element in the queue array
-
-		
-		    //SQL - Insert the facilities into the 'dbo.facility-request' table
-        for ($j = 0; $j < sizeof($queueElem['facilities']); $j++) {	//For each element of the facilities list
-			
-          $sqlFak = "";																		//variable sqlFac (for the SQL string)				
-          if ($queueElem['facilities'][$j] == 1) {				//If the facility has been selected (it is required)
-            $fakID = $j + 1;																//Facility ID
-            $lid = $lastID + $i + 1;												//The ID of the request
-            $sqlFak = "INSERT INTO `facility-request` VALUES ($lid,$fakID)";	//Make the SQL statement to insert facility
-          } 
-			    else {																					//If the week has NOT been selected
-            $sqlFak = "SELECT request_id FROM request LIMIT 1;";	//Execute this simple SQL statement rather than doing nothing (to prevent db issues)
+            var verifyFac = true;
+            try {
+              var resFac = db.Execute(sqlFac);
+              if (resFac != 1) { verifyFac = false; }
+            } 
+            catch { verifyFac = false; } 
+            returnStatus = returnStatus && verifyFac;           //Test for success
           }
-          $res = & $db->queryOne($sqlFak);		//Query the database
-			
-          $returnStatus = $returnStatus && verify($res);		//To test for success, returnStatus = current returnStatus (true/false) AND verify() of this recent request
         }
+
       }
-      return $returnStatus;		//Return true or false (True if all db queries were a success)*/
 
       return returnStatus;    //Return true or false (True if all db queries were a success)
     }
