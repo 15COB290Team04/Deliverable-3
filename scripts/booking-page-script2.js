@@ -54,25 +54,24 @@ function allRoomBookings() {
       master.push(readState(3));
       break;
   }
-  var modulecode = $('#input-moduleInfo').text().substring(0, $('#input-moduleInfo').val().indexOf(' '));
+  var modulecode = $('#input-moduleInfo').val().substring(0, $('#input-moduleInfo').val().indexOf(' '));
   var output = JSON.stringify(master);
   $.post("api.cshtml", {requestid: "setBookingsInterpret", json: output, modulecode: modulecode},
   function (JSONresult) {
     if (JSONresult) {
-			resetPreferences(1);
-			resetPreferences(2);
 			resetPreferences(3);
+			resetPreferences(2);
+			resetPreferences(1);
 			getSubmissionLog();
       alert("Successfully submitted bookings");
     }
     else {
-			resetPreferences(1);
-			resetPreferences(2);
 			resetPreferences(3);
+			resetPreferences(2);
+			resetPreferences(1);
 			getSubmissionLog();
       alert("Error. Bookings unsuccessful. \n\nPlease revise your preferences and try again.");
     }
-		location.reload(); 
+		location.reload(true); 
   }, 'json');
-  console.log('After Req..');
 }
