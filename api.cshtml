@@ -194,22 +194,21 @@
 
     //Function to condense a timetable state into an array with all booking info & the Time/Day/Room params
     dynamic requestPushBack(dynamic state, int para_t, int para_d, int para_r) {		//State, Time, Day, Room number (ie. from slot 1 (index 0), 2 (1), or 3 (2) of room booking UI [for multi rooms])
-      var res = new {
-        day = calcDay(para_d),
-        roomcode = state["roomcode"],
-        weeklist = state["weeklist"],
-        facilities = state["facilities"],
-        buildingcode = state["building"],
-        park = state["park"],
-        capacity = state["capacity"],
-        modulecode = state["modulecode"],
-        priority = state["priority"],
-        child = "",             //TODO: This was null
-        request_timestart = para_t,
-        request_year = yearCheck(DateTime.Now.Month),
-        para_d = para_d,
-        para_r = para_r
-      };
+      Dictionary<dynamic, dynamic> res = new Dictionary<dynamic, dynamic>();
+      res.Add("day", calcDay(para_d));
+      res.Add("roomcode", state["roomcode"]);
+      res.Add("weeklist", state["weeklist"]);
+      res.Add("facilities", state["facilities"]);
+      res.Add("buildingcode", state["building"]);
+      res.Add("park", state["park"]);
+      res.Add("capacity", state["capacity"]);
+      res.Add("modulecode", state["modulecode"]);
+      res.Add("priority", state["priority"]);
+      res.Add("child", null);
+      res.Add("request-timestart", para_t);
+      res.Add("request-year", yearCheck(DateTime.Now.Month));
+      res.Add("para_d", para_d);
+      res.Add("para_r", para_r);
       return res;
     }
 
@@ -547,12 +546,10 @@
     dynamic interpretData(Database db, dynamic json, string modulecode) {
 
       //json input will be length 1, 2 or 3 - eg. json[0][elements], json[1][elements], json[2][elements]
-      //return old[0].Length;
-      //return old[0][3];
 
+      Dictionary<dynamic, dynamic> queue = new Dictionary<dynamic, dynamic>();
       Dictionary<dynamic, dynamic> newState = new Dictionary<dynamic, dynamic>();
       Dictionary<dynamic, dynamic> current;
-      //$queue = array();
 
       var old = Json.Decode(json);          //Array 'old' is assigned the JSON input
 
@@ -638,114 +635,137 @@
         newState.Add(x,current);                          //Add to newstate array such that newState[x][element] returns the value inserted into 'current'         
       }
 
-      return newState[0]["roomcode"];
-
-
-/*  						
-
-	    //Algorithm Sort     //debug here by "return $newState"
-      $index = 0;
-      $flag = false;
-	    //Find multiple room bookings
-      for ($i = 0; $i < sizeof($newState[0]['grid']); $i++) {				//For each element in the newState[0]'s timetable grid (ie. Monday grid, Tuesday grid, Weds grid, ...)
-        for ($j = 0; $j < sizeof($newState[0]['grid'][$i]); $j++) {	//For each element in each day's grid
-			
-          if ($newState[0]['grid'][$i][$j] == 1) {					//If this current day's grid is 1 (ie the slot has been selected for booking)
-				
-            if (sizeof($queue) == 0) {														//If the queue array is currently empty
-              $index = null;																				//Set the index to null
+      //Alrogithm Sort
+      dynamic index = 0;
+      var flag = false;
+      //Find multiple room bookings
+      for (var i = 0; i < newState[0]["grid"].Count; i++) {           //Loop through newState[0]'s timetable grid (ie. Monday grid, tues grid, weds grid, ...)
+        for (var j = 0; j < newState[0]["grid"][i].Length; j++) {     //For each element in each day's grid (ie. looping through the time periods)
+          
+          if (newState[0]["grid"][i][j] == 1) {                       //If this current day's time period is 1 (the slot has been selected for booking)
+            
+            if (queue.Count == 0) {
+              index = null;
             }
-            array_push($queue, requestPushBack($newState[0], ($j + 1), ($i + 1), 0, null));		//Use requestPushBack() to add this booking slot (with all it's info) to the queue array 
-				
-            if (sizeof($newState) > 1) {													//If the newState array still has data (2nd multiple room booking)		
-              if ($newState[1]['grid'][$i][$j]) {										//If the next element (newState[1]) ALSO has a 1 at the same grid slot (ie. This is a multiple room booking)
-                if ($index == null) {																	//And If the index is null
-                  $index = 0;																						//Set index back to 0
+            queue.Add(queue.Count, requestPushBack(newState[0], (j+1), (i+1), 0));  //Use requestPushBack() to add this booking slot (request, time, day, room) to the queue array 
+
+            if (newState.Count > 1) {                                 //If the newState array still has more data (2nd multiple room booking)
+              if (newState[1]["grid"][i][j] == 1) {                   //If the next element (newState[1]) ALSO has a 1 at the same grid slot (ie. This is a multiple room booking)
+                if (index == null) {
+                  index = 0;
                 }
-                $flag = true;																					//Set flag as true (ie. It IS a multiple room booking)
-                array_push($queue, requestPushBack($newState[1], ($j + 1), ($i + 1), 1, (sizeof($queue) - 1)));		//Add this booking slot to the queue array
+                flag = true;
+                queue.Add(queue.Count, requestPushBack(newState[1], (j+1), (i+1), 1));    //Add this booking slot to the queue array
               }
             }
-				
-            if (sizeof($newState) > 2) {													//If the newState array has data for a 3rd multiple room booking
-              if ($newState[2]['grid'][$i][$j]) {										//If this ALSO has a 1 at same grid slot (ie. This is a multiple room booking)
-                if ($index == null) {
-                  $index = 0;
+
+            if (newState.Count > 2) {
+              if (newState[2]["grid"][i][j] == 1) {
+                if (index == null) {
+                  index = 0;
                 }
-                array_push($queue, requestPushBack($newState[2], ($j + 1), ($i + 1), 2, ($flag) ? (sizeof($queue) - 2) : (sizeof($queue) - 1)));
-                $flag = false;
+                queue.Add(queue.Count, requestPushBack(newState[2], (j+1), (i+1), 2));    //Add this booking slot to the queue array
+                flag = false;
               }
             }
-				
+
           }
-			
+
         }
       }
-	
-	    //Map Request Children
-      $lastID = getLastID($db);				//Variable lastID is assigned the return of getLastID() function
-      for ($i = 0; $i < sizeof($queue) - 1; $i++) {					//For each element in the queue array
-		
-		    //If they are linked rooms (multiple and if one is rejected all are) - using verifyLinked() function
-        if (verifyLinked($queue[$i]['request-timestart'], $queue[$i]['para_d'], $queue[$i]['para_r'], $queue[$i + 1]['request-timestart'], $queue[$i + 1]['para_d'], $queue[$i + 1]['para_r'])) {
-          $queue[$i]['child'] = $lastID + $i + 2;		//Set the child element of first element to the second element's ID number in the database
+
+      //At this stage queue contains all individual slots of booking:
+      //Eg. submitting 1 room with 5 slots requested will mean QUEUE contains 5 entries
+      //Eg.2 submitting 2 rooms with a slot each (multiple) will mean QUEUE contains 2 entries
+      //Access with queue[indexNum][key]
+
+      //Map Request Children
+      var lastID = getLastID(db);                       //Variable lastID is assigned the return of getLastID() function
+      for (var i = 0; i < queue.Count - 1; i++) {       //For each element in the queue array (except last)
+        
+        //If they are linked rooms (using verifyLinked() function)
+        if (verifyLinked(queue[i]["request-timestart"], queue[i]["para_d"], queue[i]["para_r"], queue[i+1]["request-timestart"], queue[i+1]["para_d"], queue[i+1]["para_r"])) {
+          queue[i]["child"] = lastID + i + 2;           //Set the child element of first element to the second element's ID number in the database
         }
-		
+          
       }
+
+      //Add requests to database
+      for (var i = 0; i < queue.Count; i++) {            //For each element in queue array
+        //Declare variables
+        var queueElem = queue[i];                        //queueElem is the current element of the queue array
+        var sql_day = queueElem["day"];
+        var sql_time = queueElem["request-timestart"];
+        var sql_round = "round1";                        //TODO: Convert this to UI's Round
+        var sql_semester = "1";                          //TODO: Convert this to UI's Semester
+        var sql_year = yearCheck(DateTime.Now.Month);
+        var sql_roomcode = queueElem["roomcode"];
+        var sql_building = queueElem["buildingcode"];
+        var sql_park = queueElem["park"];
+        var sql_capacity = queueElem["capacity"];
+        var sql_modulecode = queueElem["modulecode"];
+        var sql_priority = (String.IsNullOrEmpty(queueElem["priority"])) ? "" : queueElem["priority"];
+        var sql_status = "pending";                      //TODO: This should be assigned "approved" if currently in AD-HOC or Private room
+        var sql_child = queueElem["child"];
+        var sql_notif = "0";
+
+        //SQL - Add the request to the "dbo.request" table in the database
+        var sql = "";
+        if (queueElem["child"] == null) {                //If the element doesnt have a child
+          sql = "INSERT INTO dbo.request (request_day, request_timestart, request_round, request_semester, request_year, room_code, building_code, park, capacity, module_code, "
+            + "request_priority, request_status, notification_status) VALUES "
+            + "('"+sql_day+"', "+sql_time+", '"+sql_round+"', "+sql_semester+", "+sql_year+", '"+sql_roomcode+"', '"+sql_building+"', '"+sql_park+"', "+sql_capacity+", '"+sql_modulecode+"',";
+          if (String.IsNullOrEmpty(sql_priority)) { sql += " null, "; }
+          else { sql += " '"+sql_priority+"', "; }
+          sql += "'"+sql_status+"', "+sql_notif+");";
+        }
+        else {                                           //If the element DOES have a child
+          sql = "INSERT INTO dbo.request (request_day, request_timestart, request_round, request_semester, request_year, room_code, building_code, park, capacity, module_code, "
+            + "request_priority, request_status, request_child, notification_status) VALUES "
+            + "('"+sql_day+"', "+sql_time+", '"+sql_round+"', "+sql_semester+", "+sql_year+", '"+sql_roomcode+"', '"+sql_building+"', '"+sql_park+"', "+sql_capacity+", '"+sql_modulecode+"',";
+          if (String.IsNullOrEmpty(sql_priority)) { sql += " null, "; }
+          else { sql += " '"+sql_priority+"', "; }
+          sql += "'"+sql_status+"', "+sql_child+", "+sql_notif+");"; 
+        }
+        var verify = true;
+        try {
+          var res = db.Execute(sql);
+          if (res != 1) { verify = false; }
+        } 
+        catch { verify = false; } 
+        returnStatus = returnStatus && verify;           //Test for success
+        
+        //SQL - Insert the weeks into the 'dbo.request-week' table
+        for (var j = 0; j < queueElem["weeklist"].Count; j++) {     //For each element of the week list
+          var sqlWeek = "";
+          if (queueElem["weeklist"][j] == 1) {                      //If the week has been selected (1=Yes)
+            var weekNum = j+1;
+            var lid = lastID + i + 1;                               //The ID of the request
+            sqlWeek = "INSERT INTO dbo.[request-week] VALUES ("+lid+","+weekNum+")";	//Make SQL statement to insert weeks
+
+            var verifyWeek = true;
+            try {
+              var resWeek = db.Execute(sqlWeek);
+              if (resWeek != 1) { verifyWeek = false; }
+            } 
+            catch { verify = false; } 
+            returnStatus = returnStatus && verifyWeek;           //Test for success
+          }
+        }
+
+        //SQL - Insert the facilities into the 'dbo.facility-request' table
+
+      }
+      
+/*  						
+      //Stuff from algorithm sort
+      array_push($queue, requestPushBack($newState[0], ($j + 1), ($i + 1), 0, null));		//Use requestPushBack() to add this booking slot (request, time, day, room (0), null) to the queue array 
+      array_push($queue, requestPushBack($newState[1], ($j + 1), ($i + 1), 1, (sizeof($queue) - 1)));		//Add this booking slot to the queue array
+      array_push($queue, requestPushBack($newState[2], ($j + 1), ($i + 1), 2, ($flag) ? (sizeof($queue) - 2) : (sizeof($queue) - 1)));
 	
 	    //Add requests to database
       for ($i = 0; $i < sizeof($queue); $i++) {	//For each element in the queue array
-		    //Declare variables
-        $queueElem = $queue[$i];					//queueElem is the current element of the queue array
-        $sql_day = $queueElem['day'];
-        $sql_time = $queueElem['request-timestart'];
-        $sql_round = 'round1';
-        $sql_semester = '2';
-        $sql_year = yearCheck(date('m'));
-        $sql_roomcode = $queueElem['roomcode'];
-        $sql_building = $queueElem['buildingcode'];
-        $sql_park = $queueElem['park'];
-        $sql_capacity = $queueElem['capacity'];
-        $sql_modulecode = $queueElem['modulecode'];
-        $sql_priority = (empty($queueElem['priority'])) ? "" : $queueElem['priority'];
-        $sql_status = 'pending';					//TODO: This should be assigned 'approved' if currently in AD-HOC or Private room
-        $sql_child = $queueElem['child'];
-        $sql_notif = '0';
-		
-		    //SQL - Add the request to the 'dbo.request' table in the database
-        $sql = "";
-        if ($queueElem['child'] === null) {		//If the element doesnt have a child
-          $sql = "INSERT INTO request (request_day, request_timestart, request_round, request_semester, request_year, room_code, building_code, park, capacity, module_code, "
-                  . "request_priority, request_status, notification_status) VALUES "
-                  . "('$sql_day', $sql_time, '$sql_round', $sql_semester, $sql_year, '$sql_roomcode', '$sql_building', '$sql_park', $sql_capacity, '$sql_modulecode',"
-                  . " '$sql_priority', '$sql_status', $sql_notif)";
-        } 
-		    else {	//If the element DOES have a child
-          $sql = "INSERT INTO request (request_day, request_timestart, request_round, request_semester, request_year, room_code, building_code, park, capacity, module_code, "
-                  . "request_priority, request_status, request_child, notification_status) VALUES "
-                  . "('$sql_day', $sql_time, '$sql_round', $sql_semester, $sql_year, '$sql_roomcode', '$sql_building', '$sql_park', $sql_capacity, '$sql_modulecode',"
-                  . " '$sql_priority', '$sql_status', $sql_child, $sql_notif)";
-        }		
-        $res = & $db->queryOne($sql);		//Query the database
 
-        $returnStatus = $returnStatus && verify($res); 		//To test for success, returnStatus = current returnStatus (true/false) AND verify() of this recent request
-
-		    //SQL - Insert the weeks into the 'dbo.request-week' table
-        for ($j = 0; $j < sizeof($queueElem['weeklist']); $j++) {	//For each element of the week list
-			
-          $sqlWeek = "";																					//variable sqlWeek (for the SQL string)	
-          if ($queueElem['weeklist'][$j] == 1) {									//If the week has been selected (1=Yes)
-            $weekNum = $j + 1;																			
-            $lid = $lastID + $i + 1;																//The ID of the request
-            $sqlWeek = "INSERT INTO `request-week` VALUES ($lid,$weekNum)";	//Make SQL statement to insert weeks
-          } 
-			    else {																									//If the week has NOT been selected
-            $sqlWeek = "SELECT request_id FROM request LIMIT 1;";		//Execute this simple SQL statement rather than doing nothing (to prevent db issues)
-          }
-          $res = & $db->queryOne($sqlWeek);		//Query the database
-
-          $returnStatus = $returnStatus && verify($res);		//To test for success, returnStatus = current returnStatus (true/false) AND verify() of this recent request
-        }
 		
 		    //SQL - Insert the facilities into the 'dbo.facility-request' table
         for ($j = 0; $j < sizeof($queueElem['facilities']); $j++) {	//For each element of the facilities list
@@ -765,7 +785,8 @@
         }
       }
       return $returnStatus;		//Return true or false (True if all db queries were a success)*/
-      return false;
+
+      return returnStatus;    //Return true or false (True if all db queries were a success)
     }
 }
 }
