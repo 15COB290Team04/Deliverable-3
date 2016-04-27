@@ -11,15 +11,8 @@ LU dark purple: #361163;
 */
 
 
-/* FORM CHANGES */
-#createmodule-container {
-  margin-top:30px;
-  align-content: center;
-}
-#editdeletemodule-container {
-  margin-top:20px;
-  margin-bottom: 15px;
-}
+/* Page css */
+
 .form-label {
   margin-right:15px;
 }
@@ -54,7 +47,7 @@ LU dark purple: #361163;
   color: #fff;
 }
 .btn.ok{
-  background-color: #60ac48;  
+  background-color: #60ac48;
 }
 .btn.del{
   background-color: #dc2827;
@@ -81,7 +74,6 @@ LU dark purple: #361163;
 #del-mod{
   position: relative;
   display: block;
-  margin:0 auto;
 }
 #update-mod:hover,#del-mod:hover,#create-mod:hover {
   background-color:rgba(0,0,0,0.2);
@@ -92,28 +84,105 @@ LU dark purple: #361163;
   cursor:pointer;
   background-color: rgba(0,0,0,0.1);
 }
-.editmodule-blocks {
-  vertical-align: top;
-  align-content: center;
-  height: 100%;
-  display: inline-block;
-  margin: 20px;
-  padding: 10px;
-  min-height: 150px;
-}
-#del-block{
-  width:10%;
-  margin-right: 0;
-}
-#upd-block{
-  width: 45%;
-  margin-left: 0;
-  margin-right: 0;
-}
 #search-block{
   width: 35%;
   margin-left: 0;
 }
 .form-edit-input{
   margin:10px
+}
+
+/*Create module css*/
+#createmodule-container {
+  margin-top:30px;
+  align-content: center;
+}
+#mod-depcode{
+   width:60%;
+   border-bottom: none;
+}
+#mod-part{
+    margin-left:8%; 
+    width:30%;
+}
+#mod-code{
+    margin-left:6.5%; 
+    width:30%;
+}
+#mod-title{
+    margin-left:7.5%; 
+    width:60%;
+}
+#lecturer1{
+    margin-left:2%; 
+    width:60%;
+}
+#lecturer2{
+    margin-left:2%; 
+    width:60%;
+}
+#mod-details{
+    margin-left: 30%;
+}
+#create-mod-title{
+    margin:15px;
+}
+#create-mod{
+    margin-left: 40%; 
+    width:20%;
+}
+
+/*Modify module css*/
+#editdeletemodule-container {
+  margin-top:20px;
+  margin-bottom: 15px;
+}
+.editmodule-blocks {
+  vertical-align: top;
+  height: 100%;
+  margin-left: 40%;
+}
+#upd-block{
+    margin-left: 30%;
+    width: 50%;
+}
+#input-moduleInfo{
+    width:60%;
+    margin-left: 4%;
+}
+#modupd-code{
+    margin-left:6%; 
+    width:60%;
+}
+#modupd-title{
+    margin-left:7%; 
+    width:60%;
+}
+#lecturer1-upd{
+    margin-left:2%; 
+    width:60%;
+}
+#lecturer2-upd{
+    margin-left:2%; 
+    width:60%;
+}
+#mod-change-btn {
+    margin-right: 20%;
+    width: 100%;
+}
+.inner-btns{
+    display:  inline-block;
+    padding-left: 20%;
+}
+#update-mod{
+    width: 100%;
+}
+#del-mod{
+    width: 100%;
+}
+#edit-title{
+    font-weight: bold;
+}
+#modify-mod-div{
+    padding:20px;
 }
