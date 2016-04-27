@@ -31,9 +31,10 @@ $(document).ready(function () {
 
   //Call functions at page load
   fillBuildingsList("Any");
-  getSuitableRooms(); //call function to populate suitable rooms list
+  //getSuitableRooms(); //call function to populate suitable rooms list
   getSubmissionLog();
 
+  resetPreferences(1);  //getSuitableRooms() is called within here
   saveState(1);
   saveState(2);
   saveState(3);
@@ -50,6 +51,7 @@ $(document).ready(function () {
     console.log("Load state: " + $(this).attr('id').charAt(8));
     $(this).addClass('tab-active');
     //if ($(this).attr('id').charAt(8) == 2 || $(this).attr('id').charAt(8) == 3) {
+    getSuitableRooms();
     getRoomTimetable();
 
 
@@ -99,17 +101,24 @@ $(document).ready(function () {
   //ROOM TAB NUMBER DROPDOWN
   $('#select-tab-number').change(function () {
     var tabnum = $('#select-tab-number').val();
+    var prevtab = parseInt($('.tab-active').attr('id').substring(8));
+
     if (tabnum == 1) {
       $('#room-tabs ul').html('<li class="room-tab tab-active" id="tab-room1">Room 1</li>');
+      loadState(1);
     }
     else if (tabnum == 2) {
       $('#room-tabs ul').html('<li class="room-tab tab-active" id="tab-room1">Room 1</li><li class="room-tab" id="tab-room2">Room 2</li>');
+      saveState(prevtab);
+      loadState(1);
       //			$('#tab-room1').addClass('tab-active');
       //			$('#tab-room2').removeClass('tab-disabled');
       //			$('#tab-room3').addClass('tab-disabled');
     }
     else {
       $('#room-tabs ul').html('<li class="room-tab tab-active" id="tab-room1">Room 1</li><li class="room-tab" id="tab-room2">Room 2</li><li class="room-tab" id="tab-room3">Room 3</li>');
+      saveState(prevtab);
+      loadState(1);
       //			$('#tab-room1').addClass('tab-active');
       //			$('#tab-room2').removeClass('tab-disabled');
       //			$('#tab-room3').removeClass('tab-disabled');
@@ -520,7 +529,7 @@ function loadRoomBuildingInfo(roomCode) {
     //call api.cshtml with "buildingCode" to return the buildingName
     $.post("api.cshtml", {requestid: "getBuildingName", buildingcode: buildingCode},
     function (JSONresult) {
-      $('#form-booking-roomName').text(JSONresult);
+      $('#form-booking-roomName').text(JSONresult[0].building_name);
       getRoomTimetable();
     }, 'json');
 
@@ -827,7 +836,7 @@ function getSubmissionLog() {
   }, 'json');
 }
 
-//function to submit all bookings
+//function to submit all bookings //TODO: Delete this?
 function submitBookings() {
   console.log("submitBookings() called");
 
@@ -937,16 +946,6 @@ function submitBookings() {
       weeks += id + ",";
     }
   });
-
-
-  //SARTHAK:
-  //I will be sending you all these variables eg. JSON.stringify({ roomcode:roomcode, weeks:weeks, park:park etc etc });
-  //All the special requirements they selected
-  //The room code
-  //Any child linked requests
-  //Time and day etc
-  //FOR EACH SLOT
-
 
 }
 
@@ -1245,46 +1244,69 @@ function authenticateSubmission() {
 	var msg = "";
   var fine = true;
 
-  //Check for max 3 hour lecture linked
-  var slots = $('#tab' + tabnumber + '-monday').text().split(", ");	// 1, 2, 3, 6, 8, 9,
-  for (var i = 0; i < slots.length - 2; i++) {
-    var j = parseInt(slots[i]);
-    if ((parseInt(slots[i + 1]) == (j + 1)) && (parseInt(slots[i + 2]) == (j + 2)) && (parseInt(slots[i + 3]) == (j + 3))) {
-      fine = false;
+  //Check they have chosen timetable slots for each tab
+  var slotspicked = true;
+  var numTabs = $('#select-tab-number').val();
+  for (var i = 1; i <= numTabs; i++) { //loop through their room tabs
+    var thistabpicked = false;          //flag for slots on this tab
+    if ( $('#tab' + i + '-monday').text().length > 0 ) { thistabpicked = true }
+    if ( $('#tab' + i + '-tuesday').text().length > 0 ) { thistabpicked = true }
+    if ( $('#tab' + i + '-wednesday').text().length > 0 ) { thistabpicked = true }
+    if ( $('#tab' + i + '-thursday').text().length > 0 ) { thistabpicked = true }
+    if ( $('#tab' + i + '-friday').text().length > 0 ) { thistabpicked = true }
+    if (!thistabpicked) {   //if nothing has been selected in this slot then return false
+      slotspicked = false;
     }
   }
-  slots = $('#tab' + tabnumber + '-tuesday').text().split(", ");	// 1, 2, 3, 6, 8, 9,
-  for (var i = 0; i < slots.length - 2; i++) {
-    var j = parseInt(slots[i]);
-    if ((parseInt(slots[i + 1]) == (j + 1)) && (parseInt(slots[i + 2]) == (j + 2)) && (parseInt(slots[i + 3]) == (j + 3))) {
-      fine = false;
-    }
+
+  if (!slotspicked) { //If slots arent picked for one of the room tabs
+    fine = false;
+    msg += "You have not selected any timetable slots for one or more of the room tabs.\n\n";
   }
-  slots = $('#tab' + tabnumber + '-wednesday').text().split(", ");	// 1, 2, 3, 6, 8, 9,
-  for (var i = 0; i < slots.length - 2; i++) {
-    var j = parseInt(slots[i]);
-    if ((parseInt(slots[i + 1]) == (j + 1)) && (parseInt(slots[i + 2]) == (j + 2)) && (parseInt(slots[i + 3]) == (j + 3))) {
-      fine = false;
+  else {  //If slots are picked for all selected room tabs, check for max 3 hour lecture
+
+    //Check for max 3 hour lecture linked
+    var slots = $('#tab' + tabnumber + '-monday').text().split(", "); 	// 1, 2, 3, 6, 8, 9,
+    for (var i = 0; i < slots.length - 2; i++) {
+      var j = parseInt(slots[i]);
+      if ((parseInt(slots[i + 1]) == (j + 1)) && (parseInt(slots[i + 2]) == (j + 2)) && (parseInt(slots[i + 3]) == (j + 3))) {
+        fine = false;
+      }
     }
-  }
-  slots = $('#tab' + tabnumber + '-thursday').text().split(", ");	// 1, 2, 3, 6, 8, 9,
-  for (var i = 0; i < slots.length - 2; i++) {
-    var j = parseInt(slots[i]);
-    if ((parseInt(slots[i + 1]) == (j + 1)) && (parseInt(slots[i + 2]) == (j + 2)) && (parseInt(slots[i + 3]) == (j + 3))) {
-      fine = false;
+    slots = $('#tab' + tabnumber + '-tuesday').text().split(", "); // 1, 2, 3, 6, 8, 9,
+    for (var i = 0; i < slots.length - 2; i++) {
+      var j = parseInt(slots[i]);
+      if ((parseInt(slots[i + 1]) == (j + 1)) && (parseInt(slots[i + 2]) == (j + 2)) && (parseInt(slots[i + 3]) == (j + 3))) {
+        fine = false;
+      }
     }
-  }
-  slots = $('#tab' + tabnumber + '-friday').text().split(", ");	// 1, 2, 3, 6, 8, 9,
-  for (var i = 0; i < slots.length - 2; i++) {
-    var j = parseInt(slots[i]);
-    if ((parseInt(slots[i + 1]) == (j + 1)) && (parseInt(slots[i + 2]) == (j + 2)) && (parseInt(slots[i + 3]) == (j + 3))) {
-      fine = false;
+    slots = $('#tab' + tabnumber + '-wednesday').text().split(", "); // 1, 2, 3, 6, 8, 9,
+    for (var i = 0; i < slots.length - 2; i++) {
+      var j = parseInt(slots[i]);
+      if ((parseInt(slots[i + 1]) == (j + 1)) && (parseInt(slots[i + 2]) == (j + 2)) && (parseInt(slots[i + 3]) == (j + 3))) {
+        fine = false;
+      }
     }
+    slots = $('#tab' + tabnumber + '-thursday').text().split(", "); // 1, 2, 3, 6, 8, 9,
+    for (var i = 0; i < slots.length - 2; i++) {
+      var j = parseInt(slots[i]);
+      if ((parseInt(slots[i + 1]) == (j + 1)) && (parseInt(slots[i + 2]) == (j + 2)) && (parseInt(slots[i + 3]) == (j + 3))) {
+        fine = false;
+      }
+    }
+    slots = $('#tab' + tabnumber + '-friday').text().split(", "); // 1, 2, 3, 6, 8, 9,
+    for (var i = 0; i < slots.length - 2; i++) {
+      var j = parseInt(slots[i]);
+      if ((parseInt(slots[i + 1]) == (j + 1)) && (parseInt(slots[i + 2]) == (j + 2)) && (parseInt(slots[i + 3]) == (j + 3))) {
+        fine = false;
+      }
+    }
+
+    if (fine == false) {
+      msg += "You can only have a lecture of length 3 hours maximum.\n\n";
+    }
+
   }
-	
-	if (fine == false) {
-		msg += "You can only have a lecture of length 3 hours maximum.\n\n";
-	}
 	
 	//Check they entered module code
 	var modcode = $('#input-moduleInfo').val();
@@ -1303,7 +1325,17 @@ function authenticateSubmission() {
 	}
 	
 	//Weeks
-	
+	var weeksfine = false;
+	$('#form-requiredWeeks-row1').find('.form-requiredWeeks-checkbox').each(function () {	//iterates through checked weeks
+	  var id = $(this).is(':checked');
+	  if (id) {
+	    weeksfine = true;
+	  }
+	});
+	if (!weeksfine) {
+	  msg += "You did not select any weeks.\n\n";
+	  fine = false;
+  }
 	
 	if (!fine) {
 		alert(msg);
@@ -1325,4 +1357,17 @@ function resetPreferences(tab) {
 	$('.timetable-data').removeClass('timetable-disabled');
   getSuitableRooms();
   saveState(tab);
+
+  //Reset checkboxes to default 11
+  $('#form-requiredWeeks-row1').find('.form-requiredWeeks-checkbox').each(function () {	//iterates through weeks
+    var week = $(this).attr("name");
+    if (week == "w1" || week == "w2" || week == "w3" || week == "w4" || week == "w5" || week == "w6" || week == "w7" || week == "w8" || week == "w9" || week == "w10" || week == "w11") {
+      if (!$(this).is(':checked')) {
+        $(this).prop('checked', true);
+      }
+    }
+    else { 
+      $(this).prop('checked', false);
+    }
+  });
 }

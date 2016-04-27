@@ -91,14 +91,19 @@ LU dark purple: #361163;
   transition-duration:0.2s;
 }
 #roomSearch-reset {
+  background-color:#d51668;
+  border-radius:4px;
   font-size:1em;
-  margin-top:20px;
+  margin-left:220px;
+  margin-top:15px;
+  opacity:0.9;
+  padding:5px 10px;
   position:absolute;
-  margin-left: 200px;
 }
 #roomSearch-reset:hover {
-  color:rgba(0,0,0,0.7);
-  transition-duration: 0.2s;
+  /*color:rgba(0,0,0,0.7);*/
+  opacity:1;
+  transition-duration:0.2s;
   cursor:pointer;
 }
 #roomSearch-title {
