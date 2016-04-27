@@ -7,7 +7,6 @@ function readState(tabnumber) {
   json.push($('#form-priority-tab' + tabnumber).text() == "" ? null : $('#form-priority-tab' + tabnumber).text());
   $('#form-requiredWeeks-row1').find('.form-requiredWeeks-checkbox').each(function () {	//iterates through checked weeks
     var id = $(this).is(':checked');
-    //console.log("TESTFUNC: " + id);
     (id) ? json.push(1) : json.push(0);
   });
   json.push($('#lab-tab' + tabnumber).text() == 0 ? 0 : 1);
