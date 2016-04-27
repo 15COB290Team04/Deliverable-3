@@ -53,9 +53,15 @@ function allRoomBookings() {
       master.push(readState(3));
       break;
   }
+  if ($('.active-semester-choice').attr('id') == "next-semester") {
+    var sem = 2;
+  }
+  else {
+    var sem = 1;
+  }
   var modulecode = $('#input-moduleInfo').val().substring(0, $('#input-moduleInfo').val().indexOf(' '));
   var output = JSON.stringify(master);
-  $.post("api.cshtml", {requestid: "setBookingsInterpret", json: output, modulecode: modulecode},
+  $.post("api.cshtml", {requestid: "setBookingsInterpret", json: output, modulecode: modulecode, semester: sem},
   function (JSONresult) {
     if (JSONresult) {
 			resetPreferences(3);

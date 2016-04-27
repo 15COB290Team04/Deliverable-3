@@ -87,6 +87,9 @@ $(document).ready(function () {
     $('#current-semester').toggleClass('deactive-semester-choice');
     $('#deadline-date').text("15 Jan");
     getSubmissionLog();
+    if ($('#form-booking-roomCode').val().length > 4) {
+      getRoomTimetable();
+    }
   });
   $('#current-semester').click(function () {
     $('#round-name').text("AD-HOC Round Bookings");
@@ -96,6 +99,9 @@ $(document).ready(function () {
     $('#current-semester').toggleClass('deactive-semester-choice');
     $('#deadline-date').text("1 Feb");
     getSubmissionLog();
+    if ($('#form-booking-roomCode').val().length > 4) {
+      getRoomTimetable();
+    }
   });
 
   //ROOM TAB NUMBER DROPDOWN
@@ -420,8 +426,8 @@ function getRoomTimetable() {
     if (weeks.length > 0) {
       weeks = weeks.substr(0, weeks.length - 1);
 
-      var sem = $('.active-semester-choice').html();
-      if (sem == "Current Semester") {
+      var sem = $('.active-semester-choice').attr('id');
+      if (sem == "current-semester") {
         sem = "1";
       }
       else {
@@ -441,6 +447,7 @@ function getRoomTimetable() {
 
         for (var i = 0; i < JSONresult.length; i++) {
           var day = JSONresult[i]['request_details'].request_day;
+          var dayneat = day.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});  //Makes first letter upper case  //TODO: Copy this to other timetables
           var time = JSONresult[i]['request_details'].request_timestart;
 
           //if this slot is currently clear
@@ -453,12 +460,12 @@ function getRoomTimetable() {
             var content = "<span class='timetable-taken-text'>Booked</span><div class='timetable-content-empty'>";
 
             var popContent = "<b>Information for a booked timetable slot.</b><br/>";
-            popContent += "Day: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + day + "<br/>";
+            popContent += "Day: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + dayneat + "<br/>";
             popContent += "Period: &nbsp;" + time + "<br/><br/>";
             popContent += "The module <b>" + JSONresult[i]['request_details'].module_code + "</b> has booked this slot for weeks:<br/>";
-            for (var j = 0; j < JSONresult[i]['weeks_range'].length; j++) {
-              popContent += JSONresult[i]['weeks_range'][j] + ", ";
-            }
+            //for (var j = 0; j < JSONresult[i]['weeks_range'].length; j++) {
+              popContent += JSONresult[i]['weeks_range']/*+ ", "*/;
+            //}
             popContent += "<p></p>";
             popContent += "<p class='close'>Close</p>";
 
@@ -577,8 +584,8 @@ function clearTimetable() {
 function getSubmissionLog() {
   console.log("getSubmissionLog() called");
 
-  var sem = $('.active-semester-choice').html();
-  if (sem == "Current Semester") {
+  var sem = $('.active-semester-choice').attr('id');
+  if (sem == "current-semester") {
     sem = "1";
   }
   else {
