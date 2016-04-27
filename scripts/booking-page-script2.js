@@ -4,10 +4,12 @@ function readState(tabnumber) {
   json.push($('#select-building-tab' + tabnumber).text());
   json.push($('#form-capacity-tab' + tabnumber).text());
   json.push($('#input-moduleInfo').val().substring(0, $('#input-moduleInfo').val().indexOf(' ')));
-  json.push($('#form-priority-tab' + tabnumber).text() == "" ? null : $('#form-priority-tab' + tabnumber).text());
+  json.push($('#form-priority-tab1').text() == "" ? null : $('#form-priority-tab1').text());
   $('#form-requiredWeeks-row1').find('.form-requiredWeeks-checkbox').each(function () {	//iterates through checked weeks
-    var id = $(this).is(':checked');
-    (id) ? json.push(1) : json.push(0);
+    if ($(this).attr('id') != "form-requiredWeeks-all") { 
+      var id = $(this).is(':checked');
+      (id) ? json.push(1) : json.push(0);
+    }
   });
   json.push($('#lab-tab' + tabnumber).text() == 0 ? 0 : 1);
   json.push($('#wheelchair-tab' + tabnumber).text() == 0 ? 0 : 1);

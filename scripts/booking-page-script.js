@@ -79,7 +79,7 @@ $(document).ready(function () {
   });
 
   //SEMESTER CHOICE
-  $('#next-semester').click(function () {
+  $('#next-semester').click(function () {   //SEMESTER 2
     $('#round-name').text("Round 1 Bookings");
     $('#next-semester').toggleClass('deactive-semester-choice');
     $('#next-semester').toggleClass('active-semester-choice');
@@ -90,8 +90,9 @@ $(document).ready(function () {
     if ($('#form-booking-roomCode').val().length > 4) {
       getRoomTimetable();
     }
+    addFinalWeeks(); //add the sem2 extra week
   });
-  $('#current-semester').click(function () {
+  $('#current-semester').click(function () {    //SEMESTER 1
     $('#round-name').text("AD-HOC Round Bookings");
     $('#next-semester').toggleClass('deactive-semester-choice');
     $('#next-semester').toggleClass('active-semester-choice');
@@ -102,6 +103,7 @@ $(document).ready(function () {
     if ($('#form-booking-roomCode').val().length > 4) {
       getRoomTimetable();
     }
+    removeFinalWeeks();  //remove the sem2 extra week
   });
 
   //ROOM TAB NUMBER DROPDOWN
@@ -181,13 +183,19 @@ $(document).ready(function () {
 
   //WEEK SELECTOR
   $('#form-requiredWeeks-list :checkbox[name=all]').change(function () {
+    var numweeksidx = 16;
+    var sem = $('.active-semester-choice').attr('id');
+    if (sem == "next-semester") {
+      //semester is 2 (16 weeks)
+      numweeksidx = 17;
+    }
     if ($(this).is(':checked')) {
-      for (var i = 1; i < 16; i++) {
+      for (var i = 1; i < numweeksidx; i++) {
         $('#form-requiredWeeks-w' + i).prop('checked', true);
       }
     }
     else {
-      for (var i = 1; i < 16; i++) {
+      for (var i = 1; i < numweeksidx; i++) {
         $('#form-requiredWeeks-w' + i).prop('checked', false);
       }
     }
@@ -562,6 +570,14 @@ function checkRoomIsValid(roomCode) {
   });
 
   return flag;
+}
+
+//Handle the UI changes for number of weeks when semester changed (semester 2 has 16 weeks)
+function addFinalWeeks() {
+  $('.finalweek').removeClass('finalweekhidden');
+}
+function removeFinalWeeks() { 
+  $('.finalweek').addClass('finalweekhidden');
 }
 
 //erases content of current timetable
@@ -1113,7 +1129,7 @@ function loadState(tabnumber) {
   $('#select-building').val($('#select-building-tab' + tabnumber).text());
 
   $('#select-roomuse').val($('#select-roomuse-tab' + tabnumber).text());
-  $('#form-priority').val($('#form-priority-tab' + tabnumber).text());
+  $('#form-priority').val($('#form-priority-tab1').text());
 
   $('.requirements-tab' + tabnumber + ' span').each(function () {
     if ($(this).text() == 1) {
@@ -1377,4 +1393,6 @@ function resetPreferences(tab) {
       $(this).prop('checked', false);
     }
   });
+
+  $('#form-booking-roomName').text("No Room Selected");
 }

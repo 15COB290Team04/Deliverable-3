@@ -77,7 +77,7 @@
       var json = Request.Params["json"];
       encodeJSON(interpretData(db, json, input("modulecode"), input("semester")));
       //Response.Write(interpretData(db, json, input("modulecode")));
-      //LOCALHOST/api?requestid=setBookingsInterpret&json=[["Any","Any","30","COZ000",null,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,"","2, 4, ","3, 5, ","6, ","","CC.0.29a"]]&modulecode=COZ000&semester=1
+      //LOCALHOST/api?requestid=setBookingsInterpret&json=[["Any","Any","30","COZ000",null,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,"","2, 4, ","3, 5, ","6, ","","CC.0.29a"]]&modulecode=COZ000&semester=1
     }
   }
 
@@ -582,7 +582,7 @@
             case 4:
               current.Add("priority", old[x][y]);
               break;
-            case 5:                                       //If the current element is in index 5 of old, go through all 15 of the next indeces to input the WEEKS they requested
+            case 5:                                       //If the current element is in index 5 of old, go through all 16 of the next indeces to input the WEEKS they requested
               Dictionary<dynamic, dynamic> currentweeklist = new Dictionary<dynamic, dynamic>();
               currentweeklist.Add(0, old[x][y]);
               currentweeklist.Add(1, old[x][y+1]);
@@ -599,6 +599,7 @@
               currentweeklist.Add(12, old[x][y+12]);
               currentweeklist.Add(13, old[x][y+13]);
               currentweeklist.Add(14, old[x][y+14]);
+              currentweeklist.Add(15, old[x][y+15]);
               current.Add("weeklist", currentweeklist);
               break;
             case 21:                                      //If the current element is index 21, go through all 17 of the next indeces to input the FACILITIES they require
@@ -698,7 +699,7 @@
       var round = "round1";
       var status = "pending";
       var notification = 0;
-      if (semester == 1) {  //Semester 1 (AD-HOC)
+      if (semester.ToString() == "1") {  //Semester 1 (AD-HOC)
         round = "adhoc";
         status = "approved";
         notification = 1;

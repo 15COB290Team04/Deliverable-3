@@ -190,6 +190,11 @@ LU dark purple: #361163;
   background-color: #90add6;
   border-left: 1px solid rgba(0,0,0,0.5);
 }
+.finalweek {
+}
+.finalweekhidden {
+  display:none;
+}
 
 /* General form edits */
 .form-label {
