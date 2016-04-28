@@ -54,12 +54,13 @@
             <input type='text' placeholder='e.g. Ray Dawson' id='lecturer1' class="form-control" />
               <br/>
               <br/>
-            <span class="form-label">Module Lecturer:</span>
-            <input type='text' placeholder='e.g. Andre Schappo' id='lecturer2' class="form-control" />
-              <br/>
-              <br/>
-            <button id='create-mod' class='btn ok'>CREATE</button>
+            
           </div>
+           <div id="modify-btns">
+            <button class="toggle btn" id="toggle-btn" onclick="addLecturers();">Add additional Lecturer</button>
+                         
+            <button id='create-mod' class='btn ok'>CREATE</button>
+           </div>
         </div>
       </div>
 
@@ -84,6 +85,9 @@
                 <br/>
                 <span class="form-label">Module Lecturer:</span>
                 <input type='text' placeholder='e.g. Andre Schappo' id='lecturer2-upd' class="form-control form-edit-input"/>
+                <br/>
+                <span class="form-label">Module Lecturer:</span>
+                <input type='text' placeholder='e.g. Andre Schappo' id='lecturer3-upd' class="form-control form-edit-input"/>
                 <br/>
                 <br/>
                 <div id="mod-change-btns">

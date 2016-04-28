@@ -92,14 +92,19 @@ LU dark purple: #361163;
   margin:10px
 }
 
+
 /*Create module css*/
 #createmodule-container {
   margin-top:30px;
   align-content: center;
 }
+#form-createmodule{
+    display:  inline-block;
+}
 #mod-depcode{
    width:60%;
    border-bottom: none;
+   color: #000;
 }
 #mod-part{
     margin-left:8%; 
@@ -121,6 +126,10 @@ LU dark purple: #361163;
     margin-left:2%; 
     width:60%;
 }
+#lecturer3{
+    margin-left:2%; 
+    width:60%;
+}
 #mod-details{
     margin-left: 30%;
 }
@@ -128,8 +137,18 @@ LU dark purple: #361163;
     margin:15px;
 }
 #create-mod{
-    margin-left: 40%; 
-    width:20%;
+    margin-left: 15%; 
+    width:10%;
+}
+#modify-btns{
+    width:  100%;
+    display: inline-block;
+}
+.toggle.btn{
+   background-color: rgba(0,0,0,0.1);
+   color: #808080; 
+   width: 10%;
+   margin-left: 30%;  
 }
 
 /*Modify module css*/
@@ -163,6 +182,10 @@ LU dark purple: #361163;
     width:60%;
 }
 #lecturer2-upd{
+    margin-left:2%; 
+    width:60%;
+}
+#lecturer3-upd{
     margin-left:2%; 
     width:60%;
 }

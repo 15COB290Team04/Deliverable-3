@@ -51,7 +51,10 @@ $(document).ready(function () {
       var deptcode = $("#mod-depcode").val();
       var modcode = $("#modupd-code").val();
       var modtitle = $("#modupd-title").val();
-      var json = JSON.stringify({deptcode: deptcode, modulecode: modcode, moduletitle: modtitle});
+      var modLec1 = $("#lecturer1").val();/*Added*/
+      var modLec2 = $("#lecturer2").val();/*Added*/
+      var modLec3 = $("#lecturer3").val();/*Added*/
+      var json = JSON.stringify({deptcode: deptcode, modulecode: modcode, moduletitle: modtitle, lecturer1: modLec1, lecturer2: modLec2, lecturer3: modLec3});
       console.log(json);
       $.post("api.cshtml", {requestid: "setUpdateModule", json: json},
       function (JSONresult) {
@@ -59,6 +62,9 @@ $(document).ready(function () {
         if (JSONresult) {
           $("#modupd-code").val("");
           $("#modupd-title").val("");
+          $("#lecturer1").val("");/*Added*/
+          $("#lecturer2").val("");/*Added*/
+          $("#lecturer3").val("");/*Added*/
           alert("Module Updated.");
           loadModules();
         } else {
@@ -74,16 +80,24 @@ $(document).ready(function () {
 });
 
 function addMod() {
-  var modDepCode = $("#mod-depcode").val();
+  var modDepCode = $("#mod-depcode").val();  
   var modCode = $("#mod-code").val();
   var modtitle = $("#mod-title").val();
-  var json = JSON.stringify({deptcode: modDepCode, modulecode: modCode, moduletitle: modtitle});
+  var modPart = $("#mod-part").val();/*Added*/
+  var modLec1 = $("#lecturer1").val();/*Added*/
+  var modLec2 = $("#lecturer2").val();/*Added*/
+  var modLec3 = $("#lecturer3").val();/*Added*/
+  var json = JSON.stringify({deptcode: modDepCode, modulepart: modPart, modulecode: modCode, moduletitle: modtitle, lecturer1: modLec1, lecturer2: modLec2, lecturer3: modLec3});
   $.post("api.cshtml", {requestid: "setNewModule", json: json},
   function (JSONresult) {
     console.log("Response: " + JSONresult);
     if (JSONresult) {
+      $("#mod-part").val("");/*Added*/
       $("#mod-code").val("");
       $("#mod-title").val("");
+      $("#lecturer1").val("");/*Added*/
+      $("#lecturer2").val("");/*Added*/
+      $("#lecturer3").val("");/*Added*/
       alert("Module Added.");
       loadModules();
     } else {
@@ -111,4 +125,28 @@ function loadModules() {
       $('#modupd-title').val(modTitle);
     }
   });
+}
+
+var count = 0;
+
+function addLecturers(){
+                       
+     if (count == 0){
+         count++;
+         var div = document.getElementById('mod-details');
+        div.innerHTML += ('<span class="form-label">Module Lecturer:</span>\
+        <input type="text" placeholder="e.g. Andre Schappo" id="lecturer2" class="form-control"/>\
+                  <br/>\
+                  <br/>');
+      } else if (count == 1) {
+         count++;
+         var div = document.getElementById('mod-details');
+        div.innerHTML += ('<span class="form-label">Module Lecturer:</span>\
+        <input type="text" placeholder="e.g. Firat Batmaz" id="lecturer3" class="form-control"/>\
+                  <br/>\
+                  <br/>');
+        document.getElementById('toggle-btn').style.display = "none";
+        document.getElementById('create-mod').style.marginLeft = "45%";
+      }
+    
 }
