@@ -79,7 +79,7 @@ $(document).ready(function () {
   });
 
   //SEMESTER CHOICE
-  $('#next-semester').click(function () {
+  $('#next-semester').click(function () {   //SEMESTER 2
     $('#round-name').text("Round 1 Bookings");
     $('#next-semester').toggleClass('deactive-semester-choice');
     $('#next-semester').toggleClass('active-semester-choice');
@@ -87,8 +87,12 @@ $(document).ready(function () {
     $('#current-semester').toggleClass('deactive-semester-choice');
     $('#deadline-date').text("15 Jan");
     getSubmissionLog();
+    if ($('#form-booking-roomCode').val().length > 4) {
+      getRoomTimetable();
+    }
+    addFinalWeeks(); //add the sem2 extra week
   });
-  $('#current-semester').click(function () {
+  $('#current-semester').click(function () {    //SEMESTER 1
     $('#round-name').text("AD-HOC Round Bookings");
     $('#next-semester').toggleClass('deactive-semester-choice');
     $('#next-semester').toggleClass('active-semester-choice');
@@ -96,6 +100,10 @@ $(document).ready(function () {
     $('#current-semester').toggleClass('deactive-semester-choice');
     $('#deadline-date').text("1 Feb");
     getSubmissionLog();
+    if ($('#form-booking-roomCode').val().length > 4) {
+      getRoomTimetable();
+    }
+    removeFinalWeeks();  //remove the sem2 extra week
   });
 
   //ROOM TAB NUMBER DROPDOWN
@@ -175,13 +183,19 @@ $(document).ready(function () {
 
   //WEEK SELECTOR
   $('#form-requiredWeeks-list :checkbox[name=all]').change(function () {
+    var numweeksidx = 16;
+    var sem = $('.active-semester-choice').attr('id');
+    if (sem == "next-semester") {
+      //semester is 2 (16 weeks)
+      numweeksidx = 17;
+    }
     if ($(this).is(':checked')) {
-      for (var i = 1; i < 16; i++) {
+      for (var i = 1; i < numweeksidx; i++) {
         $('#form-requiredWeeks-w' + i).prop('checked', true);
       }
     }
     else {
-      for (var i = 1; i < 16; i++) {
+      for (var i = 1; i < numweeksidx; i++) {
         $('#form-requiredWeeks-w' + i).prop('checked', false);
       }
     }
@@ -420,8 +434,8 @@ function getRoomTimetable() {
     if (weeks.length > 0) {
       weeks = weeks.substr(0, weeks.length - 1);
 
-      var sem = $('.active-semester-choice').html();
-      if (sem == "Current Semester") {
+      var sem = $('.active-semester-choice').attr('id');
+      if (sem == "current-semester") {
         sem = "1";
       }
       else {
@@ -441,6 +455,7 @@ function getRoomTimetable() {
 
         for (var i = 0; i < JSONresult.length; i++) {
           var day = JSONresult[i]['request_details'].request_day;
+          var dayneat = day.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});  //Makes first letter upper case  //TODO: Copy this to other timetables
           var time = JSONresult[i]['request_details'].request_timestart;
 
           //if this slot is currently clear
@@ -453,12 +468,12 @@ function getRoomTimetable() {
             var content = "<span class='timetable-taken-text'>Booked</span><div class='timetable-content-empty'>";
 
             var popContent = "<b>Information for a booked timetable slot.</b><br/>";
-            popContent += "Day: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + day + "<br/>";
+            popContent += "Day: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + dayneat + "<br/>";
             popContent += "Period: &nbsp;" + time + "<br/><br/>";
             popContent += "The module <b>" + JSONresult[i]['request_details'].module_code + "</b> has booked this slot for weeks:<br/>";
-            for (var j = 0; j < JSONresult[i]['weeks_range'].length; j++) {
-              popContent += JSONresult[i]['weeks_range'][j] + ", ";
-            }
+            //for (var j = 0; j < JSONresult[i]['weeks_range'].length; j++) {
+              popContent += JSONresult[i]['weeks_range']/*+ ", "*/;
+            //}
             popContent += "<p></p>";
             popContent += "<p class='close'>Close</p>";
 
@@ -557,6 +572,14 @@ function checkRoomIsValid(roomCode) {
   return flag;
 }
 
+//Handle the UI changes for number of weeks when semester changed (semester 2 has 16 weeks)
+function addFinalWeeks() {
+  $('.finalweek').removeClass('finalweekhidden');
+}
+function removeFinalWeeks() { 
+  $('.finalweek').addClass('finalweekhidden');
+}
+
 //erases content of current timetable
 function clearTimetable() {
 
@@ -577,8 +600,8 @@ function clearTimetable() {
 function getSubmissionLog() {
   console.log("getSubmissionLog() called");
 
-  var sem = $('.active-semester-choice').html();
-  if (sem == "Current Semester") {
+  var sem = $('.active-semester-choice').attr('id');
+  if (sem == "current-semester") {
     sem = "1";
   }
   else {
@@ -1106,7 +1129,7 @@ function loadState(tabnumber) {
   $('#select-building').val($('#select-building-tab' + tabnumber).text());
 
   $('#select-roomuse').val($('#select-roomuse-tab' + tabnumber).text());
-  $('#form-priority').val($('#form-priority-tab' + tabnumber).text());
+  $('#form-priority').val($('#form-priority-tab1').text());
 
   $('.requirements-tab' + tabnumber + ' span').each(function () {
     if ($(this).text() == 1) {
@@ -1370,4 +1393,6 @@ function resetPreferences(tab) {
       $(this).prop('checked', false);
     }
   });
+
+  $('#form-booking-roomName').text("No Room Selected");
 }
