@@ -157,7 +157,7 @@ a {
 }
 #header-navigation ul li:hover {
   cursor:pointer;
-  background-color:rgba(54,17,99,0.1)
+  background-color:rgba(54,17,99,0.1);
 }
 .nav-element-active {
   color:#361163;
@@ -167,7 +167,7 @@ a {
 .notepad-section {
   position:fixed;
   right:-1px;
-  top:130px;
+  top:150px;
   /*height:60%;*/
   height:auto;
   width:20%;
@@ -204,7 +204,38 @@ a {
 #notepad-content {
   max-height:150px;
 }
-
+.notepad-button {
+  width:30%;
+  background-color:#d51668;
+  padding:5px 10px;
+  text-align:center;
+  transition-duration:0.1s;
+  border-radius:5px;
+  -moz-border-radius:5px;
+  -webkit-border-radius:5px;
+  margin-left:auto;
+  margin-right:auto;
+}
+.notepad-button:hover {
+  cursor:pointer;
+  background-color:rgba(196,17,93,1);
+}
+#notepad-clear {
+  color:rgba(60, 60, 60, 1);
+  float:right;
+  padding:6px 10px;
+  position:absolute;
+  right:30px;
+  top:100px;
+  transition-duration:0.2s;
+}
+#notepad-clear-icon {
+  margin-right:5px;
+}
+#notepad-clear:hover {
+  cursor:pointer;
+  color:black;
+}
 
 .help-text {
   color:lightgray;

@@ -61,6 +61,7 @@ $(document).ready(function () {
     colorFunction();
   });
 
+  /* NOTEPAD */
   $('#user-notifications').click(function () {
     notificationLoad();
     $('.user-notification-dropdown').slideToggle();
@@ -80,7 +81,7 @@ $(document).ready(function () {
   $('#notepad-content').trumbowyg({
     fullscreenable: false,
     closable: true,
-    btns: ['formatting', ['bold', 'italic'], ['unorderedList', 'orderedList'],],
+    btns: ['formatting', ['bold', 'italic'], ['unorderedList', 'orderedList'],'|'],
     removeformatPasted: true
   });
     
