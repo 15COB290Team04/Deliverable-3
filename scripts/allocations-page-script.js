@@ -14,7 +14,7 @@ $(document).ready(function () {
   //ROOM SELECTION LOADS TIMETABLE
   $('#allocations-form-roomSearch').bind("input", function () {
     console.log($(this).val());
-    $('#allocations-selectedRoom').text($('#allocations-form-roomSearch').val());	//loads room	
+    $('#allocations-selectedRoom').text($('#allocations-form-roomSearch').val()); //loads room	
   });
 
   //SEM VALYE FOR LOG
