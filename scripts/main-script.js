@@ -66,6 +66,16 @@ $(document).ready(function () {
     $('.user-notification-dropdown').slideToggle();
   });
 
+  $('#notebookButton').click(function () {
+    console.log("Notebook toggled.");
+    if ($('.notepad-section').css('display') == "block") {
+      $('.notepad-section').hide("slide", { direction: "right" }, 500);
+    }
+    else {
+      $('.notepad-section').show("slide", { direction: "right" }, 500);
+    }
+  });
+
   /*NOTIFICATION READ*/
   $("#read-icon").click(function () {
     //Calc ID String

@@ -8,11 +8,12 @@
     <!-- Accessibility -->
     <div id="accessibility-options">
       <span id="user-details" style='font-size:1.2em;'>Department&nbsp;&nbsp;   
-        <span id="username" style='font-weight:700;'>	
+        <span id="username" style='font-weight:700;margin-right:10px;'>	
           @Session["dept-code"]
         </span>
       </span>
       <span>&nbsp;&nbsp;&nbsp;&nbsp;<i id="user-notifications" class="fa fa-bell fa-2x accessibility-option"></i><span id='user-notification-alert'><i class="fa fa-exclamation fa-lg"></i></span></span>
+      <span style="margin-left:10px;">&nbsp;&nbsp;&nbsp;&nbsp;<i class="fa fa-pencil-square-o fa-2x accessibility-option" id="notebookButton" aria-hidden="true"></i></span>
       <span>&nbsp;&nbsp;&nbsp;&nbsp;<i id="toggleColor" class="fa fa-eye fa-2x accessibility-option"></i></span>
       <span>&nbsp;&nbsp;&nbsp;&nbsp;<i class="fa fa-search-plus fa-2x accessibility-option" id="fontChange"></i></span>
       <span>&nbsp;&nbsp;&nbsp;&nbsp;<a href="logout.cshtml" class="accessibility-option" id="logoutButton"><i class="fa fa-sign-out fa-2x"></i></a></span>
@@ -80,5 +81,12 @@
     <br/>
     <div id='notification-container'></div>
     <br/>
+  </div>
+
+  <div class="notepad-section">
+    <span class="notepad-title">My Notepad</span><br/>
+    <span class="notepad-desc">Use me to save information, notes and reminders. I am handy as a planner or To-Do list!</span>
+    <textarea class="notepad-content" id="notepad-content" cols="30"></textarea>
+
   </div>
 </div>
