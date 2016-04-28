@@ -76,6 +76,15 @@ $(document).ready(function () {
     }
   });
 
+  //Trumbowyg WYSIWYG Editor
+  $('#notepad-content').trumbowyg({
+    fullscreenable: false,
+    closable: true,
+    btns: ['formatting', ['bold', 'italic'], ['unorderedList', 'orderedList'],],
+    removeformatPasted: true
+  });
+    
+
   /*NOTIFICATION READ*/
   $("#read-icon").click(function () {
     //Calc ID String
