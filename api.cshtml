@@ -75,9 +75,9 @@
     else if (requestid == "setBookingsInterpret") {
       //var json = getJSON();
       var json = Request.Params["json"];
-      encodeJSON(interpretData(db, json, input("modulecode")));
+      encodeJSON(interpretData(db, json, input("modulecode"), input("semester")));
       //Response.Write(interpretData(db, json, input("modulecode")));
-      //LOCALHOST/api?requestid=setBookingsInterpret&json=[["Any","Any","30","COZ000",null,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,"","2, 4, ","3, 5, ","6, ","","CC.0.29a"]]&modulecode=COZ000
+      //LOCALHOST/api?requestid=setBookingsInterpret&json=[["Any","Any","30","COZ000",null,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,"","2, 4, ","3, 5, ","6, ","","CC.0.29a"]]&modulecode=COZ000&semester=1
     }
   }
 
@@ -367,6 +367,7 @@
     //Get a Room's Timetable
     dynamic getRequestTimetable(Database db, string roomCode, dynamic semester, dynamic weeks) {
       //Note: var weeks input is in string form similar to "1,2,3,7,10,"  ...  Must convert it to "'1','2','3','7'"
+      weeks = weeks.ToString();
       if (weeks[weeks.Length-1] == ',') {
         weeks = weeks.Substring(0,weeks.Length-1);
       }
@@ -543,7 +544,7 @@
     //This is for BOOKING a room for multiple slots (times/days of a week)
     //This also includes multiple rooms
     //The booking from client side also sends through the list of 'Room Requirements' in the JSON data (ie. Park, Capacity, Projectors etc.)
-    dynamic interpretData(Database db, dynamic json, string modulecode) {
+    dynamic interpretData(Database db, dynamic json, string modulecode, dynamic semester) {
 
       if (String.IsNullOrEmpty(modulecode)) {
         return false;
@@ -581,7 +582,7 @@
             case 4:
               current.Add("priority", old[x][y]);
               break;
-            case 5:                                       //If the current element is in index 5 of old, go through all 15 of the next indeces to input the WEEKS they requested
+            case 5:                                       //If the current element is in index 5 of old, go through all 16 of the next indeces to input the WEEKS they requested
               Dictionary<dynamic, dynamic> currentweeklist = new Dictionary<dynamic, dynamic>();
               currentweeklist.Add(0, old[x][y]);
               currentweeklist.Add(1, old[x][y+1]);
@@ -598,6 +599,7 @@
               currentweeklist.Add(12, old[x][y+12]);
               currentweeklist.Add(13, old[x][y+13]);
               currentweeklist.Add(14, old[x][y+14]);
+              currentweeklist.Add(15, old[x][y+15]);
               current.Add("weeklist", currentweeklist);
               break;
             case 21:                                      //If the current element is index 21, go through all 17 of the next indeces to input the FACILITIES they require
@@ -693,14 +695,29 @@
           
       }
 
+      //Semester input variables (for demo, rather than using dates - due to time of presentation in the academic year)
+      var round = "round1";
+      var status = "pending";
+      var notification = 0;
+      if (semester.ToString() == "1") {  //Semester 1 (AD-HOC)
+        round = "adhoc";
+        status = "approved";
+        notification = 1;
+      }
+      else {                //Semester 2 (Round 1)
+        round = "round1";
+        status = "pending";
+        notification = 0;
+      }
+
       //Add requests to database
       for (var i = 0; i < queue.Count; i++) {            //For each element in queue array
         //Declare variables
         var queueElem = queue[i];                        //queueElem is the current element of the queue array
         var sql_day = queueElem["day"];
         var sql_time = queueElem["request-timestart"];
-        var sql_round = "round1";                        //TODO: Convert this to UI's Round
-        var sql_semester = "2";                          //TODO: Convert this to UI's Semester
+        var sql_round = round;                        
+        var sql_semester = semester;
         var sql_year = yearCheck(DateTime.Now.Month);
         var sql_roomcode = queueElem["roomcode"];
         var sql_building = queueElem["buildingcode"];
@@ -708,9 +725,9 @@
         var sql_capacity = queueElem["capacity"];
         var sql_modulecode = queueElem["modulecode"];
         var sql_priority = (String.IsNullOrEmpty(queueElem["priority"])) ? "" : queueElem["priority"];
-        var sql_status = "pending";                      //TODO: This should be assigned "approved" if currently in AD-HOC or Private room
+        var sql_status = status; 
         var sql_child = queueElem["child"];
-        var sql_notif = "0";
+        var sql_notif = notification;
 
         //SQL - Add the request to the "dbo.request" table in the database
         var sql = "";

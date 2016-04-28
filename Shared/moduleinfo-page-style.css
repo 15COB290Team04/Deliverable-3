@@ -16,7 +16,7 @@ LU dark purple: #361163;
   height:auto; 
   overflow:hidden;
   margin-top:130px;
-  padding:20px;
+  padding:40px;
 }
 /*
 Timetabling Prototype Website
@@ -119,6 +119,9 @@ LU dark purple: #361163;
   display: inline-block;
   margin: 20px;
   padding: 10px;
+}
+h3 {
+    font-size: 200%;
 }
 #del-block{
   width:10%;
