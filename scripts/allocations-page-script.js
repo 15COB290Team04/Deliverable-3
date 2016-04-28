@@ -14,7 +14,7 @@ $(document).ready(function () {
   //ROOM SELECTION LOADS TIMETABLE
   $('#allocations-form-roomSearch').bind("input", function () {
     console.log($(this).val());
-    $('#allocations-selectedRoom').text($('#allocations-form-roomSearch').val());	//loads room	
+    $('#allocations-selectedRoom').text($('#allocations-form-roomSearch').val()); //loads room	
   });
 
   //SEM VALYE FOR LOG
@@ -74,6 +74,28 @@ $(document).ready(function () {
     $(this).find(".log-icon i").toggleClass("fa-angle-double-down fa-angle-double-up");
   });
 
+  //FILTER FOR APPROVED BLOCKS
+  $("#filter-approved").click(function () {
+    filterSubmissionLog(0); //0:clear
+    filterSubmissionLog(1); //1: approved
+  });
+
+  //FILTER FOR PENDING BLOCKS
+  $("#filter-pending").click(function () {
+    filterSubmissionLog(0); //0:clear
+    filterSubmissionLog(2); //2: pending
+  });
+
+  //FILTER FOR REJECTED BLOCKS
+  $("#filter-rejected").click(function () {
+    filterSubmissionLog(0); //0:clear
+    filterSubmissionLog(3); //3:rejected
+  });
+  
+  //CLEAR FIlTER
+  $("#filter-clear").click(function () {
+    filterSubmissionLog(0); //0:clear
+  });
 
   //AUTOFILL SEARCH FOR ROOM CODE SELECTION
   function loadRoomCodeChoices() {
@@ -470,4 +492,37 @@ function getSubmissionLog() {
 		});
 
   }, 'json');
+}
+
+function filterSubmissionLog(choice) {
+  switch (choice) {
+    case 0: //clear filter
+      $(".log-group-container").each(function (index, element) {
+        $(element).css("display", "block");
+      });
+      break;
+    case 1: //approved only
+      $(".log-group-container").each(function (index, element) {
+        if (!($(element).find(".log-group-approved").length > 0)) {
+          $(element).css("display", "none");
+        }
+      });
+      break;
+    case 2: //pending only
+      $(".log-group-container").each(function (index, element) {
+        if (!($(element).find(".log-group-pending").length > 0)) {
+          $(element).css("display", "none");
+        }
+      });
+      break;
+    case 3: //rejected only
+      $(".log-group-container").each(function (index, element) {
+        if (!($(element).find(".log-group-rejected").length > 0)) {
+          $(element).css("display", "none");
+        }
+      });
+      break;
+    default:
+      alert("There has been a problem with the filter, please alert development team");
+  }
 }
