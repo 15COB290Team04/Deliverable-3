@@ -61,10 +61,73 @@ $(document).ready(function () {
     colorFunction();
   });
 
+  /* NOTIFICATIONS */
   $('#user-notifications').click(function () {
     notificationLoad();
     $('.user-notification-dropdown').slideToggle();
   });
+
+  /* NOTEPAD */
+  //Notepad open/close toggle
+  $('#notebookButton').click(function () {
+    console.log("Notebook toggled.");
+
+    if ($('.notepad-section').css('display') == "block") {
+      //REMOVE NOTEPAD
+      $('.notepad-section').hide("slide", { direction: "right" }, 500);
+    }
+    else {
+      //LOAD NOTEPAD
+      $('.notepad-section').show("slide", { direction: "right" }, 500);
+
+      var currentData = localStorage.getItem("TimetablerNotepad");
+      if (currentData !== null) {
+        $('#notepad-content').trumbowyg('html', currentData);
+      }
+
+    }
+  });
+
+  //Notepad clear button
+  $('#notepad-clear').click(function () {
+    console.log("Notepad clear called.")
+    $('#notepad-content').trumbowyg('empty');
+  });
+
+  //Notepad save button
+  $('#notepad-save').click(function () {
+    console.log("Notepad save called.");
+    var notepadContents = $('#notepad-content').trumbowyg('html');
+    localStorage.setItem("TimetablerNotepad", notepadContents);
+
+    if (!$('#notepad-save').hasClass('notepad-saved')) {
+      $('#notepad-save').addClass('notepad-saved');
+      $('#notepad-save span').html('Saved');
+    }
+    //Icon
+    $('#notepad-save-icon').show("slide", { direction: "left" }, 500);
+    setTimeout(function () { $('#notepad-save-icon').hide("slide", { direction: "left" }, 500); }, 2500);
+  });
+
+  //Notepad close button
+  $('#notepad-close').click(function () {
+    $('.notepad-section').hide("slide", { direction: "right" }, 500);
+  });
+
+  //Trumbowyg WYSIWYG Editor
+  $('#notepad-content').trumbowyg({
+    fullscreenable: false,
+    closable: true,
+    btns: ['formatting', ['bold', 'italic'], ['unorderedList', 'orderedList'], '|'],
+    removeformatPasted: true
+  });
+
+  //Notepad onChange function
+  $('#notepad-content').trumbowyg().on('tbwchange', function () {
+    $('#notepad-save').removeClass('notepad-saved');
+    $('#notepad-save span').html('Save');
+  });
+
 
   /*NOTIFICATION READ*/
   $("#read-icon").click(function () {
