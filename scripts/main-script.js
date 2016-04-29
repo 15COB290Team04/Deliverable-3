@@ -61,10 +61,89 @@ $(document).ready(function () {
     colorFunction();
   });
 
+  /* NOTIFICATIONS */
   $('#user-notifications').click(function () {
     notificationLoad();
     $('.user-notification-dropdown').slideToggle();
   });
+
+  /* NOTEPAD */
+  //Notepad open/close toggle
+  $('#notebookButton').click(function () {
+    console.log("Notebook toggled.");
+
+    if ($('.notepad-section').css('display') == "block") {
+      //REMOVE NOTEPAD
+      $('.notepad-section').hide("slide", { direction: "right" }, 500);
+    }
+    else {
+      //LOAD NOTEPAD
+      $('.notepad-section').show("slide", { direction: "right" }, 500);
+
+      $.post("api.cshtml", { requestid: "getDeptNotepad" },
+        function (JSONresult) {
+          var currentData = JSONresult[0].department_notepad;
+          //var currentData = localStorage.getItem("TimetablerNotepad");
+          console.log("Got department notepad content.");
+          if (currentData !== null) {
+            currentData = decodeURIComponent(currentData);
+            $('#notepad-content').trumbowyg('html', currentData);
+          }
+        },
+      'json');
+    }
+  });
+
+  //Notepad clear button
+  $('#notepad-clear').click(function () {
+    console.log("Notepad clear called.")
+    $('#notepad-content').trumbowyg('empty');
+  });
+
+  //Notepad save button
+  $('#notepad-save').click(function () {
+    console.log("Notepad save called.");
+    var notepadContents = $('#notepad-content').trumbowyg('html');
+    var data = encodeURIComponent(notepadContents);
+    console.log(data);
+
+    $.post("api.cshtml", { requestid: "setDeptNotepad", content: data },
+      function (JSONresult) {
+        if (JSONresult) {
+          console.log("Successfully saved notepad!");
+
+          if (!$('#notepad-save').hasClass('notepad-saved')) {
+            $('#notepad-save').addClass('notepad-saved');
+            $('#notepad-save span').html('Saved');
+          }
+          //Icon
+          $('#notepad-save-icon').show("slide", { direction: "left" }, 500);
+          setTimeout(function () { $('#notepad-save-icon').hide("slide", { direction: "left" }, 500); }, 2500);
+        }
+      },
+    'json');
+    //localStorage.setItem("TimetablerNotepad", notepadContents);
+  });
+
+  //Notepad close button
+  $('#notepad-close').click(function () {
+    $('.notepad-section').hide("slide", { direction: "right" }, 500);
+  });
+
+  //Trumbowyg WYSIWYG Editor
+  $('#notepad-content').trumbowyg({
+    fullscreenable: false,
+    closable: true,
+    btns: ['formatting', ['bold', 'italic'], ['unorderedList', 'orderedList'], '|'],
+    removeformatPasted: true
+  });
+
+  //Notepad onChange function
+  $('#notepad-content').trumbowyg().on('tbwchange', function () {
+    $('#notepad-save').removeClass('notepad-saved');
+    $('#notepad-save span').html('Save');
+  });
+
 
   /*NOTIFICATION READ*/
   $("#read-icon").click(function () {
