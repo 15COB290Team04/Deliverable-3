@@ -80,11 +80,17 @@ $(document).ready(function () {
       //LOAD NOTEPAD
       $('.notepad-section').show("slide", { direction: "right" }, 500);
 
-      var currentData = localStorage.getItem("TimetablerNotepad");
-      if (currentData !== null) {
-        $('#notepad-content').trumbowyg('html', currentData);
-      }
-
+      $.post("api.cshtml", { requestid: "getDeptNotepad" },
+        function (JSONresult) {
+          var currentData = JSONresult[0].department_notepad;
+          //var currentData = localStorage.getItem("TimetablerNotepad");
+          console.log("Got department notepad content.");
+          if (currentData !== null) {
+            currentData = decodeURIComponent(currentData);
+            $('#notepad-content').trumbowyg('html', currentData);
+          }
+        },
+      'json');
     }
   });
 
@@ -98,15 +104,25 @@ $(document).ready(function () {
   $('#notepad-save').click(function () {
     console.log("Notepad save called.");
     var notepadContents = $('#notepad-content').trumbowyg('html');
-    localStorage.setItem("TimetablerNotepad", notepadContents);
+    var data = encodeURIComponent(notepadContents);
+    console.log(data);
 
-    if (!$('#notepad-save').hasClass('notepad-saved')) {
-      $('#notepad-save').addClass('notepad-saved');
-      $('#notepad-save span').html('Saved');
-    }
-    //Icon
-    $('#notepad-save-icon').show("slide", { direction: "left" }, 500);
-    setTimeout(function () { $('#notepad-save-icon').hide("slide", { direction: "left" }, 500); }, 2500);
+    $.post("api.cshtml", { requestid: "setDeptNotepad", content: data },
+      function (JSONresult) {
+        if (JSONresult) {
+          console.log("Successfully saved notepad!");
+
+          if (!$('#notepad-save').hasClass('notepad-saved')) {
+            $('#notepad-save').addClass('notepad-saved');
+            $('#notepad-save span').html('Saved');
+          }
+          //Icon
+          $('#notepad-save-icon').show("slide", { direction: "left" }, 500);
+          setTimeout(function () { $('#notepad-save-icon').hide("slide", { direction: "left" }, 500); }, 2500);
+        }
+      },
+    'json');
+    //localStorage.setItem("TimetablerNotepad", notepadContents);
   });
 
   //Notepad close button
