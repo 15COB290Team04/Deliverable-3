@@ -68,13 +68,14 @@ $(document).ready(function () {
     saveState(2);
     loadState(3);
     saveState(3);
+    loadState(tabNum);
     var authenticated = authenticateSubmission();
     console.log("Authentication is :" + authenticated);
     if (authenticated) {
       allRoomBookings();
     }
     else {
-      location.reload();
+      //location.reload();
     }
   });
 
@@ -984,8 +985,10 @@ function saveState(tabnumber) {
   $('#form-capacity-tab' + tabnumber).text(capacity);
 
   var buildingcode = $('#select-building').val();
+  var buildingname = buildingcode;
   if (buildingcode == null) {
-    buildingcode = "Any"
+    buildingcode = "Any";
+    buildingname = "Any";
   }
   else {
     buildingcode = buildingcode.substr(0, buildingcode.indexOf(' '));
@@ -994,6 +997,7 @@ function saveState(tabnumber) {
     }
   }
   $('#select-building-tab' + tabnumber).text(buildingcode);
+  $('#select-buildingname-tab' + tabnumber).text(buildingname);
 
   $('#select-roomuse-tab' + tabnumber).text($('#select-roomuse').val());
   var priority = $('#form-priority').val();
@@ -1126,7 +1130,9 @@ function loadState(tabnumber) {
   $('#select-park').val($('#select-park-tab' + tabnumber).text());
   $('#form-capacity').val($('#form-capacity-tab' + tabnumber).text());
 
-  $('#select-building').val($('#select-building-tab' + tabnumber).text());
+  var bilname = $('#select-buildingname-tab' + tabnumber).text();
+  $('#select-building').val(bilname);
+  fillBuildingsList(bilname);
 
   $('#select-roomuse').val($('#select-roomuse-tab' + tabnumber).text());
   $('#form-priority').val($('#form-priority-tab1').text());
@@ -1342,10 +1348,25 @@ function authenticateSubmission() {
   var roomcode1 = $('#roomcode-tab1').text();
 	var roomcode2 = $('#roomcode-tab2').text();
 	var roomcode3 = $('#roomcode-tab2').text();
-	if ( (roomcode1.length < 4) && (roomcode2.length < 4) && (roomcode3.length < 4)) {
-		fine = false;
-		msg += "Enter a valid roomcode in all of the tabs.\n\n";
-	}
+  var numTabs = $('#select-tab-number').val();
+  if (numTabs == 1) {
+    if (roomcode1.length < 4) {
+		  fine = false;
+		  msg += "Enter a valid roomcode in all of the tabs.\n\n";
+	  }
+  }
+  else if (numTabs == 2) {
+    if ( (roomcode1.length < 4) || (roomcode2.length < 4)) {
+		  fine = false;
+		  msg += "Enter a valid roomcode in all of the tabs.\n\n";
+	  }
+  }
+  else { 
+    if ( (roomcode1.length < 4) || (roomcode2.length < 4) || (roomcode3.length < 4)) {
+		  fine = false;
+		  msg += "Enter a valid roomcode in all of the tabs.\n\n";
+	  }
+  }
 	
 	//Weeks
 	var weeksfine = false;
