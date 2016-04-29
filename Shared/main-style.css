@@ -220,6 +220,10 @@ a {
   cursor:pointer;
   background-color:rgba(196,17,93,1);
 }
+.notepad-saved {
+  background-color:lightgrey !important;
+  cursor:default !important;
+}
 #notepad-clear {
   color:rgba(60, 60, 60, 1);
   float:right;
@@ -235,6 +239,30 @@ a {
 #notepad-clear:hover {
   cursor:pointer;
   color:black;
+}
+#notepad-close {
+  color:rgba(80, 80, 80, 1);
+  float:right;
+  padding:6px 10px;
+  position:absolute;
+  right:15px;
+  top:10px;
+  transition-duration:0.2s;
+}
+#notepad-close-icon {
+  margin-left:5px;
+}
+#notepad-close:hover {
+  cursor:pointer;
+  color:black;
+}
+#notepad-save-icon {
+  bottom: 20px;
+  color: green;
+  position: absolute;
+  right: 20%;
+  display:none;
+  opacity:0.5;
 }
 
 .help-text {
