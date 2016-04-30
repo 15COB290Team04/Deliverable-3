@@ -107,8 +107,17 @@
                   <label>Building:</label>
                   <select id="select-building" class="form-dropdown-xlarge"></select>
                 </div>
+                <br/>
                 <div class="form-group">
-                  <label>Room use:</label>
+                  <label>Private rooms:</label>
+                  <select id="select-privaterooms" class="form-dropdown-medium">
+                    <option>Include</option>
+                    <option>Exclude</option>
+                    <option>Only</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label style="width:90px;margin-left:20px;">Room use:</label>
                   <select id="select-roomuse" class="form-dropdown-medium">
                     <option>Lecture</option>
                     <option>Lab</option>
@@ -117,7 +126,7 @@
                 </div>
                 <br/>
                 <div class="form-group">
-                  <label>Capacity:</label>
+                  <label>Students:</label>
                   <input type="text" name="name" class="form-control" id="form-capacity" placeholder="eg. 150">
                 </div>
                 <div class="form-group">

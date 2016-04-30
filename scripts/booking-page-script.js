@@ -35,7 +35,7 @@ $(document).ready(function () {
   getSubmissionLog();
 
   resetPreferences(1);  //getSuitableRooms() is called within here
-  saveState(1);
+  //saveState(1);       //saveState(1) is called within resetPreferences
   saveState(2);
   saveState(3);
 
@@ -51,7 +51,6 @@ $(document).ready(function () {
     console.log("Load state: " + $(this).attr('id').charAt(8));
     $(this).addClass('tab-active');
     //if ($(this).attr('id').charAt(8) == 2 || $(this).attr('id').charAt(8) == 3) {
-    getSuitableRooms();
     getRoomTimetable();
 
 
@@ -397,8 +396,12 @@ function getSuitableRooms() {
 //the 'building' input is when a particular building needs to be auto-selected
 function fillBuildingsList(building) {
   //when park is selected, grab the new value, and update buildingList choice with buildings in that park
+  var park = $('#select-park').val();
+  if (park === null) {
+    park = "Any";
+  }
 
-  $.post("api.cshtml", {requestid: "getParkBuildings", park: $('#select-park').val()},
+  $.post("api.cshtml", {requestid: "getParkBuildings", park: park},
   function (JSONresult) {
 
     var buildingList = "<option>Any</option>";
