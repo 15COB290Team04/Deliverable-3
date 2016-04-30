@@ -51,8 +51,8 @@ $(document).ready(function () {
     console.log("Load state: " + $(this).attr('id').charAt(8));
     $(this).addClass('tab-active');
     //if ($(this).attr('id').charAt(8) == 2 || $(this).attr('id').charAt(8) == 3) {
+    getSuitableRooms();
     getRoomTimetable();
-
 
   });
 
@@ -261,6 +261,11 @@ $(document).ready(function () {
     getSuitableRooms();
   });
 
+  //PRIVATE ROOMS INPUT CHANGE
+  $('#select-privaterooms').change(function () {
+    getSuitableRooms();
+  });
+
   //ROOM CODE SELECTION (TEXT INPUT W/ JQUERY AUTOFILL) CHANGE
   $('#form-booking-roomCode').on('input change', function () {
     if (checkRoomIsValid($(this).val())) {
@@ -297,6 +302,9 @@ function getSuitableRooms() {
       buildingcode = "Any"
     }
   }
+
+  var privateStatus = $('#select-privaterooms').val();
+
   var lab = 0;
   var wheelchair = 0;
   var hearingloop = 0;
@@ -373,7 +381,7 @@ function getSuitableRooms() {
 
   //http://localhost:44715/api?requestid=getSuitableRooms&park=Any&capacity=0&buildingcode=CC&lab=0&wheelchair=0&hearingloop=0&computer=0&projector=0&dprojector=0&ohp=0&visualiser=0&video=0&bluray=0&vhs=0&whiteboard=0&chalkboard=0&plasma=0&pasystem=0&radiomic=0&review=0
   $.post("api.cshtml", {
-    requestid: "getSuitableRooms", park: park, capacity: capacity, buildingcode: buildingcode, lab: lab, wheelchair: wheelchair,
+    requestid: "getSuitableRooms", park: park, capacity: capacity, private: privateStatus, buildingcode: buildingcode, lab: lab, wheelchair: wheelchair,
     hearingloop: hearingloop, computer: computer, projector: projector, dprojector: dprojector, ohp: ohp, visualiser: visualiser, video: dvd,
     bluray: bluray, vhs: vhs, whiteboard: whiteboard, chalkboard: chalkboard, plasma: plasma, pasystem: pasystem, radiomic: radiomic, review: review
   },
@@ -1002,6 +1010,8 @@ function saveState(tabnumber) {
   $('#select-building-tab' + tabnumber).text(buildingcode);
   $('#select-buildingname-tab' + tabnumber).text(buildingname);
 
+  $('#select-privaterooms-tab' + tabnumber).text($('#select-privaterooms').val());
+
   $('#select-roomuse-tab' + tabnumber).text($('#select-roomuse').val());
   var priority = $('#form-priority').val();
   if (priority.length == 0) {
@@ -1136,6 +1146,8 @@ function loadState(tabnumber) {
   var bilname = $('#select-buildingname-tab' + tabnumber).text();
   $('#select-building').val(bilname);
   fillBuildingsList(bilname);
+
+  $('#select-privaterooms').val($('#select-privaterooms-tab' + tabnumber).text());
 
   $('#select-roomuse').val($('#select-roomuse-tab' + tabnumber).text());
   $('#form-priority').val($('#form-priority-tab1').text());
@@ -1395,6 +1407,7 @@ function resetPreferences(tab) {
   $('#select-park').val("Any");
   $('#select-building').val("Any");
   $('#select-roomuse').val("Lecture");
+  $('#select-privaterooms').val("Include");
   $('#form-capacity').val("");
   $('#form-priority').val("");
   $('#select-specificreqs li').children('.list-activeFacility').each(function () {

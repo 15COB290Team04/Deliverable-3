@@ -21,8 +21,7 @@
       encodeJSON(getModuleList(db,deptcode));
     } 
 	  else if (requestid == "getSuitableRooms") {
-      encodeJSON(getRoomSearch(db, input("park"), input("capacity"), input("buildingcode"), input("lab"), input("wheelchair"), input("hearingloop"), input("computer"), input("projector"), input("dprojector"), input("ohp"), input("visualiser"), input("video"), input("bluray"), input("vhs"), input("whiteboard"), input("chalkboard"), input("plasma"), input("pasystem"), input("radiomic"), input("review")));
-      //encodeJSON(getRoomSearch(db, "central", "100", "CC", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
+      encodeJSON(getRoomSearch(db, deptcode, input("park"), input("capacity"), input("private"), input("buildingcode"), input("lab"), input("wheelchair"), input("hearingloop"), input("computer"), input("projector"), input("dprojector"), input("ohp"), input("visualiser"), input("video"), input("bluray"), input("vhs"), input("whiteboard"), input("chalkboard"), input("plasma"), input("pasystem"), input("radiomic"), input("review")));
     } 
 	  else if (requestid == "getBuildingName") {
       encodeJSON(getBuildingName(db,input("buildingcode")));  //this buildingcode variable must be validated
@@ -350,10 +349,17 @@
     }
 
     //Get a list of Suitable Rooms from an input of requirements (Some of these may have to be int - but try string first) 
-    dynamic getRoomSearch(Database db, string park, dynamic students, string buildingcode, int lab, int wheelchair, int hearingloop, int computer, int projector, int dprojector, int ohp, int visualiser, int video, int bluray, int vhs, int whiteboard, int chalkboard, int plasma, int pasystem, int radiomic, int review) {
+    dynamic getRoomSearch(Database db, string deptcode, string park, dynamic students, string privateStatus, string buildingcode, int lab, int wheelchair, int hearingloop, int computer, int projector, int dprojector, int ohp, int visualiser, int video, int bluray, int vhs, int whiteboard, int chalkboard, int plasma, int pasystem, int radiomic, int review) {
       var location = "";
       var requirements = "";
-      var sql = ""; 
+      var sql = "";
+      var privaterooms = "";
+      if (privateStatus == "Exclude") { //exclude private rooms from search
+        privaterooms = "AND c.department_code IS NULL ";
+      }
+      else if (privateStatus == "Only") { //show only private rooms in search
+        privaterooms = "AND c.department_code = '"+deptcode+"' ";
+      }
 
       if (park != "Any") { //if a certain park IS chosen			
         if (buildingcode != "Any") { //if a certain building IS chosen
@@ -370,11 +376,12 @@
       requirements = "'Start'," + ((lab == 1) ? "'Laboratory'," : "") + ((wheelchair == 1) ? "'Wheelchair Access'," : "") + ((hearingloop == 1) ? "'Hearing Induction Loop Fitted'," : "") + ((computer == 1) ? "'Computer'," : "") + ((projector == 1) ? "'Projector'," : "") + ((dprojector == 1) ? "'Dual Projector'," : "") + ((ohp == 1) ? "'OverHead Projector'," : "") + ((visualiser == 1) ? "'Visualiser'," : "") + ((video == 1) ? "'Video Player'," : "") + ((bluray == 1) ? "'BluRay Player'," : "") + ((vhs == 1) ? "'VHS Player'," : "") + ((whiteboard == 1) ? "'Whiteboard'," : "") + ((chalkboard == 1) ? "'Chalkboard'," : "") + ((plasma == 1) ? "'Plasma'," : "") + ((pasystem == 1) ? "'PA System'," : "") + ((radiomic == 1) ? "'Radio Mic'," : "") + ((review == 1) ? "'ReVIEW Lecture Capture'," : "") + "'End'";
 
       if (requirements.Length > 13) { //if user has specified requirements
-        sql = location + "c.room_capacity >= '"+students+"' AND a.facility_id IN (SELECT facility_id FROM dbo.facility WHERE facility_name IN ("+requirements+")) GROUP BY a.room_code HAVING COUNT(a.facility_id)=(SELECT COUNT(facility_id) FROM dbo.facility WHERE facility_name IN ("+requirements+"));";
+        sql = location + "c.room_capacity >= '"+students+"' "+privaterooms+"AND a.facility_id IN (SELECT facility_id FROM dbo.facility WHERE facility_name IN ("+requirements+")) GROUP BY a.room_code HAVING COUNT(a.facility_id)=(SELECT COUNT(facility_id) FROM dbo.facility WHERE facility_name IN ("+requirements+"));";
       } 
 	    else { //to prevent breaking when no requirements selected
-        sql = location + "c.room_capacity>="+students+" GROUP BY a.room_code;";
+        sql = location + "c.room_capacity>="+students+" "+privaterooms+"GROUP BY a.room_code;";
       }
+
       var res = db.Query(sql);
       return res;
     }
