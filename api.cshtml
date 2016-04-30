@@ -12,7 +12,9 @@
     if (requestid == "getStuff") { //TEST FUNCTION FOR DEFAULT PAGE
       //encodeJSON( testFunction(db,"example") );
       //Response.Write(getLastID(db));
-      encodeJSON(gridDayToArray("3, 5, "));
+      //encodeJSON(gridDayToArray("3, 5, "));
+      //var sql = "SELECT building_name FROM dbo.building";
+      //encodeJSON(db.Query(sql));
     }
 
     if (requestid == "getDeptModuleList") {
@@ -52,6 +54,12 @@
 	  else if (requestid == "getReqList") {
       encodeJSON(getReqsList(db));
     }
+    else if (requestid == "getDeptNotepad") {
+      encodeJSON(getDeptNotepad(db,deptcode));
+    }
+    else if (requestid == "getDeptLecturers") {
+      encodeJSON(getDeptLecturers(db,deptcode));
+    }
   }
   else if (requestid.Substring(0,3) == "set") {
     //Set functions
@@ -78,6 +86,13 @@
       encodeJSON(interpretData(db, json, input("modulecode"), input("semester")));
       //Response.Write(interpretData(db, json, input("modulecode")));
       //LOCALHOST/api?requestid=setBookingsInterpret&json=[["Any","Any","30","COZ000",null,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,"","2, 4, ","3, 5, ","6, ","","CC.0.29a"]]&modulecode=COZ000&semester=1
+    }
+    else if (requestid == "setDeptNotepad") {
+      var inp = Request.Params["content"];
+      //content = inp;
+      var encodedContent = System.Security.SecurityElement.Escape(inp);
+      //Response.Write(encoded);
+      encodeJSON(setDeptNotepad(db, encodedContent, deptcode));
     }
   }
 
@@ -480,6 +495,20 @@
       return res;
     }
 
+    //Get Department Notepad contents
+    dynamic getDeptNotepad(Database db, string deptcode) {
+      var sql = "SELECT department_notepad FROM dbo.department WHERE department_code = '"+deptcode+"';";
+      var res = db.Query(sql);
+      return res;
+    }
+
+    //Get all lecturers from a department
+    dynamic getDeptLecturers(Database db, string deptcode) {
+      var sql = "SELECT CONCAT(lecturer_name,' ',lecturer_surname) AS name FROM team04.lecturer WHERE department_code = '"+deptcode+"';";
+      var res = db.Query(sql);
+      return res;
+    }
+
 //libDatabaseSet functions
     //Insert a new module into the database
     dynamic setNewModule(Database db, string modulecode, string moduletitle, string deptcode) {
@@ -535,6 +564,17 @@
       try {
         var res = db.Execute(SQL);
         if (res > 0) { return true; }
+        else { return false; }
+      } 
+      catch { return false; } 
+    }
+
+    //Sets the department notepad content
+    dynamic setDeptNotepad(Database db, string content, string deptcode) {
+      var SQL = "UPDATE dbo.department SET department_notepad = '"+content+"' WHERE department_code = '"+deptcode+"';";
+      try {
+        var res = db.Execute(SQL);
+        if (res == 1) { return true; }
         else { return false; }
       } 
       catch { return false; } 
