@@ -159,8 +159,21 @@ function loadLecturers(){
               $('#lecturer1').val(Lecturer);
           }
       });
+      $("#lecturer2").autocomplete({
+          source: availableTags,
+          close: function () {
+              var Lecturer = $('#lecturer2').val();
+              $('#lecturer2').val(Lecturer);
+          }
+      });
+      $("#lecturer3").autocomplete({
+          source: availableTags,
+          close: function () {
+              var Lecturer = $('#lecturer3').val();
+              $('#lecturer3').val(Lecturer);
+          }
+      });
       //sort it out so it works with the additional lecturers 
-      //also clears the previous field
       $("#lecturer1-upd").autocomplete({
           source: availableTags,
           close: function () {
@@ -194,6 +207,7 @@ function addLecturers(){
         <input type="text" placeholder="e.g. Andre Schappo" id="lecturer2" class="form-control"/>\
                   <br/>\
                   <br/>');
+         loadLecturers();
       } else if (count == 1) {
          count++;
          var div = document.getElementById('mod-details');
@@ -203,6 +217,6 @@ function addLecturers(){
                   <br/>');
         document.getElementById('toggle-btn').style.display = "none";
         document.getElementById('create-mod').style.marginLeft = "45%";
-      }
-    
+        loadLecturers();
+      }    
 }
