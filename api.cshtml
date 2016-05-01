@@ -766,7 +766,11 @@
         var sql_round = round;                        
         var sql_semester = semester;
         var sql_year = yearCheck(DateTime.Now.Month);
-        var sql_roomcode = queueElem["roomcode"];
+        var sql_roomcode = queueElem["roomcode"];        
+        if (sql_roomcode.Substring(sql_roomcode.Length-1,1) == "*") {  //If this is a private room
+          status = "approved";
+          notification = 0;
+        }
         var sql_building = queueElem["buildingcode"];
         var sql_park = queueElem["park"];
         var sql_capacity = queueElem["capacity"];

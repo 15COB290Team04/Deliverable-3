@@ -30,7 +30,7 @@ $(document).ready(function () {
   });
 
   //Call functions at page load
-  fillBuildingsList("Any");
+  //fillBuildingsList("Any"); //called in resetPreferences() (loadState() within it)
   //getSuitableRooms(); //call function to populate suitable rooms list
   getSubmissionLog();
 
@@ -141,6 +141,17 @@ $(document).ready(function () {
       if ($(this).hasClass("timetable-selected")) {
         $(this).removeClass("timetable-selected");
         //alert("This time slot has been unselected.")
+
+        var room = $('#form-booking-roomCode').val();
+
+        //if it is a private room
+        if (room.substr(room.length - 1, 1) == "*") {
+          //if it is booked already (clash)
+          if ($(this).find('span.timetable-taken-text').length == 1) {
+            //show warning message
+            $('#timetable-error-message').slideUp();
+          }
+        }
       }
       else {
         $(this).toggleClass("timetable-selected");
@@ -154,6 +165,15 @@ $(document).ready(function () {
 
         var room = $('#form-booking-roomCode').val();
 
+        //if it is a private room
+        if (room.substr(room.length - 1, 1) == "*") {
+          //if it is booked already (clash)
+          if ($(this).find('span.timetable-taken-text').length == 1) {
+            //show warning message
+            $('#timetable-error-message').slideDown();
+          }
+        }
+
         //alert("Selected Room: "+room+" \n\nPeriod: "+thisPeriod+"\nDay: "+thisDay);
       }
 
@@ -164,6 +184,22 @@ $(document).ready(function () {
     }
     else if ($(this).hasClass("timetable-disabled") && !$(this).hasClass("timetable-taken")) {
 
+    }
+  });
+
+  //if the 'BOOKED' text is clicked in a timetable
+  $(document).on('click', '.timetable-taken-text', function () {
+    if (!$(this).parent().hasClass('timetable-taken')) {
+      //this is for a private room - (click handled for timetable-taken class in case of normal room)
+      $('.pop').html($(this).parent().find('.timetable-content-empty').html());
+      $('.pop').fadeToggle();
+      //prevent default clicks (selecting from parent class)
+      if ($(this).parent().hasClass("timetable-selected")) {
+        $(this).parent().removeClass("timetable-selected");
+      }
+      else {
+        $(this).parent().addClass("timetable-selected");
+      }
     }
   });
 
@@ -409,7 +445,7 @@ function fillBuildingsList(building) {
     park = "Any";
   }
 
-  $.post("api.cshtml", {requestid: "getParkBuildings", park: park},
+  $.post("api.cshtml", { requestid: "getParkBuildings", park: park },
   function (JSONresult) {
 
     var buildingList = "<option>Any</option>";
@@ -419,8 +455,12 @@ function fillBuildingsList(building) {
     $("#select-building").html(buildingList);
 
     //select Any or building by default
-    $("#select-building").val(building);
-
+    if (building.length < 3) {
+      $("#select-building").val("Any");
+    }
+    else {
+      $("#select-building").val(building);
+    }
   }, 'json');
 
 }
@@ -457,7 +497,7 @@ function getRoomTimetable() {
       console.log("Semester: " + sem + "  Weeks: " + weeks + "  RoomCode: " + $('#form-booking-roomCode').val());
 
       //Perform API call to retrieve timetable bookings for times and weeks
-      $.post("api.cshtml", {requestid: "getRoomTimetable", roomcode: $('#form-booking-roomCode').val(), weeks: weeks, semester: sem},
+      $.post("api.cshtml", { requestid: "getRoomTimetable", roomcode: $('#form-booking-roomCode').val(), weeks: weeks, semester: sem },
       function (JSONresult) {
 
         //console.log( JSONresult[i]['request_details'].request_day );  or request_timestart, request_round, module_code, request_priority (null or string)
@@ -467,49 +507,101 @@ function getRoomTimetable() {
 
         for (var i = 0; i < JSONresult.length; i++) {
           var day = JSONresult[i]['request_details'].request_day;
-          var dayneat = day.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});  //Makes first letter upper case  //TODO: Copy this to other timetables
+          var dayneat = day.replace(/\w\S*/g, function (txt) { return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(); });  //Makes first letter upper case  //TODO: Copy this to other timetables
           var time = JSONresult[i]['request_details'].request_timestart;
 
-          //if this slot is currently clear
-          if (!$('.timetable-table tbody tr[class*="' + day + '"]').find('td[class*="period' + time + '"]').hasClass("timetable-taken")) {
-
-            $('.timetable-table tbody tr[class*="' + day + '"]').find('td[class*="period' + time + '"]').addClass("timetable-taken");
-            $('.timetable-table tbody tr[class*="' + day + '"]').find('td[class*="period' + time + '"]').removeClass("timetable-selected");
-
-            //Multiple content should be in form: <span class='timetable-taken-text'>Booked</span><div class='timetable-content-empty'></div>
-            var content = "<span class='timetable-taken-text'>Booked</span><div class='timetable-content-empty'>";
-
-            var popContent = "<b>Information for a booked timetable slot.</b><br/>";
-            popContent += "Day: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + dayneat + "<br/>";
-            popContent += "Period: &nbsp;" + time + "<br/><br/>";
-            popContent += "The module <b>" + JSONresult[i]['request_details'].module_code + "</b> has booked this slot for weeks:<br/>";
-            //for (var j = 0; j < JSONresult[i]['weeks_range'].length; j++) {
-              popContent += JSONresult[i]['weeks_range']/*+ ", "*/;
-            //}
-            popContent += "<p></p>";
-            popContent += "<p class='close'>Close</p>";
-
-            content += popContent;
-            content += "</div>";
-            $('.timetable-table tbody tr[class*="' + day + '"]').find('td[class*="period' + time + '"]').html(content);
-
+          var room = $('#form-booking-roomCode').val();
+          var roomIsPrivate = false;
+          if (room.substr(room.length - 1, 1) == "*") {
+            roomIsPrivate = true;
           }
-          else { //if this slot in timetable has another module booking here (ie. different weeks)
 
-            var currentContent = $('.timetable-table tbody tr[class*="' + day + '"]').find('td[class*="period' + time + '"]').html().toString();
+          if (!roomIsPrivate) { //IF ROOM IS NOT PRIVATE
+            console.log("Room is not private");
+            //if this slot is currently clear
+            if (!$('.timetable-table tbody tr[class*="' + day + '"]').find('td[class*="period' + time + '"]').hasClass("timetable-taken")) {
 
-            var newContent = "";
+              $('.timetable-table tbody tr[class*="' + day + '"]').find('td[class*="period' + time + '"]').addClass("timetable-taken");
+              $('.timetable-table tbody tr[class*="' + day + '"]').find('td[class*="period' + time + '"]').removeClass("timetable-selected");
 
-            var contentStart = currentContent.substring(0, currentContent.indexOf("<p></p>"));
-            var contentEnd = currentContent.substring(currentContent.indexOf("<p></p>"));
+              //Multiple content should be in form: <span class='timetable-taken-text'>Booked</span><div class='timetable-content-empty'></div>
+              var content = "<span class='timetable-taken-text'>Booked</span><div class='timetable-content-empty'>";
 
-            contentStart += "<br/><br/>The module <b>" + JSONresult[i]['request_details'].module_code + "</b> has booked this slot for weeks:<br/>";
-            for (var j = 0; j < JSONresult[i]['weeks_range'].length; j++) {
-              contentStart += JSONresult[i]['weeks_range'][j] + ", ";
+              var popContent = "<b>Information for a booked timetable slot.</b><br/>";
+              popContent += "Day: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + dayneat + "<br/>";
+              popContent += "Period: &nbsp;" + time + "<br/><br/>";
+              popContent += "The module <b>" + JSONresult[i]['request_details'].module_code + "</b> has booked this slot for weeks:<br/>";
+              //for (var j = 0; j < JSONresult[i]['weeks_range'].length; j++) {
+              popContent += JSONresult[i]['weeks_range']/*+ ", "*/;
+              //}
+              popContent += "<p></p>";
+              popContent += "<p class='close'>Close</p>";
+
+              content += popContent;
+              content += "</div>";
+              $('.timetable-table tbody tr[class*="' + day + '"]').find('td[class*="period' + time + '"]').html(content);
+
+            }
+            else { //if this slot in timetable has another module booking here (ie. different weeks)
+
+              var currentContent = $('.timetable-table tbody tr[class*="' + day + '"]').find('td[class*="period' + time + '"]').html().toString();
+
+              var newContent = "";
+
+              var contentStart = currentContent.substring(0, currentContent.indexOf("<p></p>"));
+              var contentEnd = currentContent.substring(currentContent.indexOf("<p></p>"));
+
+              contentStart += "<br/><br/>The module <b>" + JSONresult[i]['request_details'].module_code + "</b> has booked this slot for weeks:<br/>";
+              for (var j = 0; j < JSONresult[i]['weeks_range'].length; j++) {
+                contentStart += JSONresult[i]['weeks_range'][j] + ", ";
+              }
+
+              newContent = contentStart + contentEnd;
+              $('.timetable-table tbody tr[class*="' + day + '"]').find('td[class*="period' + time + '"]').html(newContent);
             }
 
-            newContent = contentStart + contentEnd;
-            $('.timetable-table tbody tr[class*="' + day + '"]').find('td[class*="period' + time + '"]').html(newContent);
+          }
+          else {  //ROOM IS PRIVATE
+            console.log("Room is private");
+            //if this slot does NOT have a booking (is free)        
+            if ($('.timetable-table tbody tr[class*="' + day + '"]').find('td[class*="period' + time + '"]').find('span.timetable-taken-text').length == 0) {
+
+              $('.timetable-table tbody tr[class*="' + day + '"]').find('td[class*="period' + time + '"]').removeClass("timetable-selected");
+
+              //Multiple content should be in form: <span class='timetable-taken-text'>Booked</span><div class='timetable-content-empty'></div>
+              var content = "<span class='timetable-taken-text'>Booked</span><div class='timetable-content-empty'>";
+
+              var popContent = "<b>Information for a booked timetable slot.</b><br/>";
+              popContent += "Day: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + dayneat + "<br/>";
+              popContent += "Period: &nbsp;" + time + "<br/><br/>";
+              popContent += "The module <b>" + JSONresult[i]['request_details'].module_code + "</b> has booked this slot for weeks:<br/>";
+              popContent += JSONresult[i]['weeks_range'];
+              popContent += "<p></p>";
+              popContent += "<p class='close'>Close</p>";
+
+              content += popContent;
+              content += "</div>";
+              $('.timetable-table tbody tr[class*="' + day + '"]').find('td[class*="period' + time + '"]').html(content);
+
+            }
+            else { //if this slot in timetable has another module booking here (ie. different weeks)
+
+              var currentContent = $('.timetable-table tbody tr[class*="' + day + '"]').find('td[class*="period' + time + '"]').html().toString();
+
+              var newContent = "";
+
+              var contentStart = currentContent.substring(0, currentContent.indexOf("<p></p>"));
+              var contentEnd = currentContent.substring(currentContent.indexOf("<p></p>"));
+
+              contentStart += "<br/><br/>The module <b>" + JSONresult[i]['request_details'].module_code + "</b> has booked this slot for weeks:<br/>";
+              for (var j = 0; j < JSONresult[i]['weeks_range'].length; j++) {
+                contentStart += JSONresult[i]['weeks_range'][j] + ", ";
+              }
+
+              newContent = contentStart + contentEnd;
+              $('.timetable-table tbody tr[class*="' + day + '"]').find('td[class*="period' + time + '"]').html(newContent);
+            }
+
           }
 
         }
