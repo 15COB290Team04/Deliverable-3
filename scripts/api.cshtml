@@ -1,0 +1,846 @@
+﻿@{
+  var db = Database.Open("SQLServerConnectionString");
+
+//Handle the requests retrieved from client
+  var requestid = input("requestid");
+
+  //TODO: Sort out sessions for deptcode
+  var deptcode = "CO";
+
+  if (requestid.Substring(0,3) == "get") {
+    //Get functions
+    if (requestid == "getStuff") { //TEST FUNCTION FOR DEFAULT PAGE
+      //encodeJSON( testFunction(db,"example") );
+      //Response.Write(getLastID(db));
+      //encodeJSON(gridDayToArray("3, 5, "));
+      //var sql = "SELECT building_name FROM dbo.building";
+      //encodeJSON(db.Query(sql));
+    }
+
+    if (requestid == "getDeptModuleList") {
+      encodeJSON(getModuleList(db,deptcode));
+    } 
+	  else if (requestid == "getSuitableRooms") {
+      encodeJSON(getRoomSearch(db, deptcode, input("park"), input("capacity"), input("private"), input("buildingcode"), input("lab"), input("wheelchair"), input("hearingloop"), input("computer"), input("projector"), input("dprojector"), input("ohp"), input("visualiser"), input("video"), input("bluray"), input("vhs"), input("whiteboard"), input("chalkboard"), input("plasma"), input("pasystem"), input("radiomic"), input("review")));
+    } 
+	  else if (requestid == "getBuildingName") {
+      encodeJSON(getBuildingName(db,input("buildingcode")));  //this buildingcode variable must be validated
+    } 
+	  else if (requestid == "getParkBuildings") {
+      encodeJSON(getBuildings_Park(db,input("park")));
+    } 
+	  else if (requestid == "getBuildingPark") {
+      encodeJSON(getParkName(db,input("buildingcode")));
+    } 
+	  else if (requestid == "getRoomTimetable") {
+      encodeJSON(getRequestTimetable(db,input("roomcode"), input("semester"), input("weeks")));
+    } 
+	  else if (requestid == "getRoomLogsBooking") {
+      encodeJSON(getRequestLog_Booking(db,input("semester"), deptcode));
+    } 
+	  else if (requestid == "getRoomLogsAllocation") {
+      encodeJSON(getRequestLog_Allocation(db,input("semester"), input("year"), deptcode));
+    } 
+	  else if (requestid == "getNotifications") {
+      encodeJSON(getNotifications(db));	//TODO: Include deptcode in here
+    } 
+	  else if (requestid == "getReqs") {
+      encodeJSON(getRoomReqs(db,input("roomcode")));
+    } 
+	  else if (requestid == "getModuleTimetable") {
+      encodeJSON(getRequestTimetable_ModuleInfo(db,input("modulecode"), input("semester"), input("weeks")));
+    } 
+	  else if (requestid == "getReqList") {
+      encodeJSON(getReqsList(db));
+    }
+    else if (requestid == "getDeptNotepad") {
+      encodeJSON(getDeptNotepad(db,deptcode));
+    }
+    else if (requestid == "getDeptLecturers") {
+      encodeJSON(getDeptLecturers(db,deptcode));
+    }
+  }
+  else if (requestid.Substring(0,3) == "set") {
+    //Set functions
+    if (requestid == "setNewModule") {
+      var json = getJSON();
+      encodeJSON(setNewModule(db, json["modulecode"], json["moduletitle"], json["deptcode"]));
+      //Can be tested with: LOCALHOST/api?requestid=setNewModule&json={'deptcode':'CO','modulecode':'COZ000','moduletitle':'Test Title'}
+    }
+    else if (requestid == "setUpdateModule") {
+      var json = getJSON();
+      encodeJSON(setUpdateModule(db, json["modulecode"], json["moduletitle"], json["deptcode"]));
+      //Can be tested with: LOCALHOST/api?requestid=setUpdateModule&json={'deptcode':'CO','modulecode':'COZ000','moduletitle':'Updated Test Title'}
+    } 
+    else if (requestid == "setDeleteModule") {
+      var json = getJSON();
+      encodeJSON(setDeleteModule(db, json["modulecode"], json["moduletitle"], json["deptcode"]));
+    }
+    else if (requestid == "setNotifications") {
+      encodeJSON(setNotificationStatus(db, input("idlist")));
+    }
+    else if (requestid == "setBookingsInterpret") {
+      //var json = getJSON();
+      var json = Request.Params["json"];
+      encodeJSON(interpretData(db, json, input("modulecode"), input("semester")));
+      //Response.Write(interpretData(db, json, input("modulecode")));
+      //LOCALHOST/api?requestid=setBookingsInterpret&json=[["Any","Any","30","COZ000",null,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,"","2, 4, ","3, 5, ","6, ","","CC.0.29a"]]&modulecode=COZ000&semester=1
+    }
+    else if (requestid == "setDeptNotepad") {
+      var inp = Request.Params["content"];
+      //content = inp;
+      var encodedContent = System.Security.SecurityElement.Escape(inp);
+      //Response.Write(encoded);
+      encodeJSON(setDeptNotepad(db, encodedContent, deptcode));
+    }
+  }
+
+//Functions used by api file and library database get/set
+@functions {
+
+//API File helper functions
+    //Retrieve and Sanitize inputs from the Client-Side 
+    dynamic input(dynamic queryid) {
+      var id = Request.Params[queryid];
+      char[] invalidChars = { ';', '<', '>', '-', '{', '}', '[', ']' };
+      if(id != null) {
+        id = String.Join("", id.Split(invalidChars)); 
+        if(id == "1"){
+          return 1;
+        } 
+        else if(id == "0") {
+          return 0;
+        }
+        return id;
+      }
+      else {
+        Response.Write("You submitted a missing parameter. Contact an admin.");
+        return null;
+      }
+    }
+
+    //Retrieve and Sanitize JSON inputs from the Client-Side
+    dynamic getJSON() {
+      var jsonInput = Request.Params["json"];
+      //TODO: Sanitize this input
+      return Json.Decode(jsonInput);
+    } 
+
+    //Encode result as JSON and return data
+    void encodeJSON(dynamic data) {
+      Json.Write(data, Response.Output);
+      Response.ContentType = "application/json";   
+    }
+
+    //Verify success or failure from database response (SET Functions)
+    Boolean verify(dynamic res) {
+      return true;
+    }
+
+    //Function to check the month in the year and decide if it is current academic year or previous
+    //Eg. If it's Month 8 (August) = 2016/17 academic year, so return int: 2016
+    //Eg. If it's Month 4 (April) = 2015/16 academic year, so return int: 2015
+    int yearCheck(int month) {
+      if (month > 6) {
+        return @DateTime.Now.Year;
+      }
+      else {
+        return @DateTime.Now.AddYears(-1).Year;
+      }
+    }
+
+    //Converts the weeks returned from database into a range eg. 1-15
+    dynamic getRanges(dynamic nums) {
+      var ranges = "";
+      var len = nums.Count;
+      for (var i = 0; i < len; i++) {
+        var rStart = nums[i]["week_number"];
+        var rEnd = rStart;
+        while (i < (len-1) && (nums[i + 1]["week_number"] - nums[i]["week_number"] == 1) != null){
+          rEnd = nums[++i]["week_number"];
+        }
+        ranges = rStart == rEnd ? rStart.ToString() : rStart + " - " + rEnd;  //if 1 entry, return the week, otherwise return in form "1 - 5"
+      }
+      return ranges;
+    }
+
+    //Takes in day 'number' and converts to day string
+    string calcDay(int dayNum) {
+      switch (dayNum) {
+        case 1:
+          return "monday";
+        case 2:
+          return "tuesday";
+        case 3:
+          return "wednesday";
+        case 4:
+          return "thursday";
+        case 5:
+          return "friday";
+      }
+      return null;
+    }
+
+    //Gets the last request ID from the database
+    int getLastID(Database db) {
+      var SQL = "WITH rows AS (SELECT ROW_NUMBER() OVER (ORDER BY request_id DESC) row, request_id FROM dbo.request) SELECT request_id FROM rows WHERE row = 1;";
+      var res = db.QuerySingle(SQL);
+      return res[0];
+    }
+
+    //Function to take the day grid input (as a string in form "3, 5, " for example) and return an array [0,0,1,0,1,0,0,0,0]
+    dynamic gridDayToArray(string input) {
+      input = input.Trim();                         //remove whitespace from input
+      var res = input.Split(',');										//Split the string by the commas and put into array 'res'
+      int[] datetime = new int[] { 0,0,0,0,0,0,0,0,0 };       //Start with array of 9x 0's (this means no periods are selected as 0=No)
+
+      for (var k = 0; k < res.Count(); k++) {		    //For each of the elements in res
+        var val = res[k].AsInt();
+        if (val > 0) {															//If the element is active (ie the time period in the day is selected)
+          datetime[val - 1] = 1;										//Set the datetime array slot to 1 (1=Yes)
+        }
+      }
+      //var test = "";
+      //foreach(var item in datetime) { test += item.ToString(); }
+      //return test;
+      return datetime;														  //Return the array of selected periods in a day
+    }
+
+    //Function to condense a timetable state into an array with all booking info & the Time/Day/Room params
+    dynamic requestPushBack(dynamic state, int para_t, int para_d, int para_r) {		//State, Time, Day, Room number (ie. from slot 1 (index 0), 2 (1), or 3 (2) of room booking UI [for multi rooms])
+      Dictionary<dynamic, dynamic> res = new Dictionary<dynamic, dynamic>();
+      res.Add("day", calcDay(para_d));
+      res.Add("roomcode", state["roomcode"]);
+      res.Add("weeklist", state["weeklist"]);
+      res.Add("facilities", state["facilities"]);
+      res.Add("buildingcode", state["building"]);
+      res.Add("park", state["park"]);
+      res.Add("capacity", state["capacity"]);
+      res.Add("modulecode", state["modulecode"]);
+      res.Add("priority", state["priority"]);
+      res.Add("child", null);
+      res.Add("request-timestart", para_t);
+      res.Add("request-year", yearCheck(DateTime.Now.Month));
+      res.Add("para_d", para_d);
+      res.Add("para_r", para_r);
+      return res;
+    }
+
+    //Verify if 2 slots are LINKED (ie. if they are multiple rooms, or a double/triple period)
+    bool verifyLinked(int t1, int d1, int r1, int t2, int d2, int r2) {	//inputs are time,day,roomnumber (in UI) for each
+	
+      if ((t1 == t2) && (d1 == d2) && (r1 < r2)) {	//Case when it is a MULTIPLE ROOM (ie. same slot (time/day) but different room from UI)
+        return true;
+      }
+      if ((t1 + 1 == t2) && (d1 == d2)) {	//Case when it is a DOUBLE LENGTH slot (ie. the time of second is 1 hour after (next period) but day is same)
+        return true;
+      }
+
+      return false;	//otherwise return false, as they are not linked
+    }
+
+//libDatabaseGet functions
+    //Test function pulling data from the server
+    dynamic testFunction(Database db,string test) {
+      var SQL = "SELECT * FROM dbo.building";
+      var res = db.Query(SQL);
+      return res;
+    }
+
+    //Get the department name from a code
+    dynamic getDeptName(Database db, string deptcode) {
+      var SQL = "SELECT department_name FROM dbo.department WHERE department_code LIKE '"+deptcode+"';";
+      var res = db.Query(SQL);
+      return res;
+    }
+
+    //Get a list of all modules with their corresponding codes matching a pattern
+    dynamic getModuleList(Database db, string deptcode) {
+      var SQL = "SELECT CONCAT(dept_code,module_part,module_code) AS module_code, module_title FROM dbo.module WHERE dept_code LIKE '"+deptcode+"';";
+      var res = db.Query(SQL);
+      return res;
+    }
+
+    //Get a Module Title based on a Module Code
+    dynamic getModuleTitle(Database db, string modulecode) {
+      var SQL = "SELECT module_title FROM dbo.module WHERE CONCAT(dept_code,module_part,module_code) LIKE '"+modulecode+"';";
+      var res = db.Query(SQL);
+      return res;
+    }
+    
+    //Get a Module Code from a Title
+    dynamic getModuleCode(Database db, string moduletitle) {
+      var SQL = "SELECT CONCAT(dept_code,module_part,module_code) FROM dbo.module WHERE module_title LIKE '"+moduletitle+"';";
+      var res = db.Query(SQL);
+      return res;
+    }
+    
+    //Get a Building Name based on a Building Code
+    dynamic getBuildingName(Database db, string buildingcode) { 
+      var SQL = "SELECT building_name FROM dbo.building WHERE building_code LIKE '"+buildingcode+"';";
+      var res = db.Query(SQL);
+      return res;
+    }
+    
+    //Get a Building's park from it's Building Code
+    dynamic getParkName(Database db, string buildingcode) {
+      var SQL = "SELECT park FROM dbo.building WHERE building_code LIKE '"+buildingcode+"';";
+      var res = db.Query(SQL);
+      return res;
+    } 
+    
+    //Get all buildings in a park
+    dynamic getBuildings_Park(Database db, string park) { 
+      var SQL = "SELECT building_name, building_code FROM dbo.building";
+      if (park == "Any") { SQL += ";"; }
+      else { SQL += " WHERE park LIKE '"+park+"';"; }
+      var res = db.Query(SQL);
+      return res;
+    }
+
+    //Get all facilities from a park? (currently unused)
+    dynamic getEnabledFacilities_Park(Database db, string park) {
+      //Use a join to get data from multiple tables
+      var SQL = "SELECT DISTINCT b.facility_name FROM dbo.[facility-room] a LEFT JOIN dbo.facility b ON a.facility_id = b.facility_id WHERE a.room_code IN (SELECT DISTINCT a.room_code FROM room a LEFT JOIN building b ON a.building_code = b.building_code WHERE b.park = '"+park+"');";
+      var res = db.Query(SQL);
+      return res;
+    }
+
+    //Get facilities from a building? (currently unused)
+    dynamic getEnabledFacilities_Building(Database db, string buildingcode) {
+      var SQL = "SELECT DISTINCT b.facility_name FROM dbo.[facility-room] a LEFT JOIN dbo.facility b ON a.facility_id = b.facility_id WHERE a.room_code IN (SELECT DISTINCT a.room_code FROM room a LEFT JOIN building b ON a.building_code = b.building_code WHERE b.building_code = '"+buildingcode+"');";
+      var res = db.Query(SQL);
+      return res;
+    }
+
+    //Get all rooms in a park
+    dynamic getRooms_Park(Database db, string park) {
+      var SQL = "SELECT DISTINCT a.room_code FROM dbo.room a LEFT JOIN dbo.building b ON a.building_code = b.building_code WHERE b.park = '"+park+"';";
+      var res = db.Query(SQL);
+      return res;
+    }
+
+    //Get all rooms in a building
+    dynamic getRooms_Building(Database db, string buildingcode) {
+      var SQL = "SELECT DISTINCT a.room_code FROM dbo.room a LEFT JOIN dbo.building b ON a.building_code = b.building_code WHERE b.building_code = '"+buildingcode+"';";
+      var res = db.Query(SQL);
+      return res;
+    }
+
+    //Get all Building Names
+    dynamic getBuildings(Database db) {
+      var SQL = "SELECT building_name FROM dbo.building;";
+      var res = db.Query(SQL);
+      return res;
+    }
+
+    //Get all Parks
+    dynamic getParks(Database db) {
+      var SQL = "SELECT DISTINCT park FROM dbo.building;";
+      var res = db.Query(SQL);
+      return res;
+    }
+
+    //Get all Room Codes
+    dynamic getRooms(Database db) {
+      var SQL = "SELECT room_code FROM dbo.room;";
+      var res = db.Query(SQL);
+      return res;
+    }
+
+    //Get a list of Suitable Rooms from an input of requirements (Some of these may have to be int - but try string first) 
+    dynamic getRoomSearch(Database db, string deptcode, string park, dynamic students, string privateStatus, string buildingcode, int lab, int wheelchair, int hearingloop, int computer, int projector, int dprojector, int ohp, int visualiser, int video, int bluray, int vhs, int whiteboard, int chalkboard, int plasma, int pasystem, int radiomic, int review) {
+      var location = "";
+      var requirements = "";
+      var sql = "";
+      var privaterooms = "";
+      if (privateStatus == "Exclude") { //exclude private rooms from search
+        privaterooms = "AND c.department_code IS NULL ";
+      }
+      else if (privateStatus == "Only") { //show only private rooms in search
+        privaterooms = "AND c.department_code = '"+deptcode+"' ";
+      }
+
+      if (park != "Any") { //if a certain park IS chosen			
+        if (buildingcode != "Any") { //if a certain building IS chosen
+          location = "SELECT a.room_code FROM dbo.[facility-room] a JOIN dbo.facility b ON a.facility_id = b.facility_id JOIN dbo.room c ON a.room_code = c.room_code JOIN dbo.building d ON c.building_code = d.building_code WHERE d.building_code LIKE '"+buildingcode+"' AND ";
+        } 
+        else {
+          location = "SELECT a.room_code FROM dbo.[facility-room] a JOIN dbo.facility b ON a.facility_id = b.facility_id JOIN dbo.room c ON a.room_code = c.room_code JOIN dbo.building d ON c.building_code = d.building_code WHERE d.park LIKE '"+park+"' AND ";
+        } 
+      } 
+      else { //if both building and park is "Any"
+        location = "SELECT a.room_code FROM dbo.[facility-room] a JOIN dbo.facility b ON a.facility_id = b.facility_id JOIN dbo.room c ON a.room_code = c.room_code WHERE ";
+      }
+
+      requirements = "'Start'," + ((lab == 1) ? "'Laboratory'," : "") + ((wheelchair == 1) ? "'Wheelchair Access'," : "") + ((hearingloop == 1) ? "'Hearing Induction Loop Fitted'," : "") + ((computer == 1) ? "'Computer'," : "") + ((projector == 1) ? "'Projector'," : "") + ((dprojector == 1) ? "'Dual Projector'," : "") + ((ohp == 1) ? "'OverHead Projector'," : "") + ((visualiser == 1) ? "'Visualiser'," : "") + ((video == 1) ? "'Video Player'," : "") + ((bluray == 1) ? "'BluRay Player'," : "") + ((vhs == 1) ? "'VHS Player'," : "") + ((whiteboard == 1) ? "'Whiteboard'," : "") + ((chalkboard == 1) ? "'Chalkboard'," : "") + ((plasma == 1) ? "'Plasma'," : "") + ((pasystem == 1) ? "'PA System'," : "") + ((radiomic == 1) ? "'Radio Mic'," : "") + ((review == 1) ? "'ReVIEW Lecture Capture'," : "") + "'End'";
+
+      if (requirements.Length > 13) { //if user has specified requirements
+        sql = location + "c.room_capacity >= '"+students+"' "+privaterooms+"AND a.facility_id IN (SELECT facility_id FROM dbo.facility WHERE facility_name IN ("+requirements+")) GROUP BY a.room_code HAVING COUNT(a.facility_id)=(SELECT COUNT(facility_id) FROM dbo.facility WHERE facility_name IN ("+requirements+"));";
+      } 
+	    else { //to prevent breaking when no requirements selected
+        sql = location + "c.room_capacity>="+students+" "+privaterooms+"GROUP BY a.room_code;";
+      }
+
+      var res = db.Query(sql);
+      return res;
+    }
+
+    //Get a Room's Timetable
+    dynamic getRequestTimetable(Database db, string roomCode, dynamic semester, dynamic weeks) {
+      //Note: var weeks input is in string form similar to "1,2,3,7,10,"  ...  Must convert it to "'1','2','3','7'"
+      weeks = weeks.ToString();
+      if (weeks[weeks.Length-1] == ',') {
+        weeks = weeks.Substring(0,weeks.Length-1);
+      }
+      weeks = "'"+weeks+"'";
+      weeks = weeks.Replace("," , "','");
+ 
+      var year = yearCheck(@DateTime.Now.Month);
+      var sql = "SELECT a.request_id, a.request_day, a.request_timestart, a.request_round, a.request_semester, a.request_year, a.room_code, a.building_code, a.park, a.capacity, a.module_code, a.request_priority, a.request_status, a.request_child, a.notification_status FROM dbo.request a LEFT JOIN dbo.[request-week] b ON a.request_id=b.request_id WHERE a.request_status LIKE 'approved' AND a.request_semester='"+semester+"' AND a.request_year='"+year+"' AND a.room_code='"+roomCode+"' AND week_number IN("+weeks+") GROUP BY a.request_id, a.request_day, a.request_timestart, a.request_round, a.request_semester, a.request_year, a.room_code, a.building_code, a.park, a.capacity, a.module_code, a.request_priority, a.request_status, a.request_child, a.notification_status;";
+      var result = db.Query(sql);
+
+      var resultArrayLength = result.Count; //number of rows returned
+      var resultArray = result; 
+
+      dynamic[] res = new dynamic[resultArrayLength];
+
+      for (var i = 0; i < resultArrayLength; i++) {
+        var sqlWeekCheck = "SELECT week_number FROM dbo.[request-week] WHERE request_id='"+resultArray[i]["request_id"]+"';";
+        var week = db.Query(sqlWeekCheck);
+        res[i] = new {request_details = resultArray[i], weeks_active = week, weeks_range = getRanges(week)};
+      }
+      return res;
+    }
+
+    //Get a Module's Timetable
+    dynamic getRequestTimetable_ModuleInfo(Database db, string modulecode, dynamic semester, dynamic weeks) {
+      var year = yearCheck(@DateTime.Now.Month);	//Have already converted yearCheck() in api.cshtml - Insert: @DateTime.Now.Month into the function
+      var sql = "SELECT a.request_id, a.request_day, a.request_timestart, a.request_round, a.request_semester, a.request_year, a.room_code, a.building_code, a.park, a.capacity, a.module_code, a.request_priority, a.request_status, a.request_child, a.notification_status FROM dbo.request a LEFT JOIN dbo.[request-week] b ON a.request_id=b.request_id WHERE a.request_status LIKE 'approved' AND a.request_semester='"+semester+"' AND a.request_year='"+year+"' AND a.module_code='"+modulecode+"' AND week_number IN('"+weeks+"');";//GROUP BY a.request_id usually in there need to have a play and figure out what this is about
+      var result = db.Query(sql);
+
+      var resultArrayLength = result.Count; //number of rows returned
+      var resultArray = result.ToArray; 
+
+      dynamic[] res = new dynamic[resultArrayLength];
+
+      for (var i = 0; i < resultArrayLength; i++) {
+        var sqlWeekCheck = "SELECT week_number FROM dbo.[request-week] WHERE request_id='"+resultArray[i]["request_id"]+"';";
+        var week = db.Query(sqlWeekCheck);
+        res[i] = new {request_details = resultArray[i], weeks_active = week, weeks_range = getRanges(week)};
+      }
+      return res;
+    }
+
+    //Get the Submissions log data (on the Booking Page)
+    dynamic getRequestLog_Booking(Database db, dynamic semester, string deptcode) {
+      //TODO: (After Conversion) Currently gives duplicate entries for multiple weeks
+      var year = yearCheck(@DateTime.Now.Month);
+      var sql = "SELECT a.request_id, a.request_day, a.request_timestart, a.request_round, a.request_semester, a.request_year, a.room_code, a.building_code, a.park, a.capacity, a.module_code, a.request_priority, a.request_status, a.request_child, a.notification_status, b.building_name, c.module_title FROM dbo.request a LEFT JOIN dbo.building b ON a.building_code=b.building_code LEFT JOIN dbo.module c ON a.module_code = CONCAT(c.dept_code,c.module_part,c.module_code) WHERE request_semester='"+semester+"' AND request_year='"+year+"' AND request_status IN('pending', 'rejected') AND a.module_code LIKE '"+deptcode+"%';";
+      var result = db.Query(sql);
+
+      var resultArrayLength = result.Count; //number of rows returned
+      var resultArray = result;
+
+      dynamic[] res = new dynamic[resultArrayLength];
+
+      for (var i = 0; i < resultArrayLength; i++) {
+        var sqlWeekCheck = "SELECT week_number FROM dbo.[request-week] WHERE request_id='"+resultArray[i]["request_id"]+"';";
+        var week = db.Query(sqlWeekCheck);
+        res[i] = new {request_details = resultArray[i], weeks_active = week, weeks_range = getRanges(week)};
+      }
+      return res;
+    }
+
+    //Get the Submissions log data (on the Allocations Page)
+    dynamic getRequestLog_Allocation(Database db, dynamic semester, dynamic year, string deptcode) { //TODO: (After Conversion) Currently gives duplicate entries for multiple weeks
+      var sql = "SELECT a.request_id, a.request_day, a.request_timestart, a.request_round, a.request_semester, a.request_year, a.room_code, a.building_code, a.park, a.capacity, a.module_code, a.request_priority, a.request_status, a.request_child, a.notification_status, b.building_name, c.module_title FROM dbo.request a LEFT JOIN dbo.building b ON a.building_code=b.building_code LEFT JOIN dbo.module c ON a.module_code=CONCAT(c.dept_code,c.module_part,c.module_code) WHERE request_semester='"+semester+"' AND request_year='"+year+"' AND a.module_code LIKE '"+deptcode+"%';";
+      var result = db.Query(sql);
+
+      var resultArrayLength = result.Count; //number of rows returned
+      var resultArray = result; 
+
+      dynamic[] res = new dynamic[resultArrayLength];
+
+      for (var i = 0; i < resultArrayLength; i++) {
+        var sqlWeekCheck = "SELECT week_number FROM dbo.[request-week] WHERE request_id='"+resultArray[i]["request_id"]+"';";
+        var week = db.Query(sqlWeekCheck);
+        res[i] = new {request_details = resultArray[i], weeks_active = week, weeks_range = getRanges(week)};
+      }
+      return res;
+    }
+
+    //Get the notifications (all unread requests)
+    dynamic getNotifications(Database db) {	//TODO: This needs to incorporate the department code to ONLY show notifications for a specific department rather than all
+      var sql = "SELECT a.request_id, a.request_day, a.request_timestart, a.room_code, a.module_code, a.request_child, a.request_status, a.notification_status FROM dbo.request AS a WHERE a.notification_status=1 AND a.request_status IN('approved', 'rejected');";
+      var result = db.Query(sql);
+
+      var resultArrayLength = result.Count(); //number of rows returned
+      var resultArray = result.ToArray(); 
+
+      dynamic[] res = new dynamic[resultArrayLength];
+
+      for (var i = 0; i < resultArrayLength; i++) {
+        var sqlWeekCheck = "SELECT week_number FROM dbo.[request-week] WHERE request_id='"+resultArray[i]["request_id"]+"';";
+        var week = db.Query(sqlWeekCheck);
+        res[i] = new {request_details = resultArray[i], weeks_active = week, weeks_range = getRanges(week)};
+      }
+      return res;
+    }
+
+    //Get a Room's requirements
+    dynamic getRoomReqs(Database db, string roomcode) {
+      var sql = "SELECT c.facility_name FROM dbo.room a JOIN dbo.[facility-room] b ON a.room_code=b.room_code JOIN dbo.facility c ON b.facility_id=c.facility_id WHERE a.room_code='"+roomcode+"';";
+      var res = db.Query(sql);
+      return res;
+    }
+
+    //Get all Facilities
+    dynamic getReqsList(Database db) {
+      var sql = "SELECT * FROM dbo.facility;";
+      var res = db.Query(sql);
+      return res;
+    }
+
+    //Get Department Notepad contents
+    dynamic getDeptNotepad(Database db, string deptcode) {
+      var sql = "SELECT department_notepad FROM dbo.department WHERE department_code = '"+deptcode+"';";
+      var res = db.Query(sql);
+      return res;
+    }
+
+    //Get all lecturers from a department
+    dynamic getDeptLecturers(Database db, string deptcode) {
+      var sql = "SELECT CONCAT(lecturer_name,' ',lecturer_surname) AS name FROM team04.lecturer WHERE department_code = '"+deptcode+"';";
+      var res = db.Query(sql);
+      return res;
+    }
+
+//libDatabaseSet functions
+    //Insert a new module into the database
+    dynamic setNewModule(Database db, string modulecode, string moduletitle, string deptcode) {
+      if (deptcode != modulecode.Substring(0,2) ) {
+        return false;
+      }
+      var modulepart = modulecode.Substring(2,1);
+      modulecode = modulecode.Substring(3);
+
+      var SQL = "INSERT INTO dbo.module (dept_code,module_part,module_code,module_titl) VALUES ('"+deptcode+"','"+modulepart+"','"+modulecode+"','"+moduletitle+"');";
+      try {
+        var res = db.Execute(SQL);
+        if (res == 1) { //if execution updated 1 row
+          return true;
+        }
+        else { return false; }
+      }
+      catch { return false; }  
+      //TEST WITH: http://localhost:44715/api.cshtml?requestid=setNewModule&json={%22deptcode%22:%22CO%22,%22modulecode%22:%22COZ007%22,%22moduletitle%22:%22Test%22} 
+    }
+
+    //Update a module's details in the database
+    dynamic setUpdateModule(Database db, string modulecode, string moduletitle, string deptcode) {
+      if (deptcode != modulecode.Substring(0,2) ) {
+        return false;
+      }
+      var SQL = "UPDATE dbo.module SET module_title='"+moduletitle+"' WHERE CONCAT(dept_code,module_part,module_code)='"+modulecode+"';";
+      try {
+        var res = db.Execute(SQL);
+        if (res == 1) { return true; }
+        else { return false; }
+      }
+      catch { return false; } 
+    }
+
+    //Delete a module from the database
+    dynamic setDeleteModule(Database db, string modulecode, string moduletitle, string deptcode) {
+      if (deptcode != modulecode.Substring(0,2) ) {
+        return false;
+      }
+      var SQL = "DELETE FROM dbo.module WHERE CONCAT(dept_code,module_part,module_code) LIKE '"+modulecode+"' AND module_title LIKE '"+moduletitle+"';";
+      try {
+        var res = db.Execute(SQL);
+        if (res > 0) { return true; }
+        else { return false; }
+      }
+      catch { return false; } 
+    }
+
+    //Sets the notification status of a list of request ID's to 0 (From unread to READ)
+    dynamic setNotificationStatus(Database db, string idlist) {
+      var SQL = "UPDATE dbo.request SET notification_status=0 WHERE request_id IN ("+idlist+");";
+      try {
+        var res = db.Execute(SQL);
+        if (res > 0) { return true; }
+        else { return false; }
+      } 
+      catch { return false; } 
+    }
+
+    //Sets the department notepad content
+    dynamic setDeptNotepad(Database db, string content, string deptcode) {
+      var SQL = "UPDATE dbo.department SET department_notepad = '"+content+"' WHERE department_code = '"+deptcode+"';";
+      try {
+        var res = db.Execute(SQL);
+        if (res == 1) { return true; }
+        else { return false; }
+      } 
+      catch { return false; } 
+    }
+
+    //Interprets the JSON data read in from clientside
+    //This is for BOOKING a room for multiple slots (times/days of a week)
+    //This also includes multiple rooms
+    //The booking from client side also sends through the list of 'Room Requirements' in the JSON data (ie. Park, Capacity, Projectors etc.)
+    dynamic interpretData(Database db, dynamic json, string modulecode, dynamic semester) {
+
+      if (String.IsNullOrEmpty(modulecode)) {
+        return false;
+      }
+      //json input will be length 1, 2 or 3 - eg. json[0][elements], json[1][elements], json[2][elements]
+
+      Dictionary<dynamic, dynamic> queue = new Dictionary<dynamic, dynamic>();
+      Dictionary<dynamic, dynamic> newState = new Dictionary<dynamic, dynamic>();
+      Dictionary<dynamic, dynamic> current;
+
+      var old = Json.Decode(json);          //Array 'old' is assigned the JSON input
+
+      bool returnStatus = true;
+
+      //Loop through the INPUT data to construct the 'newState' array
+      for (var x = 0; x < old.Length; x++) {              //Loop through input data ('old' array)
+
+        current = new Dictionary<dynamic, dynamic>();     //Create the Dictionary 'current' for this particular request
+
+        for (var y = 0; y < old[x].Length; y++) {         //For each element of old, then loop through each of the sub-elements ie. old[0], old[1], ...
+          switch (y) {
+            case 0:                                       //If current element is in index 0 of old (the input data) then it is the PARK
+              current.Add("park", old[x][y]);             //Add park to the current dictionary
+              break;
+            case 1:
+              string builCode = old[x][y].IndexOf(' ') > 0 ? old[x][y].Substring(0, old[x][y].IndexOf(' ')) : old[x][y];
+              current.Add("building", builCode);
+              break;
+            case 2:
+              current.Add("capacity", String.IsNullOrEmpty(old[x][y]) ? 0 : old[x][y] );
+              break;
+            case 3:
+              current.Add("modulecode", old[x][y]);
+              break;
+            case 4:
+              current.Add("priority", old[x][y]);
+              break;
+            case 5:                                       //If the current element is in index 5 of old, go through all 16 of the next indeces to input the WEEKS they requested
+              Dictionary<dynamic, dynamic> currentweeklist = new Dictionary<dynamic, dynamic>();
+              currentweeklist.Add(0, old[x][y]);
+              currentweeklist.Add(1, old[x][y+1]);
+              currentweeklist.Add(2, old[x][y+2]);
+              currentweeklist.Add(3, old[x][y+3]);
+              currentweeklist.Add(4, old[x][y+4]);
+              currentweeklist.Add(5, old[x][y+5]);
+              currentweeklist.Add(6, old[x][y+6]);
+              currentweeklist.Add(7, old[x][y+7]);
+              currentweeklist.Add(8, old[x][y+8]);
+              currentweeklist.Add(9, old[x][y+9]);
+              currentweeklist.Add(10, old[x][y+10]);
+              currentweeklist.Add(11, old[x][y+11]);
+              currentweeklist.Add(12, old[x][y+12]);
+              currentweeklist.Add(13, old[x][y+13]);
+              currentweeklist.Add(14, old[x][y+14]);
+              currentweeklist.Add(15, old[x][y+15]);
+              current.Add("weeklist", currentweeklist);
+              break;
+            case 21:                                      //If the current element is index 21, go through all 17 of the next indeces to input the FACILITIES they require
+              Dictionary<dynamic, dynamic> currentfaclist = new Dictionary<dynamic, dynamic>();
+              currentfaclist.Add(0, old[x][y]);
+              currentfaclist.Add(1, old[x][y+1]);
+              currentfaclist.Add(2, old[x][y+2]);
+              currentfaclist.Add(3, old[x][y+3]);
+              currentfaclist.Add(4, old[x][y+4]);
+              currentfaclist.Add(5, old[x][y+5]);
+              currentfaclist.Add(6, old[x][y+6]);
+              currentfaclist.Add(7, old[x][y+7]);
+              currentfaclist.Add(8, old[x][y+8]);
+              currentfaclist.Add(9, old[x][y+9]);
+              currentfaclist.Add(10, old[x][y+10]);
+              currentfaclist.Add(11, old[x][y+11]);
+              currentfaclist.Add(12, old[x][y+12]);
+              currentfaclist.Add(13, old[x][y+13]);
+              currentfaclist.Add(14, old[x][y+14]);
+              currentfaclist.Add(15, old[x][y+15]);
+              currentfaclist.Add(16, old[x][y+16]);
+              current.Add("facilities", currentfaclist);
+              break;
+            case 38:                                      //If the index is 38, this is the start of the 'Timetable Grid'. Each index following is a new day (mon, tues, ...)
+              Dictionary<dynamic, dynamic> currentgridlist = new Dictionary<dynamic, dynamic>();
+              currentgridlist.Add(0, gridDayToArray(old[x][y]));          //Use the gridDayToArray() function to convert this into an array for each day
+              currentgridlist.Add(1, gridDayToArray(old[x][y+1]));
+              currentgridlist.Add(2, gridDayToArray(old[x][y+2]));
+              currentgridlist.Add(3, gridDayToArray(old[x][y+3]));
+              currentgridlist.Add(4, gridDayToArray(old[x][y+4]));
+              current.Add("grid", currentgridlist);
+              break;
+            case 43:
+              current.Add("roomcode", old[x][y]);
+              break;
+          }
+        }      
+        newState.Add(x,current);                          //Add to newstate array such that newState[x][element] returns the value inserted into 'current'         
+      }
+
+      //Alrogithm Sort
+      dynamic index = 0;
+      var flag = false;
+      //Find multiple room bookings
+      for (var i = 0; i < newState[0]["grid"].Count; i++) {           //Loop through newState[0]'s timetable grid (ie. Monday grid, tues grid, weds grid, ...)
+        for (var j = 0; j < newState[0]["grid"][i].Length; j++) {     //For each element in each day's grid (ie. looping through the time periods)
+          
+          if (newState[0]["grid"][i][j] == 1) {                       //If this current day's time period is 1 (the slot has been selected for booking)
+            
+            if (queue.Count == 0) {
+              index = null;
+            }
+            queue.Add(queue.Count, requestPushBack(newState[0], (j+1), (i+1), 0));  //Use requestPushBack() to add this booking slot (request, time, day, room) to the queue array 
+
+            if (newState.Count > 1) {                                 //If the newState array still has more data (2nd multiple room booking)
+              if (newState[1]["grid"][i][j] == 1) {                   //If the next element (newState[1]) ALSO has a 1 at the same grid slot (ie. This is a multiple room booking)
+                if (index == null) {
+                  index = 0;
+                }
+                flag = true;
+                queue.Add(queue.Count, requestPushBack(newState[1], (j+1), (i+1), 1));    //Add this booking slot to the queue array
+              }
+            }
+
+            if (newState.Count > 2) {
+              if (newState[2]["grid"][i][j] == 1) {
+                if (index == null) {
+                  index = 0;
+                }
+                queue.Add(queue.Count, requestPushBack(newState[2], (j+1), (i+1), 2));    //Add this booking slot to the queue array
+                flag = false;
+              }
+            }
+
+          }
+
+        }
+      }
+
+      //At this stage queue contains all individual slots of booking:
+      //Eg. submitting 1 room with 5 slots requested will mean QUEUE contains 5 entries
+      //Eg.2 submitting 2 rooms with a slot each (multiple) will mean QUEUE contains 2 entries
+      //Access with queue[indexNum][key]
+
+      //Map Request Children
+      var lastID = getLastID(db);                       //Variable lastID is assigned the return of getLastID() function
+      for (var i = 0; i < queue.Count - 1; i++) {       //For each element in the queue array (except last)
+        
+        //If they are linked rooms (using verifyLinked() function)
+        if (verifyLinked(queue[i]["request-timestart"], queue[i]["para_d"], queue[i]["para_r"], queue[i+1]["request-timestart"], queue[i+1]["para_d"], queue[i+1]["para_r"])) {
+          queue[i]["child"] = lastID + i + 2;           //Set the child element of first element to the second element's ID number in the database
+        }
+          
+      }
+
+      //Semester input variables (for demo, rather than using dates - due to time of presentation in the academic year)
+      var round = "round1";
+      var status = "pending";
+      var notification = 0;
+      if (semester.ToString() == "1") {  //Semester 1 (AD-HOC)
+        round = "adhoc";
+        status = "approved";
+        notification = 1;
+      }
+      else {                //Semester 2 (Round 1)
+        round = "round1";
+        status = "pending";
+        notification = 0;
+      }
+
+      //Add requests to database
+      for (var i = 0; i < queue.Count; i++) {            //For each element in queue array
+        //Declare variables
+        var queueElem = queue[i];                        //queueElem is the current element of the queue array
+        var sql_day = queueElem["day"];
+        var sql_time = queueElem["request-timestart"];
+        var sql_round = round;                        
+        var sql_semester = semester;
+        var sql_year = yearCheck(DateTime.Now.Month);
+        var sql_roomcode = queueElem["roomcode"];
+        var sql_building = queueElem["buildingcode"];
+        var sql_park = queueElem["park"];
+        var sql_capacity = queueElem["capacity"];
+        var sql_modulecode = queueElem["modulecode"];
+        var sql_priority = (String.IsNullOrEmpty(queueElem["priority"])) ? "" : queueElem["priority"];
+        var sql_status = status; 
+        var sql_child = queueElem["child"];
+        var sql_notif = notification;
+
+        //SQL - Add the request to the "dbo.request" table in the database
+        var sql = "";
+        if (queueElem["child"] == null) {                //If the element doesnt have a child
+          sql = "INSERT INTO dbo.request (request_day, request_timestart, request_round, request_semester, request_year, room_code, building_code, park, capacity, module_code, "
+            + "request_priority, request_status, notification_status) VALUES "
+            + "('"+sql_day+"', "+sql_time+", '"+sql_round+"', "+sql_semester+", "+sql_year+", '"+sql_roomcode+"', '"+sql_building+"', '"+sql_park+"', "+sql_capacity+", '"+sql_modulecode+"',";
+          if (String.IsNullOrEmpty(sql_priority)) { sql += " null, "; }
+          else { sql += " '"+sql_priority+"', "; }
+          sql += "'"+sql_status+"', "+sql_notif+");";
+        }
+        else {                                           //If the element DOES have a child
+          sql = "INSERT INTO dbo.request (request_day, request_timestart, request_round, request_semester, request_year, room_code, building_code, park, capacity, module_code, "
+            + "request_priority, request_status, request_child, notification_status) VALUES "
+            + "('"+sql_day+"', "+sql_time+", '"+sql_round+"', "+sql_semester+", "+sql_year+", '"+sql_roomcode+"', '"+sql_building+"', '"+sql_park+"', "+sql_capacity+", '"+sql_modulecode+"',";
+          if (String.IsNullOrEmpty(sql_priority)) { sql += " null, "; }
+          else { sql += " '"+sql_priority+"', "; }
+          sql += "'"+sql_status+"', "+sql_child+", "+sql_notif+");"; 
+        }
+        var verify = true;
+        try {
+          var res = db.Execute(sql);
+          if (res != 1) { verify = false; }
+        } 
+        catch { verify = false; } 
+        returnStatus = returnStatus && verify;           //Test for success
+        
+        //SQL - Insert the weeks into the 'dbo.request-week' table
+        for (var j = 0; j < queueElem["weeklist"].Count; j++) {     //For each element of the week list
+          var sqlWeek = "";
+          if (queueElem["weeklist"][j] == 1) {                      //If the week has been selected (1=Yes)
+            var weekNum = j+1;
+            var lid = lastID + i + 1;                               //The ID of the request
+            sqlWeek = "INSERT INTO dbo.[request-week] VALUES ("+lid+","+weekNum+")";	//Make SQL statement to insert weeks
+
+            var verifyWeek = true;
+            try {
+              var resWeek = db.Execute(sqlWeek);
+              if (resWeek != 1) { verifyWeek = false; }
+            } 
+            catch { verifyWeek = false; } 
+            returnStatus = returnStatus && verifyWeek;           //Test for success
+          }
+        }
+
+        //SQL - Insert the facilities into the 'dbo.facility-request' table
+        for (var j = 0; j < queueElem["facilities"].Count; j++) {     //For each element of the facilities list
+          var sqlFac = "";
+          if (queueElem["facilities"][j] == 1) {                      //If the facility has been selected (it is required)
+            var facID = j+1;
+            var lid = lastID + i + 1;
+            sqlFac = "INSERT INTO dbo.[facility-request] VALUES ("+lid+","+facID+")";
+
+            var verifyFac = true;
+            try {
+              var resFac = db.Execute(sqlFac);
+              if (resFac != 1) { verifyFac = false; }
+            } 
+            catch { verifyFac = false; } 
+            returnStatus = returnStatus && verifyFac;           //Test for success
+          }
+        }
+
+      }
+
+      return returnStatus;    //Return true or false (True if all db queries were a success)
+    }
+}
+}
