@@ -572,3 +572,10 @@ tbody.collapse.in {
   -o-transition-timing-function: ease;
   transition-timing-function: ease;
 }
+
+#timetable-error-message {
+  text-align:center;
+  color:#d51668;
+  margin:0px 5px 15px 5px;
+  font-weight:700;
+}
