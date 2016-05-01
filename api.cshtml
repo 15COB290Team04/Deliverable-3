@@ -57,6 +57,9 @@
     else if (requestid == "getDeptNotepad") {
       encodeJSON(getDeptNotepad(db,deptcode));
     }
+    else if (requestid == "getDeptLecturers") {
+      encodeJSON(getDeptLecturers(db,deptcode));
+    }
   }
   else if (requestid.Substring(0,3) == "set") {
     //Set functions
@@ -495,6 +498,13 @@
     //Get Department Notepad contents
     dynamic getDeptNotepad(Database db, string deptcode) {
       var sql = "SELECT department_notepad FROM dbo.department WHERE department_code = '"+deptcode+"';";
+      var res = db.Query(sql);
+      return res;
+    }
+
+    //Get all lecturers from a department
+    dynamic getDeptLecturers(Database db, string deptcode) {
+      var sql = "SELECT CONCAT(lecturer_name,' ',lecturer_surname) AS name FROM team04.lecturer WHERE department_code = '"+deptcode+"';";
       var res = db.Query(sql);
       return res;
     }
