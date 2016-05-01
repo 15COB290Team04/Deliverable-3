@@ -231,7 +231,7 @@ function getSuitableRooms() {
   }
 
   $.post("api.cshtml", {
-    requestid: "getSuitableRooms", park: park, capacity: capacity, buildingcode: buildingcode, lab: lab, wheelchair: wheelchair,
+    requestid: "getSuitableRooms", park: park, capacity: capacity, private: "Include", buildingcode: buildingcode, lab: lab, wheelchair: wheelchair,
     hearingloop: hearingloop, computer: computer, projector: projector, dprojector: dprojector, ohp: ohp, visualiser: visualiser, video: dvd,
     bluray: bluray, vhs: vhs, whiteboard: whiteboard, chalkboard: chalkboard, plasma: plasma, pasystem: pasystem, radiomic: radiomic, review: review
   },
@@ -307,8 +307,8 @@ function getRoomTimetable() {
       function (JSONresult) {
 
         for (var i = 0; i < JSONresult.length; i++) {
-          var day = JSONresult[i]['request-details'].request_day;
-          var time = JSONresult[i]['request-details'].request_timestart;
+          var day = JSONresult[i]['request_details'].request_day;
+          var time = JSONresult[i]['request_details'].request_timestart;
 		  var dayneat = day.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
 
           //if this slot is currently clear
@@ -322,9 +322,9 @@ function getRoomTimetable() {
             var popContent = "<b>Information for a booked timetable slot.</b><br/>";
             popContent += "Day: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + dayneat + "<br/>";
             popContent += "Period: &nbsp;" + time + "<br/><br/>";
-            popContent += "The module <b>" + JSONresult[i]['request-details'].module_code + "</b> has booked this slot for weeks:<br/>";
-            for (var j = 0; j < JSONresult[i]['weeks-range'].length; j++) {
-              popContent += JSONresult[i]['weeks-range'][j] + ", ";
+            popContent += "The module <b>" + JSONresult[i]['request_details'].module_code + "</b> has booked this slot for weeks:<br/>";
+            for (var j = 0; j < JSONresult[i]['weeks_range'].length; j++) {
+              popContent += JSONresult[i]['weeks_range'][j] + ", ";
             }
             popContent += "<p></p>";
             popContent += "<p class='close'>Close</p>";
@@ -396,11 +396,11 @@ function loadRoomBuildingInfo(roomCode) {
     //call api.cshtml with "buildingCode" to return the buildingName
     $.post("api.cshtml", {requestid: "getBuildingName", buildingcode: buildingCode},
     function (JSONresult) {
-      $('#form-booking-roomName').text(JSONresult);		//Hopefully this works, might have to change this to JSONresult[0].building or something (check return from server by console.log(JSONresult))
+      $('#form-booking-roomName').text(JSONresult[0].building_name);	
       getRoomTimetable();
       getRoomInfo();
 			//@JAMES ADD THIS LINE BELOW
-			plotOnMap(JSONresult);													//Again, if JSONresult doesnt work, read the return from server in console. It might have to be JSONresult[0].building
+			plotOnMap(JSONresult[0].building_name);		
     }, 'json');
 
   }
@@ -448,7 +448,7 @@ function initializeMap() {
 function initialize() {
 	var mapProp = {
 		center:new google.maps.LatLng(52.76268, -1.23819),		//can change these coords to somewhere in centre of uni (it's the default map location)
-		zoom:9,																								//change this zoom to higher number (try 9)
+		zoom:16,																								//change this zoom to higher number (try 9)
 		mapTypeId:google.maps.MapTypeId.ROADMAP
 	};
 	var map = new google.maps.Map(document.getElementById("googleMap"),mapProp);
@@ -556,15 +556,15 @@ function plotOnMap(buildingname) {
 
 	//Set map
 	var map = new google.maps.Map(document.getElementById("googleMap"), {
-		center: {lat: lat, lng: lng},																	//input the building's lat and long here (from the IF statement) for MAP CENTER
-		zoom: 9
+		center: {lat: parseFloat(lat), lng: parseFloat(lng)},																	//input the building's lat and long here (from the IF statement) for MAP CENTER
+		zoom: 17
 	});
 
 	//Dropper on map to highlight building
 	var infoWindow = new google.maps.InfoWindow({map: map});				
 	var pos = {
-		lat: lat,																											
-		lng: lng																											
+		lat: parseFloat(lat),																											
+		lng: parseFloat(lng)																											
 	};
 
 	//Mark location on map
