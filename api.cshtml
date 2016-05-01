@@ -93,6 +93,14 @@
       //Response.Write(encoded);
       encodeJSON(setDeptNotepad(db, encodedContent, deptcode));
     }
+    else if (requestid == "setPrivateRoom") {
+      encodeJSON(setPrivateRoom(db, input("roomcode"), input("buildingcode"), deptcode, input("capacity"), input("facilities")));
+      //LOCALHOST/api?requestid=setPrivateRoom&roomcode=N.0.02&buildingcode=N&capacity=30&facilities=1,2,3,7
+    }
+    else if (requestid == "setDeletePrivateRoom") {
+      encodeJSON(setDeletePrivateRoom(db, input("roomcode")));
+      //LOCALHOST/api?requestid=setDeletePrivateRoom&roomcode=N.0.02*
+    }
   }
 
 //Functions used by api file and library database get/set
@@ -582,6 +590,41 @@
       try {
         var res = db.Execute(SQL);
         if (res == 1) { return true; }
+        else { return false; }
+      } 
+      catch { return false; } 
+    }
+
+    //LOCALHOST/api?requestid=setPrivateRoom&roomcode=N.0.02&buildingcode=N&capacity=30&facilities=1,2,3,7
+    //set a private room in the database (with its facilities)
+    dynamic setPrivateRoom(Database db, string roomcode, string buildingcode, string deptcode, dynamic capacity, string facilities) {
+      //INSERT INTO dbo.room VALUES('N.0.02*','N',39,NULL,'CO');
+      roomcode = roomcode + "*";
+      var SQL = "INSERT INTO dbo.room VALUES('"+roomcode+"','"+buildingcode+"',"+capacity+",NULL,'"+deptcode+"');";
+
+      var facList = facilities.Split(',');
+      SQL += "INSERT INTO dbo.[facility-room] VALUES(4,'"+roomcode+"');";
+      for (var i=0; i<facList.Count(); i++) {
+        if (facList[i] != "4") {
+          SQL += "INSERT INTO dbo.[facility-room] VALUES("+facList[i]+",'"+roomcode+"');";
+        }
+      }
+      //return SQL;
+      try {
+        var res = db.Execute(SQL);
+        if (res >= 2) { return true; }
+        else { return false; }
+      } 
+      catch { return false; } 
+    }
+
+    //delete a private room from the database
+    dynamic setDeletePrivateRoom(Database db, string roomcode) {
+      var SQL = "DELETE FROM dbo.room WHERE room_code = '"+roomcode+"';";
+      SQL += "DELETE FROM dbo.[facility-room] WHERE room_code = '"+roomcode+"';";
+      try {
+        var res = db.Execute(SQL);
+        if (res >= 2) { return true; }
         else { return false; }
       } 
       catch { return false; } 
