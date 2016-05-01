@@ -73,6 +73,7 @@ LU dark purple: #361163;
 }
 #del-mod{
   position: relative;
+  display: block;
 }
 #update-mod:hover,#del-mod:hover,#create-mod:hover {
   background-color:rgba(0,0,0,0.2);
