@@ -55,6 +55,7 @@ function getRoomTimetable() {
     for (var i = 0; i < JSONresult.length; i++) {
       var day = JSONresult[i]['request-details'].request_day;
       var time = JSONresult[i]['request-details'].request_timestart;
+      var dayneat = day.replace(/\w\S*/g, function (txt) { return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(); });
       //if this slot is currently clear
       if (!$('.timetable-table tbody tr[class*="' + day + '"]').find('td[class*="period' + time + '"]').hasClass("timetable-taken")) {
 
@@ -64,7 +65,7 @@ function getRoomTimetable() {
         var content = "<span class='timetable-taken-text'>Booked</span><div class='timetable-content-empty'>";
 
         var popContent = "<b>Information for a booked timetable slot.</b><br/>";
-        popContent += "Day: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + day + "<br/>";
+        popContent += "Day: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + dayneat + "<br/>";
         popContent += "Period: &nbsp;" + time + "<br/><br/>";
         popContent += "The room <b>" + JSONresult[i]['request-details'].room_code + "</b> has been booked by this module for weeks:<br/>";
         for (var j = 0; j < JSONresult[i]['weeks-range'].length; j++) {

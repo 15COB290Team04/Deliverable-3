@@ -91,14 +91,19 @@ LU dark purple: #361163;
   transition-duration:0.2s;
 }
 #roomSearch-reset {
+  background-color:#d51668;
+  border-radius:4px;
   font-size:1em;
-  margin-top:20px;
+  margin-left:220px;
+  margin-top:15px;
+  opacity:0.9;
+  padding:5px 10px;
   position:absolute;
-  margin-left: 200px;
 }
 #roomSearch-reset:hover {
-  color:rgba(0,0,0,0.7);
-  transition-duration: 0.2s;
+  /*color:rgba(0,0,0,0.7);*/
+  opacity:1;
+  transition-duration:0.2s;
   cursor:pointer;
 }
 #roomSearch-title {
@@ -185,6 +190,11 @@ LU dark purple: #361163;
   background-color: #90add6;
   border-left: 1px solid rgba(0,0,0,0.5);
 }
+.finalweek {
+}
+.finalweekhidden {
+  display:none;
+}
 
 /* General form edits */
 .form-label {
@@ -247,7 +257,7 @@ LU dark purple: #361163;
   margin: 0px 15px 15px 0px;
 }
 .mo_info label {
-  width: 100px;
+  width: 110px;
 }
 label {
   display: inline-block;
@@ -561,4 +571,11 @@ tbody.collapse.in {
   -webkit-transition-timing-function: ease;
   -o-transition-timing-function: ease;
   transition-timing-function: ease;
+}
+
+#timetable-error-message {
+  text-align:center;
+  color:#d51668;
+  margin:0px 5px 15px 5px;
+  font-weight:700;
 }

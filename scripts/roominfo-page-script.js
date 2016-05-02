@@ -7,6 +7,8 @@
  */
 
 $(document).ready(function () {
+	
+	initializeMap();
 
   //AUTOFILL SEARCH FOR MODULE TITLE
   $(function () {
@@ -229,7 +231,7 @@ function getSuitableRooms() {
   }
 
   $.post("api.cshtml", {
-    requestid: "getSuitableRooms", park: park, capacity: capacity, buildingcode: buildingcode, lab: lab, wheelchair: wheelchair,
+    requestid: "getSuitableRooms", park: park, capacity: capacity, private: "Include", buildingcode: buildingcode, lab: lab, wheelchair: wheelchair,
     hearingloop: hearingloop, computer: computer, projector: projector, dprojector: dprojector, ohp: ohp, visualiser: visualiser, video: dvd,
     bluray: bluray, vhs: vhs, whiteboard: whiteboard, chalkboard: chalkboard, plasma: plasma, pasystem: pasystem, radiomic: radiomic, review: review
   },
@@ -274,11 +276,11 @@ function getRoomInfo() {
     //Perform API call to retrieve facilities of a specific room
     $.post("api.cshtml", {requestid: "getReqs", roomcode: $('#form-booking-roomCode').val()},
     function (JSONresult) {
-      var facilityList = "<table style='table-layout:fixed; width:100%;'><tr>";
+      var facilityList = "<table style='table-layout:fixed; width:10%;'><tr><tr><tr>";
       for (var i = 0; i < JSONresult.length; i++) {
-        facilityList += "<td class='selected-room-facilities'>" + JSONresult[i].facility_name + "</td>";
+        facilityList += "<tr class='selected-room-fac'><td>" +  "• " + JSONresult[i].facility_name + "</td></tr>";
       }
-      facilityList += "</tr></table>"
+      facilityList += "</tr></tr></tr></table>"
       $('#selected-room-info').html(facilityList);
     }, 'json');
   }
@@ -305,8 +307,9 @@ function getRoomTimetable() {
       function (JSONresult) {
 
         for (var i = 0; i < JSONresult.length; i++) {
-          var day = JSONresult[i]['request-details'].request_day;
-          var time = JSONresult[i]['request-details'].request_timestart;
+          var day = JSONresult[i]['request_details'].request_day;
+          var time = JSONresult[i]['request_details'].request_timestart;
+		  var dayneat = day.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
 
           //if this slot is currently clear
           if (!$('.timetable-table tbody tr[class*="' + day + '"]').find('td[class*="period' + time + '"]').hasClass("timetable-taken")) {
@@ -317,11 +320,11 @@ function getRoomTimetable() {
             var content = "<span class='timetable-taken-text'>Booked</span><div class='timetable-content-empty'>";
 
             var popContent = "<b>Information for a booked timetable slot.</b><br/>";
-            popContent += "Day: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + day + "<br/>";
+            popContent += "Day: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + dayneat + "<br/>";
             popContent += "Period: &nbsp;" + time + "<br/><br/>";
-            popContent += "The module <b>" + JSONresult[i]['request-details'].module_code + "</b> has booked this slot for weeks:<br/>";
-            for (var j = 0; j < JSONresult[i]['weeks-range'].length; j++) {
-              popContent += JSONresult[i]['weeks-range'][j] + ", ";
+            popContent += "The module <b>" + JSONresult[i]['request_details'].module_code + "</b> has booked this slot for weeks:<br/>";
+            for (var j = 0; j < JSONresult[i]['weeks_range'].length; j++) {
+              popContent += JSONresult[i]['weeks_range'][j] + ", ";
             }
             popContent += "<p></p>";
             popContent += "<p class='close'>Close</p>";
@@ -393,9 +396,11 @@ function loadRoomBuildingInfo(roomCode) {
     //call api.cshtml with "buildingCode" to return the buildingName
     $.post("api.cshtml", {requestid: "getBuildingName", buildingcode: buildingCode},
     function (JSONresult) {
-      $('#form-booking-roomName').text(JSONresult);
+      $('#form-booking-roomName').text(JSONresult[0].building_name);	
       getRoomTimetable();
       getRoomInfo();
+			//@JAMES ADD THIS LINE BELOW
+			plotOnMap(JSONresult[0].building_name);		
     }, 'json');
 
   }
@@ -403,9 +408,10 @@ function loadRoomBuildingInfo(roomCode) {
     $('#form-booking-roomName').text("Cope Auditorium");
     getRoomTimetable();
     getRoomInfo();
+		//@JAMES ADD THIS LINE BELOW
+		plotOnMap("Cope Auditorium");	
   }
 }
-
 //checks if a room selected (from text input room selection box) is a valid room
 function checkRoomIsValid(roomCode) {
   var flag = false;
@@ -431,3 +437,144 @@ function clearTimetable() {
   $('.timetable-data').removeClass("timetable-taken");
 
 }
+
+function initializeMap() {
+	var script = document.createElement("script");
+  script.src = "http://maps.googleapis.com/maps/api/js?callback=initialize";
+  document.body.appendChild(script);
+}
+
+//Initialise Google Maps API (must use 'initialize' for callback)
+function initialize() {
+	var mapProp = {
+		center:new google.maps.LatLng(52.76268, -1.23819),		//can change these coords to somewhere in centre of uni (it's the default map location)
+		zoom:16,																								//change this zoom to higher number (try 9)
+		mapTypeId:google.maps.MapTypeId.ROADMAP
+	};
+	var map = new google.maps.Map(document.getElementById("googleMap"),mapProp);
+}
+
+//@James You have a lot to add to this
+//This function will plot the building's lat and long onto a map (I made this)
+function plotOnMap(buildingname) {
+	var lat = "52.76268";
+	var lng = "1.23819";
+	
+	//CREATE IF/ELSE STATEMENT HERE TO GET THE LAT/LONG FOR THE BUILDING CODE INPUT (Check what the exact building names are in the db)
+	if (buildingname == "Matthew Arnold") {
+		lat = "52.76585";
+		lng = "-1.22438"; //input these values for each (change these 2)
+	}
+	else if (buildingname == "Brockington") {
+		lat = "52.76562";
+		lng = "-1.22733";
+	}
+	else if (buildingname == "James France") {
+		lat = "52.76506";
+		lng = "-1.2272";
+	}
+	else if (buildingname == "G block") {
+		lat = "52.76482";
+		lng = "-1.22881";
+	}
+		else if (buildingname == "Wavy Top") {
+		lat = "52.76538";
+		lng = "-1.22819";
+	}
+	else if (buildingname == "Clyde Williams") {
+		lat = "52.76789";
+		lng = "-1.22366";
+	}
+		else if (buildingname == "John Pickford") {
+		lat = "52.76393";
+		lng = "-1.23967";
+	}
+	else if (buildingname == "Edward Herbert") {
+		lat = "52.765";
+		lng = "-1.22969";
+	}
+		else if (buildingname == "Sir John Beckworth") {
+		lat = "52.76761";
+		lng = "-1.22436";
+	}
+		else if (buildingname == "Ann Packer") {
+		lat = "52.76606";
+		lng = "-1.22282";
+	}
+	else if (buildingname == "Keith Green") {
+		lat = "52.76204";
+		lng = "-1.23949";
+	}
+		else if (buildingname == "Wavy Top") {
+		lat = "52.76572";
+		lng = "-1.22864";
+	}
+	else if (buildingname == "Loughborough Design School") {
+		lat = "52.76551";
+		lng = "-1.22281";
+	}
+		else if (buildingname == "Edward Barnsley") {
+		lat = "52.76551";
+		lng = "-1.22281";
+	}
+		else if (buildingname == "Haselgrave") {
+		lat = "52.76672";
+		lng = "-1.22911";
+	}
+	else if (buildingname == "Sir Frank Gibb") {
+		lat = "52.76303";
+		lng = "-1.24083";
+	}
+		else if (buildingname == "Materials Engineering") {
+		lat = "52.76256";
+		lng = "-1.24149";
+	}
+		else if (buildingname == "Schofield") {
+		lat = "52.76626";
+		lng = "-1.22837";
+	}
+	else if (buildingname == "Stewart Mason") {
+		lat = "52.76538";
+		lng = "-1.22676";
+	}
+		else if (buildingname == "Wolfson") {
+		lat = "52.76261";
+		lng = "-1.24";
+	}
+		else if (buildingname == "Brockington Extension") {
+		lat = "52.76574";
+		lng = "-1.22785";
+	}
+	else if (buildingname == "Sir David Davis") {
+		lat = "52.76155";
+		lng = "-1.24096";
+	}
+		else if (buildingname == "John Cooper") {
+		lat = "52.76634";
+		lng = "-1.22438";
+	}
+
+	//Set map
+	var map = new google.maps.Map(document.getElementById("googleMap"), {
+		center: {lat: parseFloat(lat), lng: parseFloat(lng)},																	//input the building's lat and long here (from the IF statement) for MAP CENTER
+		zoom: 17
+	});
+
+	//Dropper on map to highlight building
+	var infoWindow = new google.maps.InfoWindow({map: map});				
+	var pos = {
+		lat: parseFloat(lat),																											
+		lng: parseFloat(lng)																											
+	};
+
+	//Mark location on map
+	infoWindow.setPosition(pos);
+	infoWindow.setContent(buildingname);														//Set content of the dropper to the building name (input into function)
+	map.setCenter(pos);
+  }
+
+
+
+
+
+

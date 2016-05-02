@@ -30,11 +30,12 @@ $(document).ready(function () {
   });
 
   //Call functions at page load
-  fillBuildingsList("Any");
-  getSuitableRooms(); //call function to populate suitable rooms list
+  //fillBuildingsList("Any"); //called in resetPreferences() (loadState() within it)
+  //getSuitableRooms(); //call function to populate suitable rooms list
   getSubmissionLog();
 
-  saveState(1);
+  resetPreferences(1);  //getSuitableRooms() is called within here
+  //saveState(1);       //saveState(1) is called within resetPreferences
   saveState(2);
   saveState(3);
 
@@ -50,8 +51,8 @@ $(document).ready(function () {
     console.log("Load state: " + $(this).attr('id').charAt(8));
     $(this).addClass('tab-active');
     //if ($(this).attr('id').charAt(8) == 2 || $(this).attr('id').charAt(8) == 3) {
+    getSuitableRooms();
     getRoomTimetable();
-
 
   });
 
@@ -66,18 +67,19 @@ $(document).ready(function () {
     saveState(2);
     loadState(3);
     saveState(3);
+    loadState(tabNum);
     var authenticated = authenticateSubmission();
     console.log("Authentication is :" + authenticated);
     if (authenticated) {
       allRoomBookings();
     }
     else {
-      location.reload();
+      //location.reload();
     }
   });
 
   //SEMESTER CHOICE
-  $('#next-semester').click(function () {
+  $('#next-semester').click(function () {   //SEMESTER 2
     $('#round-name').text("Round 1 Bookings");
     $('#next-semester').toggleClass('deactive-semester-choice');
     $('#next-semester').toggleClass('active-semester-choice');
@@ -85,8 +87,12 @@ $(document).ready(function () {
     $('#current-semester').toggleClass('deactive-semester-choice');
     $('#deadline-date').text("15 Jan");
     getSubmissionLog();
+    if ($('#form-booking-roomCode').val().length > 4) {
+      getRoomTimetable();
+    }
+    addFinalWeeks(); //add the sem2 extra week
   });
-  $('#current-semester').click(function () {
+  $('#current-semester').click(function () {    //SEMESTER 1
     $('#round-name').text("AD-HOC Round Bookings");
     $('#next-semester').toggleClass('deactive-semester-choice');
     $('#next-semester').toggleClass('active-semester-choice');
@@ -94,22 +100,33 @@ $(document).ready(function () {
     $('#current-semester').toggleClass('deactive-semester-choice');
     $('#deadline-date').text("1 Feb");
     getSubmissionLog();
+    if ($('#form-booking-roomCode').val().length > 4) {
+      getRoomTimetable();
+    }
+    removeFinalWeeks();  //remove the sem2 extra week
   });
 
   //ROOM TAB NUMBER DROPDOWN
   $('#select-tab-number').change(function () {
     var tabnum = $('#select-tab-number').val();
+    var prevtab = parseInt($('.tab-active').attr('id').substring(8));
+
     if (tabnum == 1) {
       $('#room-tabs ul').html('<li class="room-tab tab-active" id="tab-room1">Room 1</li>');
+      loadState(1);
     }
     else if (tabnum == 2) {
       $('#room-tabs ul').html('<li class="room-tab tab-active" id="tab-room1">Room 1</li><li class="room-tab" id="tab-room2">Room 2</li>');
+      saveState(prevtab);
+      loadState(1);
       //			$('#tab-room1').addClass('tab-active');
       //			$('#tab-room2').removeClass('tab-disabled');
       //			$('#tab-room3').addClass('tab-disabled');
     }
     else {
       $('#room-tabs ul').html('<li class="room-tab tab-active" id="tab-room1">Room 1</li><li class="room-tab" id="tab-room2">Room 2</li><li class="room-tab" id="tab-room3">Room 3</li>');
+      saveState(prevtab);
+      loadState(1);
       //			$('#tab-room1').addClass('tab-active');
       //			$('#tab-room2').removeClass('tab-disabled');
       //			$('#tab-room3').removeClass('tab-disabled');
@@ -124,6 +141,17 @@ $(document).ready(function () {
       if ($(this).hasClass("timetable-selected")) {
         $(this).removeClass("timetable-selected");
         //alert("This time slot has been unselected.")
+
+        var room = $('#form-booking-roomCode').val();
+
+        //if it is a private room
+        if (room.substr(room.length - 1, 1) == "*") {
+          //if it is booked already (clash)
+          if ($(this).find('span.timetable-taken-text').length == 1) {
+            //show warning message
+            $('#timetable-error-message').slideUp();
+          }
+        }
       }
       else {
         $(this).toggleClass("timetable-selected");
@@ -137,6 +165,15 @@ $(document).ready(function () {
 
         var room = $('#form-booking-roomCode').val();
 
+        //if it is a private room
+        if (room.substr(room.length - 1, 1) == "*") {
+          //if it is booked already (clash)
+          if ($(this).find('span.timetable-taken-text').length == 1) {
+            //show warning message
+            $('#timetable-error-message').slideDown();
+          }
+        }
+
         //alert("Selected Room: "+room+" \n\nPeriod: "+thisPeriod+"\nDay: "+thisDay);
       }
 
@@ -147,6 +184,22 @@ $(document).ready(function () {
     }
     else if ($(this).hasClass("timetable-disabled") && !$(this).hasClass("timetable-taken")) {
 
+    }
+  });
+
+  //if the 'BOOKED' text is clicked in a timetable
+  $(document).on('click', '.timetable-taken-text', function () {
+    if (!$(this).parent().hasClass('timetable-taken')) {
+      //this is for a private room - (click handled for timetable-taken class in case of normal room)
+      $('.pop').html($(this).parent().find('.timetable-content-empty').html());
+      $('.pop').fadeToggle();
+      //prevent default clicks (selecting from parent class)
+      if ($(this).parent().hasClass("timetable-selected")) {
+        $(this).parent().removeClass("timetable-selected");
+      }
+      else {
+        $(this).parent().addClass("timetable-selected");
+      }
     }
   });
 
@@ -166,13 +219,19 @@ $(document).ready(function () {
 
   //WEEK SELECTOR
   $('#form-requiredWeeks-list :checkbox[name=all]').change(function () {
+    var numweeksidx = 16;
+    var sem = $('.active-semester-choice').attr('id');
+    if (sem == "next-semester") {
+      //semester is 2 (16 weeks)
+      numweeksidx = 17;
+    }
     if ($(this).is(':checked')) {
-      for (var i = 1; i < 16; i++) {
+      for (var i = 1; i < numweeksidx; i++) {
         $('#form-requiredWeeks-w' + i).prop('checked', true);
       }
     }
     else {
-      for (var i = 1; i < 16; i++) {
+      for (var i = 1; i < numweeksidx; i++) {
         $('#form-requiredWeeks-w' + i).prop('checked', false);
       }
     }
@@ -238,6 +297,11 @@ $(document).ready(function () {
     getSuitableRooms();
   });
 
+  //PRIVATE ROOMS INPUT CHANGE
+  $('#select-privaterooms').change(function () {
+    getSuitableRooms();
+  });
+
   //ROOM CODE SELECTION (TEXT INPUT W/ JQUERY AUTOFILL) CHANGE
   $('#form-booking-roomCode').on('input change', function () {
     if (checkRoomIsValid($(this).val())) {
@@ -274,6 +338,9 @@ function getSuitableRooms() {
       buildingcode = "Any"
     }
   }
+
+  var privateStatus = $('#select-privaterooms').val();
+
   var lab = 0;
   var wheelchair = 0;
   var hearingloop = 0;
@@ -350,7 +417,7 @@ function getSuitableRooms() {
 
   //http://localhost:44715/api?requestid=getSuitableRooms&park=Any&capacity=0&buildingcode=CC&lab=0&wheelchair=0&hearingloop=0&computer=0&projector=0&dprojector=0&ohp=0&visualiser=0&video=0&bluray=0&vhs=0&whiteboard=0&chalkboard=0&plasma=0&pasystem=0&radiomic=0&review=0
   $.post("api.cshtml", {
-    requestid: "getSuitableRooms", park: park, capacity: capacity, buildingcode: buildingcode, lab: lab, wheelchair: wheelchair,
+    requestid: "getSuitableRooms", park: park, capacity: capacity, private: privateStatus, buildingcode: buildingcode, lab: lab, wheelchair: wheelchair,
     hearingloop: hearingloop, computer: computer, projector: projector, dprojector: dprojector, ohp: ohp, visualiser: visualiser, video: dvd,
     bluray: bluray, vhs: vhs, whiteboard: whiteboard, chalkboard: chalkboard, plasma: plasma, pasystem: pasystem, radiomic: radiomic, review: review
   },
@@ -373,8 +440,12 @@ function getSuitableRooms() {
 //the 'building' input is when a particular building needs to be auto-selected
 function fillBuildingsList(building) {
   //when park is selected, grab the new value, and update buildingList choice with buildings in that park
+  var park = $('#select-park').val();
+  if (park === null) {
+    park = "Any";
+  }
 
-  $.post("api.cshtml", {requestid: "getParkBuildings", park: $('#select-park').val()},
+  $.post("api.cshtml", { requestid: "getParkBuildings", park: park },
   function (JSONresult) {
 
     var buildingList = "<option>Any</option>";
@@ -384,8 +455,12 @@ function fillBuildingsList(building) {
     $("#select-building").html(buildingList);
 
     //select Any or building by default
-    $("#select-building").val(building);
-
+    if (building.length < 3) {
+      $("#select-building").val("Any");
+    }
+    else {
+      $("#select-building").val(building);
+    }
   }, 'json');
 
 }
@@ -411,8 +486,8 @@ function getRoomTimetable() {
     if (weeks.length > 0) {
       weeks = weeks.substr(0, weeks.length - 1);
 
-      var sem = $('.active-semester-choice').html();
-      if (sem == "Current Semester") {
+      var sem = $('.active-semester-choice').attr('id');
+      if (sem == "current-semester") {
         sem = "1";
       }
       else {
@@ -422,7 +497,7 @@ function getRoomTimetable() {
       console.log("Semester: " + sem + "  Weeks: " + weeks + "  RoomCode: " + $('#form-booking-roomCode').val());
 
       //Perform API call to retrieve timetable bookings for times and weeks
-      $.post("api.cshtml", {requestid: "getRoomTimetable", roomcode: $('#form-booking-roomCode').val(), weeks: weeks, semester: sem},
+      $.post("api.cshtml", { requestid: "getRoomTimetable", roomcode: $('#form-booking-roomCode').val(), weeks: weeks, semester: sem },
       function (JSONresult) {
 
         //console.log( JSONresult[i]['request_details'].request_day );  or request_timestart, request_round, module_code, request_priority (null or string)
@@ -432,48 +507,101 @@ function getRoomTimetable() {
 
         for (var i = 0; i < JSONresult.length; i++) {
           var day = JSONresult[i]['request_details'].request_day;
+          var dayneat = day.replace(/\w\S*/g, function (txt) { return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(); });  //Makes first letter upper case  //TODO: Copy this to other timetables
           var time = JSONresult[i]['request_details'].request_timestart;
 
-          //if this slot is currently clear
-          if (!$('.timetable-table tbody tr[class*="' + day + '"]').find('td[class*="period' + time + '"]').hasClass("timetable-taken")) {
+          var room = $('#form-booking-roomCode').val();
+          var roomIsPrivate = false;
+          if (room.substr(room.length - 1, 1) == "*") {
+            roomIsPrivate = true;
+          }
 
-            $('.timetable-table tbody tr[class*="' + day + '"]').find('td[class*="period' + time + '"]').addClass("timetable-taken");
-            $('.timetable-table tbody tr[class*="' + day + '"]').find('td[class*="period' + time + '"]').removeClass("timetable-selected");
+          if (!roomIsPrivate) { //IF ROOM IS NOT PRIVATE
+            console.log("Room is not private");
+            //if this slot is currently clear
+            if (!$('.timetable-table tbody tr[class*="' + day + '"]').find('td[class*="period' + time + '"]').hasClass("timetable-taken")) {
 
-            //Multiple content should be in form: <span class='timetable-taken-text'>Booked</span><div class='timetable-content-empty'></div>
-            var content = "<span class='timetable-taken-text'>Booked</span><div class='timetable-content-empty'>";
+              $('.timetable-table tbody tr[class*="' + day + '"]').find('td[class*="period' + time + '"]').addClass("timetable-taken");
+              $('.timetable-table tbody tr[class*="' + day + '"]').find('td[class*="period' + time + '"]').removeClass("timetable-selected");
 
-            var popContent = "<b>Information for a booked timetable slot.</b><br/>";
-            popContent += "Day: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + day + "<br/>";
-            popContent += "Period: &nbsp;" + time + "<br/><br/>";
-            popContent += "The module <b>" + JSONresult[i]['request_details'].module_code + "</b> has booked this slot for weeks:<br/>";
-            for (var j = 0; j < JSONresult[i]['weeks_range'].length; j++) {
-              popContent += JSONresult[i]['weeks_range'][j] + ", ";
+              //Multiple content should be in form: <span class='timetable-taken-text'>Booked</span><div class='timetable-content-empty'></div>
+              var content = "<span class='timetable-taken-text'>Booked</span><div class='timetable-content-empty'>";
+
+              var popContent = "<b>Information for a booked timetable slot.</b><br/>";
+              popContent += "Day: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + dayneat + "<br/>";
+              popContent += "Period: &nbsp;" + time + "<br/><br/>";
+              popContent += "The module <b>" + JSONresult[i]['request_details'].module_code + "</b> has booked this slot for weeks:<br/>";
+              //for (var j = 0; j < JSONresult[i]['weeks_range'].length; j++) {
+              popContent += JSONresult[i]['weeks_range']/*+ ", "*/;
+              //}
+              popContent += "<p></p>";
+              popContent += "<p class='close'>Close</p>";
+
+              content += popContent;
+              content += "</div>";
+              $('.timetable-table tbody tr[class*="' + day + '"]').find('td[class*="period' + time + '"]').html(content);
+
             }
-            popContent += "<p></p>";
-            popContent += "<p class='close'>Close</p>";
+            else { //if this slot in timetable has another module booking here (ie. different weeks)
 
-            content += popContent;
-            content += "</div>";
-            $('.timetable-table tbody tr[class*="' + day + '"]').find('td[class*="period' + time + '"]').html(content);
+              var currentContent = $('.timetable-table tbody tr[class*="' + day + '"]').find('td[class*="period' + time + '"]').html().toString();
+
+              var newContent = "";
+
+              var contentStart = currentContent.substring(0, currentContent.indexOf("<p></p>"));
+              var contentEnd = currentContent.substring(currentContent.indexOf("<p></p>"));
+
+              contentStart += "<br/><br/>The module <b>" + JSONresult[i]['request_details'].module_code + "</b> has booked this slot for weeks:<br/>";
+              for (var j = 0; j < JSONresult[i]['weeks_range'].length; j++) {
+                contentStart += JSONresult[i]['weeks_range'][j] + ", ";
+              }
+
+              newContent = contentStart + contentEnd;
+              $('.timetable-table tbody tr[class*="' + day + '"]').find('td[class*="period' + time + '"]').html(newContent);
+            }
 
           }
-          else { //if this slot in timetable has another module booking here (ie. different weeks)
+          else {  //ROOM IS PRIVATE
+            console.log("Room is private");
+            //if this slot does NOT have a booking (is free)        
+            if ($('.timetable-table tbody tr[class*="' + day + '"]').find('td[class*="period' + time + '"]').find('span.timetable-taken-text').length == 0) {
 
-            var currentContent = $('.timetable-table tbody tr[class*="' + day + '"]').find('td[class*="period' + time + '"]').html().toString();
+              $('.timetable-table tbody tr[class*="' + day + '"]').find('td[class*="period' + time + '"]').removeClass("timetable-selected");
 
-            var newContent = "";
+              //Multiple content should be in form: <span class='timetable-taken-text'>Booked</span><div class='timetable-content-empty'></div>
+              var content = "<span class='timetable-taken-text'>Booked</span><div class='timetable-content-empty'>";
 
-            var contentStart = currentContent.substring(0, currentContent.indexOf("<p></p>"));
-            var contentEnd = currentContent.substring(currentContent.indexOf("<p></p>"));
+              var popContent = "<b>Information for a booked timetable slot.</b><br/>";
+              popContent += "Day: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + dayneat + "<br/>";
+              popContent += "Period: &nbsp;" + time + "<br/><br/>";
+              popContent += "The module <b>" + JSONresult[i]['request_details'].module_code + "</b> has booked this slot for weeks:<br/>";
+              popContent += JSONresult[i]['weeks_range'];
+              popContent += "<p></p>";
+              popContent += "<p class='close'>Close</p>";
 
-            contentStart += "<br/><br/>The module <b>" + JSONresult[i]['request_details'].module_code + "</b> has booked this slot for weeks:<br/>";
-            for (var j = 0; j < JSONresult[i]['weeks_range'].length; j++) {
-              contentStart += JSONresult[i]['weeks_range'][j] + ", ";
+              content += popContent;
+              content += "</div>";
+              $('.timetable-table tbody tr[class*="' + day + '"]').find('td[class*="period' + time + '"]').html(content);
+
+            }
+            else { //if this slot in timetable has another module booking here (ie. different weeks)
+
+              var currentContent = $('.timetable-table tbody tr[class*="' + day + '"]').find('td[class*="period' + time + '"]').html().toString();
+
+              var newContent = "";
+
+              var contentStart = currentContent.substring(0, currentContent.indexOf("<p></p>"));
+              var contentEnd = currentContent.substring(currentContent.indexOf("<p></p>"));
+
+              contentStart += "<br/><br/>The module <b>" + JSONresult[i]['request_details'].module_code + "</b> has booked this slot for weeks:<br/>";
+              for (var j = 0; j < JSONresult[i]['weeks_range'].length; j++) {
+                contentStart += JSONresult[i]['weeks_range'][j] + ", ";
+              }
+
+              newContent = contentStart + contentEnd;
+              $('.timetable-table tbody tr[class*="' + day + '"]').find('td[class*="period' + time + '"]').html(newContent);
             }
 
-            newContent = contentStart + contentEnd;
-            $('.timetable-table tbody tr[class*="' + day + '"]').find('td[class*="period' + time + '"]').html(newContent);
           }
 
         }
@@ -520,7 +648,7 @@ function loadRoomBuildingInfo(roomCode) {
     //call api.cshtml with "buildingCode" to return the buildingName
     $.post("api.cshtml", {requestid: "getBuildingName", buildingcode: buildingCode},
     function (JSONresult) {
-      $('#form-booking-roomName').text(JSONresult);
+      $('#form-booking-roomName').text(JSONresult[0].building_name);
       getRoomTimetable();
     }, 'json');
 
@@ -548,6 +676,14 @@ function checkRoomIsValid(roomCode) {
   return flag;
 }
 
+//Handle the UI changes for number of weeks when semester changed (semester 2 has 16 weeks)
+function addFinalWeeks() {
+  $('.finalweek').removeClass('finalweekhidden');
+}
+function removeFinalWeeks() { 
+  $('.finalweek').addClass('finalweekhidden');
+}
+
 //erases content of current timetable
 function clearTimetable() {
 
@@ -568,8 +704,8 @@ function clearTimetable() {
 function getSubmissionLog() {
   console.log("getSubmissionLog() called");
 
-  var sem = $('.active-semester-choice').html();
-  if (sem == "Current Semester") {
+  var sem = $('.active-semester-choice').attr('id');
+  if (sem == "current-semester") {
     sem = "1";
   }
   else {
@@ -827,7 +963,7 @@ function getSubmissionLog() {
   }, 'json');
 }
 
-//function to submit all bookings
+//function to submit all bookings //TODO: Delete this?
 function submitBookings() {
   console.log("submitBookings() called");
 
@@ -938,16 +1074,6 @@ function submitBookings() {
     }
   });
 
-
-  //SARTHAK:
-  //I will be sending you all these variables eg. JSON.stringify({ roomcode:roomcode, weeks:weeks, park:park etc etc });
-  //All the special requirements they selected
-  //The room code
-  //Any child linked requests
-  //Time and day etc
-  //FOR EACH SLOT
-
-
 }
 
 //function to save state of tab-content
@@ -962,8 +1088,10 @@ function saveState(tabnumber) {
   $('#form-capacity-tab' + tabnumber).text(capacity);
 
   var buildingcode = $('#select-building').val();
+  var buildingname = buildingcode;
   if (buildingcode == null) {
-    buildingcode = "Any"
+    buildingcode = "Any";
+    buildingname = "Any";
   }
   else {
     buildingcode = buildingcode.substr(0, buildingcode.indexOf(' '));
@@ -972,6 +1100,9 @@ function saveState(tabnumber) {
     }
   }
   $('#select-building-tab' + tabnumber).text(buildingcode);
+  $('#select-buildingname-tab' + tabnumber).text(buildingname);
+
+  $('#select-privaterooms-tab' + tabnumber).text($('#select-privaterooms').val());
 
   $('#select-roomuse-tab' + tabnumber).text($('#select-roomuse').val());
   var priority = $('#form-priority').val();
@@ -1104,10 +1235,14 @@ function loadState(tabnumber) {
   $('#select-park').val($('#select-park-tab' + tabnumber).text());
   $('#form-capacity').val($('#form-capacity-tab' + tabnumber).text());
 
-  $('#select-building').val($('#select-building-tab' + tabnumber).text());
+  var bilname = $('#select-buildingname-tab' + tabnumber).text();
+  $('#select-building').val(bilname);
+  fillBuildingsList(bilname);
+
+  $('#select-privaterooms').val($('#select-privaterooms-tab' + tabnumber).text());
 
   $('#select-roomuse').val($('#select-roomuse-tab' + tabnumber).text());
-  $('#form-priority').val($('#form-priority-tab' + tabnumber).text());
+  $('#form-priority').val($('#form-priority-tab1').text());
 
   $('.requirements-tab' + tabnumber + ' span').each(function () {
     if ($(this).text() == 1) {
@@ -1245,46 +1380,69 @@ function authenticateSubmission() {
 	var msg = "";
   var fine = true;
 
-  //Check for max 3 hour lecture linked
-  var slots = $('#tab' + tabnumber + '-monday').text().split(", ");	// 1, 2, 3, 6, 8, 9,
-  for (var i = 0; i < slots.length - 2; i++) {
-    var j = parseInt(slots[i]);
-    if ((parseInt(slots[i + 1]) == (j + 1)) && (parseInt(slots[i + 2]) == (j + 2)) && (parseInt(slots[i + 3]) == (j + 3))) {
-      fine = false;
+  //Check they have chosen timetable slots for each tab
+  var slotspicked = true;
+  var numTabs = $('#select-tab-number').val();
+  for (var i = 1; i <= numTabs; i++) { //loop through their room tabs
+    var thistabpicked = false;          //flag for slots on this tab
+    if ( $('#tab' + i + '-monday').text().length > 0 ) { thistabpicked = true }
+    if ( $('#tab' + i + '-tuesday').text().length > 0 ) { thistabpicked = true }
+    if ( $('#tab' + i + '-wednesday').text().length > 0 ) { thistabpicked = true }
+    if ( $('#tab' + i + '-thursday').text().length > 0 ) { thistabpicked = true }
+    if ( $('#tab' + i + '-friday').text().length > 0 ) { thistabpicked = true }
+    if (!thistabpicked) {   //if nothing has been selected in this slot then return false
+      slotspicked = false;
     }
   }
-  slots = $('#tab' + tabnumber + '-tuesday').text().split(", ");	// 1, 2, 3, 6, 8, 9,
-  for (var i = 0; i < slots.length - 2; i++) {
-    var j = parseInt(slots[i]);
-    if ((parseInt(slots[i + 1]) == (j + 1)) && (parseInt(slots[i + 2]) == (j + 2)) && (parseInt(slots[i + 3]) == (j + 3))) {
-      fine = false;
-    }
+
+  if (!slotspicked) { //If slots arent picked for one of the room tabs
+    fine = false;
+    msg += "You have not selected any timetable slots for one or more of the room tabs.\n\n";
   }
-  slots = $('#tab' + tabnumber + '-wednesday').text().split(", ");	// 1, 2, 3, 6, 8, 9,
-  for (var i = 0; i < slots.length - 2; i++) {
-    var j = parseInt(slots[i]);
-    if ((parseInt(slots[i + 1]) == (j + 1)) && (parseInt(slots[i + 2]) == (j + 2)) && (parseInt(slots[i + 3]) == (j + 3))) {
-      fine = false;
+  else {  //If slots are picked for all selected room tabs, check for max 3 hour lecture
+
+    //Check for max 3 hour lecture linked
+    var slots = $('#tab' + tabnumber + '-monday').text().split(", "); 	// 1, 2, 3, 6, 8, 9,
+    for (var i = 0; i < slots.length - 2; i++) {
+      var j = parseInt(slots[i]);
+      if ((parseInt(slots[i + 1]) == (j + 1)) && (parseInt(slots[i + 2]) == (j + 2)) && (parseInt(slots[i + 3]) == (j + 3))) {
+        fine = false;
+      }
     }
-  }
-  slots = $('#tab' + tabnumber + '-thursday').text().split(", ");	// 1, 2, 3, 6, 8, 9,
-  for (var i = 0; i < slots.length - 2; i++) {
-    var j = parseInt(slots[i]);
-    if ((parseInt(slots[i + 1]) == (j + 1)) && (parseInt(slots[i + 2]) == (j + 2)) && (parseInt(slots[i + 3]) == (j + 3))) {
-      fine = false;
+    slots = $('#tab' + tabnumber + '-tuesday').text().split(", "); // 1, 2, 3, 6, 8, 9,
+    for (var i = 0; i < slots.length - 2; i++) {
+      var j = parseInt(slots[i]);
+      if ((parseInt(slots[i + 1]) == (j + 1)) && (parseInt(slots[i + 2]) == (j + 2)) && (parseInt(slots[i + 3]) == (j + 3))) {
+        fine = false;
+      }
     }
-  }
-  slots = $('#tab' + tabnumber + '-friday').text().split(", ");	// 1, 2, 3, 6, 8, 9,
-  for (var i = 0; i < slots.length - 2; i++) {
-    var j = parseInt(slots[i]);
-    if ((parseInt(slots[i + 1]) == (j + 1)) && (parseInt(slots[i + 2]) == (j + 2)) && (parseInt(slots[i + 3]) == (j + 3))) {
-      fine = false;
+    slots = $('#tab' + tabnumber + '-wednesday').text().split(", "); // 1, 2, 3, 6, 8, 9,
+    for (var i = 0; i < slots.length - 2; i++) {
+      var j = parseInt(slots[i]);
+      if ((parseInt(slots[i + 1]) == (j + 1)) && (parseInt(slots[i + 2]) == (j + 2)) && (parseInt(slots[i + 3]) == (j + 3))) {
+        fine = false;
+      }
     }
+    slots = $('#tab' + tabnumber + '-thursday').text().split(", "); // 1, 2, 3, 6, 8, 9,
+    for (var i = 0; i < slots.length - 2; i++) {
+      var j = parseInt(slots[i]);
+      if ((parseInt(slots[i + 1]) == (j + 1)) && (parseInt(slots[i + 2]) == (j + 2)) && (parseInt(slots[i + 3]) == (j + 3))) {
+        fine = false;
+      }
+    }
+    slots = $('#tab' + tabnumber + '-friday').text().split(", "); // 1, 2, 3, 6, 8, 9,
+    for (var i = 0; i < slots.length - 2; i++) {
+      var j = parseInt(slots[i]);
+      if ((parseInt(slots[i + 1]) == (j + 1)) && (parseInt(slots[i + 2]) == (j + 2)) && (parseInt(slots[i + 3]) == (j + 3))) {
+        fine = false;
+      }
+    }
+
+    if (fine == false) {
+      msg += "You can only have a lecture of length 3 hours maximum.\n\n";
+    }
+
   }
-	
-	if (fine == false) {
-		msg += "You can only have a lecture of length 3 hours maximum.\n\n";
-	}
 	
 	//Check they entered module code
 	var modcode = $('#input-moduleInfo').val();
@@ -1297,13 +1455,38 @@ function authenticateSubmission() {
   var roomcode1 = $('#roomcode-tab1').text();
 	var roomcode2 = $('#roomcode-tab2').text();
 	var roomcode3 = $('#roomcode-tab2').text();
-	if ( (roomcode1.length < 4) && (roomcode2.length < 4) && (roomcode3.length < 4)) {
-		fine = false;
-		msg += "Enter a valid roomcode in all of the tabs.\n\n";
-	}
+  var numTabs = $('#select-tab-number').val();
+  if (numTabs == 1) {
+    if (roomcode1.length < 4) {
+		  fine = false;
+		  msg += "Enter a valid roomcode in all of the tabs.\n\n";
+	  }
+  }
+  else if (numTabs == 2) {
+    if ( (roomcode1.length < 4) || (roomcode2.length < 4)) {
+		  fine = false;
+		  msg += "Enter a valid roomcode in all of the tabs.\n\n";
+	  }
+  }
+  else { 
+    if ( (roomcode1.length < 4) || (roomcode2.length < 4) || (roomcode3.length < 4)) {
+		  fine = false;
+		  msg += "Enter a valid roomcode in all of the tabs.\n\n";
+	  }
+  }
 	
 	//Weeks
-	
+	var weeksfine = false;
+	$('#form-requiredWeeks-row1').find('.form-requiredWeeks-checkbox').each(function () {	//iterates through checked weeks
+	  var id = $(this).is(':checked');
+	  if (id) {
+	    weeksfine = true;
+	  }
+	});
+	if (!weeksfine) {
+	  msg += "You did not select any weeks.\n\n";
+	  fine = false;
+  }
 	
 	if (!fine) {
 		alert(msg);
@@ -1316,6 +1499,7 @@ function resetPreferences(tab) {
   $('#select-park').val("Any");
   $('#select-building').val("Any");
   $('#select-roomuse').val("Lecture");
+  $('#select-privaterooms').val("Include");
   $('#form-capacity').val("");
   $('#form-priority').val("");
   $('#select-specificreqs li').children('.list-activeFacility').each(function () {
@@ -1325,4 +1509,19 @@ function resetPreferences(tab) {
 	$('.timetable-data').removeClass('timetable-disabled');
   getSuitableRooms();
   saveState(tab);
+
+  //Reset checkboxes to default 11
+  $('#form-requiredWeeks-row1').find('.form-requiredWeeks-checkbox').each(function () {	//iterates through weeks
+    var week = $(this).attr("name");
+    if (week == "w1" || week == "w2" || week == "w3" || week == "w4" || week == "w5" || week == "w6" || week == "w7" || week == "w8" || week == "w9" || week == "w10" || week == "w11") {
+      if (!$(this).is(':checked')) {
+        $(this).prop('checked', true);
+      }
+    }
+    else { 
+      $(this).prop('checked', false);
+    }
+  });
+
+  $('#form-booking-roomName').text("No Room Selected");
 }

@@ -4,11 +4,12 @@ function readState(tabnumber) {
   json.push($('#select-building-tab' + tabnumber).text());
   json.push($('#form-capacity-tab' + tabnumber).text());
   json.push($('#input-moduleInfo').val().substring(0, $('#input-moduleInfo').val().indexOf(' ')));
-  json.push($('#form-priority-tab' + tabnumber).text() == "" ? null : $('#form-priority-tab' + tabnumber).text());
+  json.push($('#form-priority-tab1').text() == "" ? null : $('#form-priority-tab1').text());
   $('#form-requiredWeeks-row1').find('.form-requiredWeeks-checkbox').each(function () {	//iterates through checked weeks
-    var id = $(this).is(':checked');
-    //console.log("TESTFUNC: " + id);
-    (id) ? json.push(1) : json.push(0);
+    if ($(this).attr('id') != "form-requiredWeeks-all") { 
+      var id = $(this).is(':checked');
+      (id) ? json.push(1) : json.push(0);
+    }
   });
   json.push($('#lab-tab' + tabnumber).text() == 0 ? 0 : 1);
   json.push($('#wheelchair-tab' + tabnumber).text() == 0 ? 0 : 1);
@@ -54,25 +55,30 @@ function allRoomBookings() {
       master.push(readState(3));
       break;
   }
-  var modulecode = $('#input-moduleInfo').text().substring(0, $('#input-moduleInfo').val().indexOf(' '));
+  if ($('.active-semester-choice').attr('id') == "next-semester") {
+    var sem = 2;
+  }
+  else {
+    var sem = 1;
+  }
+  var modulecode = $('#input-moduleInfo').val().substring(0, $('#input-moduleInfo').val().indexOf(' '));
   var output = JSON.stringify(master);
-  $.post("api.cshtml", {requestid: "setBookingsInterpret", json: output, modulecode: modulecode},
+  $.post("api.cshtml", {requestid: "setBookingsInterpret", json: output, modulecode: modulecode, semester: sem},
   function (JSONresult) {
     if (JSONresult) {
-			resetPreferences(1);
-			resetPreferences(2);
 			resetPreferences(3);
+			resetPreferences(2);
+			resetPreferences(1);
 			getSubmissionLog();
       alert("Successfully submitted bookings");
     }
     else {
-			resetPreferences(1);
-			resetPreferences(2);
 			resetPreferences(3);
+			resetPreferences(2);
+			resetPreferences(1);
 			getSubmissionLog();
       alert("Error. Bookings unsuccessful. \n\nPlease revise your preferences and try again.");
     }
-		location.reload(); 
+		location.reload(true); 
   }, 'json');
-  console.log('After Req..');
 }

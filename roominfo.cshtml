@@ -18,6 +18,10 @@
 
 <!DOCTYPE html>
 <html>
+<head>
+<!--<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
+<script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>-->
+</head>
   <!-- Include the dependencies file -->
   @{
     var pageName = "roominfo";
@@ -107,19 +111,22 @@
             </div>
           </form>
         </div>
-
+<div id="mapid"></div>
         <!-- Tab panes -->
-        <div class="roomSearch-header roomSearch-header-bottomBorder"><span
-            id="roomSearch-booking">Selected Room</span>
+        <div class="roomSearch-header roomSearch-header-bottomBorder">
+		<span id="roomSearch-booking">Selected Room</span>
         </div>
         <form class="form-inline mo_info">
 
         </form>
 
-        <div id='selected-room-info'>
-        </div>
+        </form>
+		<div id='selected-room'>
+        <div id='room-info'></div> <div id="googleMap"></div>
+		</div>
+		
         <br/>
-        <br/>
+		
 
         <!-- JQuery Message Popup Dialog -->
         <div class="messagepop pop">
@@ -207,8 +214,62 @@
         </div>
 
       </div>
+        <div id="page-content-container">
+
+      <div id="createmodule-container" class="card-container">
+        <div class='form-cont' id="form-createmodule">
+          <h3 style="margin:15px">Create Module</h3>
+          <div class="form-div">
+            <span class="form-label">Department Code</span>
+            <input type='text' placeholder='e.g. @*Variables from the session dept *@' id='mod-depcode' class="form-control" style="width:60%" disabled="disabled" value="@*Variables frome the session dept *@"/>
+          </div>
+          <div class="form-div">
+            <span class="form-label">Module Code</span>
+            <input type='text' placeholder='e.g. @*Variables from the session dept*@>B290' id='mod-code' class="form-control" style="width:60%"/>
+          </div>
+          <div class="form-div">
+            <span class="form-label">Module Title</span>
+            <input type='text' placeholder='e.g. Team Projects' id='mod-title' class="form-control" style="width:70%"/>
+          </div>
+          <div class="form-div">
+            <button id='create-mod' class='btn ok' style="width:90%">CREATE</button>
+          </div>
+        </div>
+      </div>
+      <div id="editdeletemodule-container" class="card-container">
+
+        <div style="padding:20px;">
+          <h3>Modify Module</h3>
+          <div class="editmodule-blocks" id="search-block">
+            <p>Module Search:</p>
+            <input type='text' placeholder='e.g. COB290 Team Projects' id='input-moduleInfo' class="form-control" style="width:80%" />
+          </div>
+          <div class="editmodule-blocks" id="upd-block">
+            <p>Edit Module:</p>
+            <span class="form-label">Module Code</span>
+            <input type='text' placeholder='Module Code' id='modupd-code' class="form-control form-edit-input" style="width:67%" disabled="disabled"/>
+            <br/>
+            <span class="form-label">Module Title</span>
+            <input type='text' placeholder='Module Title' id='modupd-title' class="form-control form-edit-input" style="width:68%"/>
+            <br/>
+            <!--<center>-->
+              <button id='update-mod' class='btn ok' style="margin-top:15px; width: 97%">UPDATE</button>
+            <!--</center>-->
+          </div>
+          <div class="editmodule-blocks" id="del-block">
+            <p>Delete Module:</p>
+            <br/>
+            <button class='btn del' id='del-mod'>DELETE</button>
+          </div>
+        </div>
+      </div>
     </div>
-
-
+<script>
+/*var map = L.map('map').setView([51.505, -0.09], 13);
+L.tileLayer('http://{s}.tile.cloudmade.com/API-key/997/256/{z}/{x}/{y}.png', {
+    attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://cloudmade.com">CloudMade</a>[…]',
+    maxZoom: 18
+}).addTo(map);*/
+ </script>
   </body>
 </html>
