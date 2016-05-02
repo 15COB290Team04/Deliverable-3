@@ -51,3 +51,13 @@ LU dark purple: #361163;
   transition-duration: 0.3s; 
   background-color:#000033;
 }
+#coatofarms {
+  opacity: 0.075;
+  position: relative;
+  right: -180px;
+  top: -360px;
+  transform: scale(0.75);
+  -moz-transform: scale(0.75);
+  -webkit-transform: scale(0.75);
+  z-index: 1;
+}
