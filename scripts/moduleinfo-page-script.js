@@ -1,47 +1,48 @@
 $(document).ready(function () {
+    loadLecturers();
+    loadCourses();
+    //AUTOFILL SEARCH FOR MODULE TITLE
+    $(function () {
+        var availableTags = [];
 
-  //AUTOFILL SEARCH FOR MODULE TITLE
-  $(function () {
-    var availableTags = [];
-
-    //getDeptModuleList with deptCode = "CO" returns all modules with CO at start of code, in form "COB106 AI Methods"
-    $.post("api.cshtml", {requestid: "getDeptModuleList"},
+        //getDeptModuleList with deptCode = "CO" returns all modules with CO at start of code, in form "COB106 AI Methods"
+        $.post("api.cshtml", { requestid: "getDeptModuleList" },
     function (JSONresult) {
 
-      for (var i = 0; i < JSONresult.length; i++) {
-        availableTags.push(JSONresult[i].module_code + " " + JSONresult[i].module_title);
-      }
+        for (var i = 0; i < JSONresult.length; i++) {
+            availableTags.push(JSONresult[i].module_code + " " + JSONresult[i].module_title);
+        }
 
     }, 'json');
 
-    $("#input-moduleInfo").autocomplete({
-      source: availableTags,
-      close: function () {
-        getModuleTimetable();
-      }
-    });
+        $("#input-moduleInfo").autocomplete({
+            source: availableTags,
+            close: function () {
+                getModuleTimetable();
+            }
+        });
 
-    $('#input-moduleInfo').on('change input', function () {
-      getModuleTimetable();
-    });
-    $("#select-semester").on('change input', function () {
-      getModuleTimetable();
-    });
-  //TIMETABLE POPUP
-    $(".timetable-data").click(function () {
-      if ($(this).hasClass("timetable-taken")) {	//if it isnt a slot with a Booked (taken) class
-        $('.pop').html($(this).find('.timetable-content-empty').html());
-        $('.pop').fadeToggle();
-      }
-    });
+        $('#input-moduleInfo').on('change input', function () {
+            getModuleTimetable();
+        });
+        $("#select-semester").on('change input', function () {
+            getModuleTimetable();
+        });
+        //TIMETABLE POPUP
+        $(".timetable-data").click(function () {
+            if ($(this).hasClass("timetable-taken")) {	//if it isnt a slot with a Booked (taken) class
+                $('.pop').html($(this).find('.timetable-content-empty').html());
+                $('.pop').fadeToggle();
+            }
+        });
 
-    $(document).on('click', '.close', function () { //essential to make dynamically inserted html elements have the click handler
-      //$('.close').on('click', function() {
-      $('.pop').fadeToggle();
-      $('.pop').delay(1000).html("<b>Information for a booked timetable slot.</b><br/><br/><br/><br/><br/><p></p><p class='close'>Close</p>");
-    });
+        $(document).on('click', '.close', function () { //essential to make dynamically inserted html elements have the click handler
+            //$('.close').on('click', function() {
+            $('.pop').fadeToggle();
+            $('.pop').delay(1000).html("<b>Information for a booked timetable slot.</b><br/><br/><br/><br/><br/><p></p><p class='close'>Close</p>");
+        });
 
-  });
+    });
 });
 
 function getRoomTimetable() {
@@ -107,5 +108,45 @@ function clearTimetable() {
   //$('.timetable-data').text("");
   $('.timetable-data').html("<div class='timetable-content-empty'></div>");
   $('.timetable-data').removeClass("timetable-taken");
+
+}
+
+function loadLecturers() {
+    var availableTags = [];
+
+    $.post("api.cshtml", { requestid: "getDeptLecturers" },
+      function (JSONresult) {
+          for (var i = 0; i < JSONresult.length; i++) {
+              availableTags.push(JSONresult[i].name);
+          }
+      }, 'json');
+    $("#input-lecturerInfo").autocomplete({
+        source: availableTags,
+        close: function () {
+            var Lecturer = $('#input-lecturerInfo').val();
+            $('#input-lecturerInfo').val(Lecturer);
+        }
+    });
+}
+
+function loadCourses(){
+    var availableTags = [];
+
+    $.post("api.cshtml", { requestid: "getDeptCourses" },
+      function (JSONresult) {
+          for (var i = 0; i < JSONresult.length; i++) {
+              availableTags.push(JSONresult[i].name);
+          }
+      }, 'json');
+    $("#input-courseInfo").autocomplete({
+        source: availableTags,
+        close: function () {
+            var Lecturer = $('#input-courseInfo').val();
+            $('#input-courseInfo').val(Lecturer);
+        }
+    });
+}
+
+function saveTimetable(){
 
 }

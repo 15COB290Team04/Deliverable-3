@@ -32,22 +32,52 @@
     <!-- MAIN CONTENT -->
     <div id="page-content-container">
       <div class='card-container'>
-        <div style="padding:40px;">
-          <h3>Module Search</h3>
-          <div class="editmodule-blocks" id="search-block">
-            <p>Insert Module Name:</p>
-            <input type='text' placeholder='e.g. COB290 Team Projects' id='input-moduleInfo' class="form-control" style="width:80%"/>
+
+          <div id="search-fields">
+
+            <div id="Module-srch">
+              <h3>Module Search</h3>
+              <div class="editmodule-blocks" id="search-block">
+                <p>Insert Module Name:</p>
+                <input type='text' placeholder='e.g. COB290 Team Projects' id='input-moduleInfo' class="form-control"/>
+              </div>
+                  <input class="radio-checks" type="radio" name="view" value="module" checked>View<br>
+            </div>
+
+            <div id="Course-srch">
+                <h3>Course Search</h3>
+              <div class="editmodule-blocks" id="search-block">
+                <p>Insert Course:</p>
+                <input type='text' placeholder='e.g. Computer science' id='input-courseInfo' class="form-control"/>
+              </div>
+                      <input class="radio-checks" type="radio" name="view" value="course">View<br>
+            </div>
+
+            <div id="Lecturer-srch">
+                <h3>Lecturer Search</h3>
+              <div class="editmodule-blocks" id="search-block">
+                <p>Insert Lecturer Name:</p>
+                <input type='text' placeholder='e.g. Ray Dawson' id='input-lecturerInfo' class="form-control"/>
+              </div>
+                  <input class="radio-checks" type="radio" name="view" value="lecturer">View<br>            
+            </div>
+            <br/>
+            <br/>
+            <hr class="div-splitter">
+            <br/>
+            <br/>
+            <div class="form-group">
+                <label>Semester:</label>
+                <select id="select-semester" class="form-dropdown-medium">
+                  <option>1</option>
+                  <option>2</option>
+                </select>
+              </div>
           </div>
-          <div class="form-group" style='margin-left:15px'>
-            <label>Semester:</label>
-            <select id="select-semester" class="form-dropdown-medium">
-              <option>1</option>
-              <option>2</option>
-            </select>
-          </div>
-        </div>
+
       </div>
       <br/>
+
       <!-- JQuery Message Popup Dialog -->
       <div class="messagepop pop">
         <b>Information for a booked timetable slot.</b><br/><br/><br/><br/><br/>
@@ -131,6 +161,9 @@
               <td class="timetable-col10-period9 timetable-data"><div class="timetable-content-empty"></div></td>
             </tr>
           </table>
+        </div>
+        <div>
+            <button id="dwnld-btn" onclick="saveTimetable();">Save this Timetable</button>
         </div>
       </div>
     </div>
