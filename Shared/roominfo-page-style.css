@@ -251,7 +251,7 @@ label {
   width:88px;
 }
 .mo_info .form-group {
-  margin: 0 15px 15px 0;
+  margin: 0 20px 20px 0;
 }
 #roomSearch-reset {
   background-color:#d51668;
@@ -551,4 +551,17 @@ LU dark purple: #361163;
 #room-faclist ul li {
   padding:3px;
   margin-left:-10px;
+}
+
+tr td.timetable-taken:hover {
+  cursor:pointer;
+  background-color:#ff7878;
+}
+td.timetable-data:hover {
+  cursor:default;
+  background-color:white;
+}
+
+.private-room-container {
+  margin-top:20px;
 }

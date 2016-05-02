@@ -310,7 +310,7 @@ function getRoomTimetable() {
 
   if (checkRoomIsValid($('#form-booking-roomCode').val())) {	//if the selected room is valid
 
-    var weeks = "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,";
+    var weeks = "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,";
 
 
     if (weeks.length > 0) {
@@ -326,7 +326,7 @@ function getRoomTimetable() {
         for (var i = 0; i < JSONresult.length; i++) {
           var day = JSONresult[i]['request_details'].request_day;
           var time = JSONresult[i]['request_details'].request_timestart;
-		  var dayneat = day.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+		      var dayneat = day.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
 
           //if this slot is currently clear
           if (!$('.timetable-table tbody tr[class*="' + day + '"]').find('td[class*="period' + time + '"]').hasClass("timetable-taken")) {
@@ -340,9 +340,7 @@ function getRoomTimetable() {
             popContent += "Day: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + dayneat + "<br/>";
             popContent += "Period: &nbsp;" + time + "<br/><br/>";
             popContent += "The module <b>" + JSONresult[i]['request_details'].module_code + "</b> has booked this slot for weeks:<br/>";
-            for (var j = 0; j < JSONresult[i]['weeks_range'].length; j++) {
-              popContent += JSONresult[i]['weeks_range'][j] + ", ";
-            }
+            popContent += JSONresult[i]['weeks_range'];
             popContent += "<p></p>";
             popContent += "<p class='close'>Close</p>";
 
