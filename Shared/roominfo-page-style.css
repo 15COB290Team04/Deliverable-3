@@ -86,19 +86,17 @@ LU dark purple: #361163;
   margin-top:15px;
   position:absolute;
   font-weight:700;
-  font-size: 200%;
 }
 #roomSearch-booking {
   font-size:1.25em;
   margin-top:15px;
-  margin-left:15px;
   position:absolute;
   font-weight:700;
   padding-left:none;
 }
 #wdytknbt {
-  height:100px;
-  margin-top:40px;
+  height:auto;
+  margin-top:10px;
 }
 
 #form-roomSelection {
@@ -224,13 +222,17 @@ LU dark purple: #361163;
   margin-bottom: 0px;
   vertical-align: middle;
   font-weight:400;
+  display:inline-block;
 }
 .mo_info label {
-  width: 100px;
+  width: 110px;
+}
+#wdytknb label {
+  width: 110px;
 }
 label {
-
-  max-width: 100%;
+  display:inline-block;
+  width: 110px;
   margin-bottom: 5px;
 }
 #input-moduleInfo {
@@ -248,6 +250,29 @@ label {
 #form-capacity {
   width:88px;
 }
+.mo_info .form-group {
+  margin: 0 15px 15px 0;
+}
+#roomSearch-reset {
+  background-color:#d51668;
+  border-radius:4px;
+  font-size:1em;
+  margin-left:220px;
+  margin-top:15px;
+  opacity:0.9;
+  padding:5px 10px;
+  position:absolute;
+}
+#roomSearch-reset:hover {
+  /*color:rgba(0,0,0,0.7);*/
+  opacity:1;
+  transition-duration:0.2s;
+  cursor:pointer;
+}
+.roomSearch-container h2 {
+    color: #000;
+    font-size: 1em;
+}
 
 ul.my_tabs{ margin:20px 0 0; padding: 0 0 0 20px;}
 ul.my_tabs li{ display: inline-block; margin: 0; padding: 0;}
@@ -259,6 +284,7 @@ ul.my_tabs li a{ padding: 10px 20px; background: #ddd; display: inline-block; bo
 .tab-content{ 
   margin-left:auto;
   margin-right:auto;
+  padding-bottom:50px;
 }
 .tab-content .section {
   display:block;
@@ -493,4 +519,36 @@ LU dark purple: #361163;
 }
 .form-edit-input{
   margin:10px
+}
+
+#room-info {
+  float:left;
+  width: 35%;
+  height: auto;
+  min-height: 350px;
+  margin-left: 20px;
+  margin-bottom: 30px;
+}
+#googleMap {
+  float:right;
+  width:60%;
+  height: 350px;
+  margin-right: 20px;
+  margin-bottom: 30px;
+}
+.selected-room-container {
+  margin-top:20px;
+}
+#semester-container {
+  vertical-align:bottom;
+}
+#room-faclist {
+  margin:15px 0 10px 0;
+}
+#room-faclist ul {
+  margin-top:1px;
+}
+#room-faclist ul li {
+  padding:3px;
+  margin-left:-10px;
 }

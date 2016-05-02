@@ -7,8 +7,6 @@
  */
 
 $(document).ready(function () {
-	
-	initializeMap();
 
   //AUTOFILL SEARCH FOR MODULE TITLE
   $(function () {
@@ -16,7 +14,7 @@ $(document).ready(function () {
 
     //get list of modules for logged in user
     //getDeptModuleList with deptCode = "CO" returns all modules with CO at start of code, in form "COB106 AI Methods"
-    $.post("api.cshtml", {requestid: "getDeptModuleList"},
+    $.post("api.cshtml", { requestid: "getDeptModuleList" },
     function (JSONresult) {
 
       for (var i = 0; i < JSONresult.length; i++) {
@@ -32,7 +30,7 @@ $(document).ready(function () {
 
   //Call functions at page load
   fillBuildingsList("Any");
-  getSuitableRooms();	//call function to populate suitable rooms list
+  getSuitableRooms(); //call function to populate suitable rooms list
 
 
   //SUBMISSION LOG SLIDER
@@ -46,7 +44,7 @@ $(document).ready(function () {
   //ROOM SEARCH SELECTION LOADS CHOICE
   $('#form-roomSelection').change(function () {
     var roomCode = $(this).find(":selected").text();
-    $('#form-booking-roomCode').val(roomCode);	//loads room
+    $('#form-booking-roomCode').val(roomCode); //loads room
     loadRoomBuildingInfo(roomCode);
   });
 
@@ -82,16 +80,16 @@ $(document).ready(function () {
   $('#select-building').change(function () {
 
     var building = $('#select-building').val();
-    var buildingcode = building.substr(0, building.indexOf(' '));	//if building == "" then Any is selected	
+    var buildingcode = building.substr(0, building.indexOf(' ')); //if building == "" then Any is selected	
     if (buildingcode.length < 1) {
       buildingcode = "Any"
     }
 
     if (building != "Any") {
-      $.post("api.cshtml", {requestid: "getBuildingPark", buildingcode: buildingcode},
+      $.post("api.cshtml", { requestid: "getBuildingPark", buildingcode: buildingcode },
       function (JSONresult) {
 
-        $("#select-park").val(JSONresult);
+        $("#select-park").val(JSONresult[0].park);
         fillBuildingsList(building);
         getSuitableRooms();
 
@@ -107,10 +105,16 @@ $(document).ready(function () {
   $('#form-capacity').on('input change', function () {
     getSuitableRooms();
   });
+
   //SEMESTER INPUT CHANGE
   $('#select-semester').change(function () {
     getRoomTimetable();
-  })
+  });
+
+  //PRIVATE ROOMS INPUT CHANGE
+  $('#select-privaterooms').change(function () {
+    getSuitableRooms();
+  });
 
   //ROOM CODE SELECTION (TEXT INPUT W/ JQUERY AUTOFILL) CHANGE
   $('#form-booking-roomCode').on('input change', function () {
@@ -143,6 +147,7 @@ function getSuitableRooms() {
   console.log("getSuitableRooms() called");
   var park = $('#select-park').val();	//perform a test for Any selected
   var capacity = parseInt($('#form-capacity').val());
+
   if (!checkInp("capacity", capacity)) {
     capacity = 0;
   }
@@ -156,6 +161,9 @@ function getSuitableRooms() {
       buildingcode = "Any"
     }
   }
+
+  var privateStatus = $('#select-privaterooms').val();
+
   var lab = 0;
   var wheelchair = 0;
   var hearingloop = 0;
@@ -230,8 +238,9 @@ function getSuitableRooms() {
     }
   }
 
+  //http://localhost:44715/api?requestid=getSuitableRooms&park=Any&capacity=0&buildingcode=CC&lab=0&wheelchair=0&hearingloop=0&computer=0&projector=0&dprojector=0&ohp=0&visualiser=0&video=0&bluray=0&vhs=0&whiteboard=0&chalkboard=0&plasma=0&pasystem=0&radiomic=0&review=0
   $.post("api.cshtml", {
-    requestid: "getSuitableRooms", park: park, capacity: capacity, private: "Include", buildingcode: buildingcode, lab: lab, wheelchair: wheelchair,
+    requestid: "getSuitableRooms", park: park, capacity: capacity, private: privateStatus, buildingcode: buildingcode, lab: lab, wheelchair: wheelchair,
     hearingloop: hearingloop, computer: computer, projector: projector, dprojector: dprojector, ohp: ohp, visualiser: visualiser, video: dvd,
     bluray: bluray, vhs: vhs, whiteboard: whiteboard, chalkboard: chalkboard, plasma: plasma, pasystem: pasystem, radiomic: radiomic, review: review
   },
@@ -254,8 +263,12 @@ function getSuitableRooms() {
 //the 'building' input is when a particular building needs to be auto-selected
 function fillBuildingsList(building) {
   //when park is selected, grab the new value, and update buildingList choice with buildings in that park
+  var park = $('#select-park').val();
+  if (park === null) {
+    park = "Any";
+  }
 
-  $.post("api.cshtml#json", {requestid: "getParkBuildings", park: $('#select-park').val()},
+  $.post("api.cshtml", { requestid: "getParkBuildings", park: park },
   function (JSONresult) {
 
     var buildingList = "<option>Any</option>";
@@ -265,23 +278,27 @@ function fillBuildingsList(building) {
     $("#select-building").html(buildingList);
 
     //select Any or building by default
-    $("#select-building").val(building);
-
+    if (building.length < 3) {
+      $("#select-building").val("Any");
+    }
+    else {
+      $("#select-building").val(building);
+    }
   }, 'json');
 
 }
 
+//gets a list of the room's facilities
 function getRoomInfo() {
   if (checkRoomIsValid($('#form-booking-roomCode').val())) {
     //Perform API call to retrieve facilities of a specific room
     $.post("api.cshtml", {requestid: "getReqs", roomcode: $('#form-booking-roomCode').val()},
     function (JSONresult) {
-      var facilityList = "<table style='table-layout:fixed; width:10%;'><tr><tr><tr>";
+      var facilityList = "";
       for (var i = 0; i < JSONresult.length; i++) {
-        facilityList += "<tr class='selected-room-fac'><td>" +  "• " + JSONresult[i].facility_name + "</td></tr>";
+        facilityList += "<li>" + JSONresult[i].facility_name + "</li>";
       }
-      facilityList += "</tr></tr></tr></table>"
-      $('#selected-room-info').html(facilityList);
+      $('#room-faclist ul').html(facilityList);
     }, 'json');
   }
 }
@@ -394,13 +411,13 @@ function loadRoomBuildingInfo(roomCode) {
     }
 
     //call api.cshtml with "buildingCode" to return the buildingName
-    $.post("api.cshtml", {requestid: "getBuildingName", buildingcode: buildingCode},
+    $.post("api.cshtml", { requestid: "getBuildingName", buildingcode: buildingCode },
     function (JSONresult) {
-      $('#form-booking-roomName').text(JSONresult[0].building_name);	
+      $('#form-booking-roomName').text(JSONresult[0].building_name);
       getRoomTimetable();
       getRoomInfo();
-			//@JAMES ADD THIS LINE BELOW
-			plotOnMap(JSONresult[0].building_name);		
+      console.log("Plotting building on map: " + JSONresult[0].building_name);
+      plotOnMap(JSONresult[0].building_name);
     }, 'json');
 
   }
@@ -438,17 +455,12 @@ function clearTimetable() {
 
 }
 
-function initializeMap() {
-	var script = document.createElement("script");
-  script.src = "http://maps.googleapis.com/maps/api/js?callback=initialize";
-  document.body.appendChild(script);
-}
+var global = {};
 
-//Initialise Google Maps API (must use 'initialize' for callback)
-function initialize() {
+global.initMap = function() {
 	var mapProp = {
-		center:new google.maps.LatLng(52.76268, -1.23819),		//can change these coords to somewhere in centre of uni (it's the default map location)
-		zoom:16,																								//change this zoom to higher number (try 9)
+		center:new google.maps.LatLng(52.76492526, -1.23422172),		//can change these coords to somewhere in centre of uni (it's the default map location)
+		zoom:15,																							
 		mapTypeId:google.maps.MapTypeId.ROADMAP
 	};
 	var map = new google.maps.Map(document.getElementById("googleMap"),mapProp);
@@ -457,8 +469,8 @@ function initialize() {
 //@James You have a lot to add to this
 //This function will plot the building's lat and long onto a map (I made this)
 function plotOnMap(buildingname) {
-	var lat = "52.76268";
-	var lng = "1.23819";
+var lat = "52.76268";
+	var lng = "-1.23819";
 	
 	//CREATE IF/ELSE STATEMENT HERE TO GET THE LAT/LONG FOR THE BUILDING CODE INPUT (Check what the exact building names are in the db)
 	if (buildingname == "Matthew Arnold") {
@@ -473,11 +485,11 @@ function plotOnMap(buildingname) {
 		lat = "52.76506";
 		lng = "-1.2272";
 	}
-	else if (buildingname == "G block") {
-		lat = "52.76482";
-		lng = "-1.22881";
+	else if (buildingname == "G Block") {
+		lat = "52.76478893";
+		lng = "-1.22877684";
 	}
-		else if (buildingname == "Wavy Top") {
+	else if (buildingname == "Wavy Top") {
 		lat = "52.76538";
 		lng = "-1.22819";
 	}
@@ -485,7 +497,7 @@ function plotOnMap(buildingname) {
 		lat = "52.76789";
 		lng = "-1.22366";
 	}
-		else if (buildingname == "John Pickford") {
+	else if (buildingname == "John Pickford") {
 		lat = "52.76393";
 		lng = "-1.23967";
 	}
@@ -493,19 +505,19 @@ function plotOnMap(buildingname) {
 		lat = "52.765";
 		lng = "-1.22969";
 	}
-		else if (buildingname == "Sir John Beckworth") {
-		lat = "52.76761";
-		lng = "-1.22436";
+	else if (buildingname == "Sir John Beckwith") {
+		lat = "52.76751";
+		lng = "-1.22485";
 	}
-		else if (buildingname == "Ann Packer") {
+	else if (buildingname == "Ann Packer") {
 		lat = "52.76606";
 		lng = "-1.22282";
 	}
 	else if (buildingname == "Keith Green") {
 		lat = "52.76204";
 		lng = "-1.23949";
-	}
-		else if (buildingname == "Wavy Top") {
+	}//
+	else if (buildingname == "Wavy Top") {
 		lat = "52.76572";
 		lng = "-1.22864";
 	}
@@ -513,23 +525,23 @@ function plotOnMap(buildingname) {
 		lat = "52.76551";
 		lng = "-1.22281";
 	}
-		else if (buildingname == "Edward Barnsley") {
-		lat = "52.76551";
-		lng = "-1.22281";
+	else if (buildingname == "Edward Barnsley" || buildingname == "Cope Auditorium") {
+		lat = "52.76713244";
+		lng = "-1.22063902";
 	}
-		else if (buildingname == "Haselgrave") {
-		lat = "52.76672";
-		lng = "-1.22911";
+	else if (buildingname == "Haslegrave") {
+		lat = "52.76695";
+		lng = "-1.22922";
 	}
 	else if (buildingname == "Sir Frank Gibb") {
 		lat = "52.76303";
 		lng = "-1.24083";
 	}
-		else if (buildingname == "Materials Engineering") {
+	else if (buildingname == "Materials Engineering") {
 		lat = "52.76256";
 		lng = "-1.24149";
 	}
-		else if (buildingname == "Schofield") {
+	else if (buildingname == "Schofield") {
 		lat = "52.76626";
 		lng = "-1.22837";
 	}
@@ -537,11 +549,11 @@ function plotOnMap(buildingname) {
 		lat = "52.76538";
 		lng = "-1.22676";
 	}
-		else if (buildingname == "Wolfson") {
+	else if (buildingname == "Wolfson") {
 		lat = "52.76261";
 		lng = "-1.24";
 	}
-		else if (buildingname == "Brockington Extension") {
+	else if (buildingname == "Brockington Extension") {
 		lat = "52.76574";
 		lng = "-1.22785";
 	}
@@ -549,10 +561,14 @@ function plotOnMap(buildingname) {
 		lat = "52.76155";
 		lng = "-1.24096";
 	}
-		else if (buildingname == "John Cooper") {
+	else if (buildingname == "John Cooper") {
 		lat = "52.76634";
 		lng = "-1.22438";
 	}
+  else if (buildingname == "Loughborough University London") {
+    lat = "51.54849433";
+    lng = "-0.02259854";
+  }
 
 	//Set map
 	var map = new google.maps.Map(document.getElementById("googleMap"), {
@@ -572,9 +588,3 @@ function plotOnMap(buildingname) {
 	infoWindow.setContent(buildingname);														//Set content of the dropper to the building name (input into function)
 	map.setCenter(pos);
   }
-
-
-
-
-
-
