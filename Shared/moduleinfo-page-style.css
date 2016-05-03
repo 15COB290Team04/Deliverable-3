@@ -133,9 +133,51 @@ h3 {
   margin-right: 0;
 }
 #search-block{
-  width: 35%;
+  width: 100%;
   margin-left: 0;
 }
 .form-edit-input{
   margin:10px
+}
+.form-control{
+    width:60%;
+}
+.radio-checks{
+    margin-left: 25%;
+}
+.form-group{
+    margin-left:35%
+}
+#search-fields{
+    width: 100%;
+    margin-left: 5%;
+    margin-top: 5%;
+    margin-bottom: 5%;
+}
+#Module-srch{
+    width: 33%;
+    display: inline-block;
+    float:  left;
+}
+#Lecturer-srch{
+    width: 33%;
+    display: inline-block;
+}
+#Course-srch{ 
+    width: 33%;
+    display: inline-block;
+    float: right;
+}
+.div-splitter{
+    margin-left:0%; 
+    width: 90%;
+}
+#dwnld-btn{
+  padding: 5px 8px;
+  background: #ccc;
+  border:#0c0;
+  color: #fff;
+  background-color: #60ac48;
+  margin-top: 1%;
+  margin-left: 80%;
 }
