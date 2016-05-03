@@ -21,8 +21,7 @@
       encodeJSON(getModuleList(db,deptcode));
     } 
 	  else if (requestid == "getSuitableRooms") {
-      encodeJSON(getRoomSearch(db, input("park"), input("capacity"), input("buildingcode"), input("lab"), input("wheelchair"), input("hearingloop"), input("computer"), input("projector"), input("dprojector"), input("ohp"), input("visualiser"), input("video"), input("bluray"), input("vhs"), input("whiteboard"), input("chalkboard"), input("plasma"), input("pasystem"), input("radiomic"), input("review")));
-      //encodeJSON(getRoomSearch(db, "central", "100", "CC", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
+      encodeJSON(getRoomSearch(db, deptcode, input("park"), input("capacity"), input("private"), input("buildingcode"), input("lab"), input("wheelchair"), input("hearingloop"), input("computer"), input("projector"), input("dprojector"), input("ohp"), input("visualiser"), input("video"), input("bluray"), input("vhs"), input("whiteboard"), input("chalkboard"), input("plasma"), input("pasystem"), input("radiomic"), input("review")));
     } 
 	  else if (requestid == "getBuildingName") {
       encodeJSON(getBuildingName(db,input("buildingcode")));  //this buildingcode variable must be validated
@@ -60,22 +59,22 @@
     else if (requestid == "getDeptLecturers") {
       encodeJSON(getDeptLecturers(db,deptcode));
     }
+    else if (requestid == "getModuleLecturers") {
+      encodeJSON(getModuleLecturers(db,input("modulecode")));
+    }
   }
   else if (requestid.Substring(0,3) == "set") {
     //Set functions
     if (requestid == "setNewModule") {
       var json = getJSON();
-      encodeJSON(setNewModule(db, json["modulecode"], json["moduletitle"], json["deptcode"]));
-      //Can be tested with: LOCALHOST/api?requestid=setNewModule&json={'deptcode':'CO','modulecode':'COZ000','moduletitle':'Test Title'}
+      encodeJSON(setNewModule(db, json["modulepart"], json["modulecode"], json["moduletitle"], json["deptcode"], json["lecturer1"], json["lecturer2"], json["lecturer3"]));
     }
     else if (requestid == "setUpdateModule") {
       var json = getJSON();
-      encodeJSON(setUpdateModule(db, json["modulecode"], json["moduletitle"], json["deptcode"]));
-      //Can be tested with: LOCALHOST/api?requestid=setUpdateModule&json={'deptcode':'CO','modulecode':'COZ000','moduletitle':'Updated Test Title'}
+      encodeJSON(setUpdateModule(db, json["modulecode"], json["moduletitle"], deptcode, json["lecturer1"], json["lecturer2"], json["lecturer3"]));
     } 
     else if (requestid == "setDeleteModule") {
-      var json = getJSON();
-      encodeJSON(setDeleteModule(db, json["modulecode"], json["moduletitle"], json["deptcode"]));
+      encodeJSON(setDeleteModule(db, input("modulecode")));
     }
     else if (requestid == "setNotifications") {
       encodeJSON(setNotificationStatus(db, input("idlist")));
@@ -93,6 +92,14 @@
       var encodedContent = System.Security.SecurityElement.Escape(inp);
       //Response.Write(encoded);
       encodeJSON(setDeptNotepad(db, encodedContent, deptcode));
+    }
+    else if (requestid == "setPrivateRoom") {
+      encodeJSON(setPrivateRoom(db, input("roomcode"), input("buildingcode"), deptcode, input("capacity"), input("facilities")));
+      //LOCALHOST/api?requestid=setPrivateRoom&roomcode=N.0.02&buildingcode=N&capacity=30&facilities=1,2,3,7
+    }
+    else if (requestid == "setDeletePrivateRoom") {
+      encodeJSON(setDeletePrivateRoom(db, input("roomcode")));
+      //LOCALHOST/api?requestid=setDeletePrivateRoom&roomcode=N.0.02*
     }
   }
 
@@ -350,10 +357,17 @@
     }
 
     //Get a list of Suitable Rooms from an input of requirements (Some of these may have to be int - but try string first) 
-    dynamic getRoomSearch(Database db, string park, dynamic students, string buildingcode, int lab, int wheelchair, int hearingloop, int computer, int projector, int dprojector, int ohp, int visualiser, int video, int bluray, int vhs, int whiteboard, int chalkboard, int plasma, int pasystem, int radiomic, int review) {
+    dynamic getRoomSearch(Database db, string deptcode, string park, dynamic students, string privateStatus, string buildingcode, int lab, int wheelchair, int hearingloop, int computer, int projector, int dprojector, int ohp, int visualiser, int video, int bluray, int vhs, int whiteboard, int chalkboard, int plasma, int pasystem, int radiomic, int review) {
       var location = "";
       var requirements = "";
-      var sql = ""; 
+      var sql = "";
+      var privaterooms = "";
+      if (privateStatus == "Exclude") { //exclude private rooms from search
+        privaterooms = "AND c.department_code IS NULL ";
+      }
+      else if (privateStatus == "Only") { //show only private rooms in search
+        privaterooms = "AND c.department_code = '"+deptcode+"' ";
+      }
 
       if (park != "Any") { //if a certain park IS chosen			
         if (buildingcode != "Any") { //if a certain building IS chosen
@@ -370,11 +384,12 @@
       requirements = "'Start'," + ((lab == 1) ? "'Laboratory'," : "") + ((wheelchair == 1) ? "'Wheelchair Access'," : "") + ((hearingloop == 1) ? "'Hearing Induction Loop Fitted'," : "") + ((computer == 1) ? "'Computer'," : "") + ((projector == 1) ? "'Projector'," : "") + ((dprojector == 1) ? "'Dual Projector'," : "") + ((ohp == 1) ? "'OverHead Projector'," : "") + ((visualiser == 1) ? "'Visualiser'," : "") + ((video == 1) ? "'Video Player'," : "") + ((bluray == 1) ? "'BluRay Player'," : "") + ((vhs == 1) ? "'VHS Player'," : "") + ((whiteboard == 1) ? "'Whiteboard'," : "") + ((chalkboard == 1) ? "'Chalkboard'," : "") + ((plasma == 1) ? "'Plasma'," : "") + ((pasystem == 1) ? "'PA System'," : "") + ((radiomic == 1) ? "'Radio Mic'," : "") + ((review == 1) ? "'ReVIEW Lecture Capture'," : "") + "'End'";
 
       if (requirements.Length > 13) { //if user has specified requirements
-        sql = location + "c.room_capacity >= '"+students+"' AND a.facility_id IN (SELECT facility_id FROM dbo.facility WHERE facility_name IN ("+requirements+")) GROUP BY a.room_code HAVING COUNT(a.facility_id)=(SELECT COUNT(facility_id) FROM dbo.facility WHERE facility_name IN ("+requirements+"));";
+        sql = location + "c.room_capacity >= '"+students+"' "+privaterooms+"AND a.facility_id IN (SELECT facility_id FROM dbo.facility WHERE facility_name IN ("+requirements+")) GROUP BY a.room_code HAVING COUNT(a.facility_id)=(SELECT COUNT(facility_id) FROM dbo.facility WHERE facility_name IN ("+requirements+"));";
       } 
 	    else { //to prevent breaking when no requirements selected
-        sql = location + "c.room_capacity>="+students+" GROUP BY a.room_code;";
+        sql = location + "c.room_capacity>="+students+" "+privaterooms+"GROUP BY a.room_code;";
       }
+
       var res = db.Query(sql);
       return res;
     }
@@ -509,53 +524,141 @@
       return res;
     }
 
+    //Get module lecturers
+    dynamic getModuleLecturers(Database db, string modulecode) {
+      //var deptcode = modulecode.Substring(0,2);
+      //var modulepart = modulecode.Substring(2,1);
+      //modulecode = modulecode.Substring(3);
+      var sql = "SELECT CONCAT(b.lecturer_name, ' ', b.lecturer_surname) AS name FROM team04.[module-lecturer] a LEFT JOIN team04.lecturer b ON a.lecturer_id = b.lecturer_id WHERE CONCAT(a.department_code, a.module_part, a.module_code) = '"+modulecode+"';";
+      var res = db.Query(sql);
+      return res;
+    }
+
 //libDatabaseSet functions
     //Insert a new module into the database
-    dynamic setNewModule(Database db, string modulecode, string moduletitle, string deptcode) {
-      if (deptcode != modulecode.Substring(0,2) ) {
-        return false;
-      }
-      var modulepart = modulecode.Substring(2,1);
-      modulecode = modulecode.Substring(3);
+    dynamic setNewModule(Database db, string modulepart, string modulecode, string moduletitle, string deptcode, string lecturer1, string lecturer2, string lecturer3) {
 
-      var SQL = "INSERT INTO dbo.module (dept_code,module_part,module_code,module_titl) VALUES ('"+deptcode+"','"+modulepart+"','"+modulecode+"','"+moduletitle+"');";
+      dynamic lec1id = 0;
+      dynamic lec2id = 0;
+      dynamic lec3id = 0;
+      //get id of lecturers
+      var lec1sql = "SELECT lecturer_id FROM team04.lecturer WHERE CONCAT (lecturer_name, ' ', lecturer_surname) = '"+lecturer1+"';";
+      lec1id = db.Query(lec1sql);
+      try {
+        lec1id = lec1id[0].lecturer_id;
+      } 
+      catch {return false;}
+      if (!String.IsNullOrEmpty(lecturer2)) {
+        var lec2sql = "SELECT lecturer_id FROM team04.lecturer WHERE CONCAT (lecturer_name, ' ', lecturer_surname) = '"+lecturer2+"';";
+        lec2id = db.Query(lec2sql);
+        try {
+          lec2id = lec2id[0].lecturer_id;
+        }
+        catch { lecturer2 = ""; }
+      }
+      if (!String.IsNullOrEmpty(lecturer3)) {
+        var lec3sql = "SELECT lecturer_id FROM team04.lecturer WHERE CONCAT (lecturer_name, ' ', lecturer_surname) = '"+lecturer3+"';";
+        lec3id = db.Query(lec3sql);
+        try {
+          lec3id = lec3id[0].lecturer_id;
+        }
+        catch { lecturer3 = ""; }
+      }
+
+      var SQL = "INSERT INTO dbo.module (dept_code,module_part,module_code,module_title) VALUES ('"+deptcode+"','"+modulepart+"','"+modulecode+"','"+moduletitle+"');";
+      SQL += "INSERT INTO team04.[module-lecturer] VALUES('"+deptcode+"','"+modulepart+"','"+modulecode+"',"+lec1id+");";
+      if (!String.IsNullOrEmpty(lecturer2)) {
+        SQL += "INSERT INTO team04.[module-lecturer] VALUES('"+deptcode+"','"+modulepart+"','"+modulecode+"',"+lec2id+");";
+      }
+      if (!String.IsNullOrEmpty(lecturer3)) {
+        SQL += "INSERT INTO team04.[module-lecturer] VALUES('"+deptcode+"','"+modulepart+"','"+modulecode+"',"+lec3id+");";
+      }
+
       try {
         var res = db.Execute(SQL);
-        if (res == 1) { //if execution updated 1 row
+        if (res >= 2) { //if execution updated more than 2 rows
           return true;
         }
         else { return false; }
       }
       catch { return false; }  
-      //TEST WITH: http://localhost:44715/api.cshtml?requestid=setNewModule&json={%22deptcode%22:%22CO%22,%22modulecode%22:%22COZ007%22,%22moduletitle%22:%22Test%22} 
+      
     }
 
+    //encodeJSON(setUpdateModule(db, json["modulecode"], json["moduletitle"], deptcode, json["lecturer1"], json["lecturer2"], json["lecturer3"]));
     //Update a module's details in the database
-    dynamic setUpdateModule(Database db, string modulecode, string moduletitle, string deptcode) {
+    dynamic setUpdateModule(Database db, string modulecode, string moduletitle, string deptcode, string lecturer1, string lecturer2, string lecturer3) {
       if (deptcode != modulecode.Substring(0,2) ) {
         return false;
       }
-      var SQL = "UPDATE dbo.module SET module_title='"+moduletitle+"' WHERE CONCAT(dept_code,module_part,module_code)='"+modulecode+"';";
+      var fullmodulecode = modulecode;
+      var modulepart = modulecode.Substring(2,1);
+      modulecode = modulecode.Substring(3);
+
+      dynamic lec1id = 0;
+      dynamic lec2id = 0;
+      dynamic lec3id = 0;
+      //get id of lecturers
+      var lec1sql = "SELECT lecturer_id FROM team04.lecturer WHERE CONCAT (lecturer_name, ' ', lecturer_surname) = '"+lecturer1+"';";
+      lec1id = db.Query(lec1sql);
+      try {
+        lec1id = lec1id[0].lecturer_id;
+      } 
+      catch {return false;}
+      if (!String.IsNullOrEmpty(lecturer2)) {
+        var lec2sql = "SELECT lecturer_id FROM team04.lecturer WHERE CONCAT (lecturer_name, ' ', lecturer_surname) = '"+lecturer2+"';";
+        lec2id = db.Query(lec2sql);
+        try {
+          lec2id = lec2id[0].lecturer_id;
+        }
+        catch { lecturer2 = ""; }
+      }
+      if (!String.IsNullOrEmpty(lecturer3)) {
+        var lec3sql = "SELECT lecturer_id FROM team04.lecturer WHERE CONCAT (lecturer_name, ' ', lecturer_surname) = '"+lecturer3+"';";
+        lec3id = db.Query(lec3sql);
+        try {
+          lec3id = lec3id[0].lecturer_id;
+        }
+        catch { lecturer3 = ""; }
+      }
+
+      var SQL = "DELETE FROM team04.[module-lecturer] WHERE CONCAT(department_code,module_part,module_code)='"+fullmodulecode+"';";
+
+      SQL += "UPDATE dbo.module SET module_title='"+moduletitle+"' WHERE CONCAT(dept_code,module_part,module_code)='"+fullmodulecode+"';";
+
+      SQL += "INSERT INTO team04.[module-lecturer] VALUES('"+deptcode+"','"+modulepart+"','"+modulecode+"',"+lec1id+");";
+      if (!String.IsNullOrEmpty(lecturer2)) {
+        SQL += "INSERT INTO team04.[module-lecturer] VALUES('"+deptcode+"','"+modulepart+"','"+modulecode+"',"+lec2id+");";
+      }
+      if (!String.IsNullOrEmpty(lecturer3)) {
+        SQL += "INSERT INTO team04.[module-lecturer] VALUES('"+deptcode+"','"+modulepart+"','"+modulecode+"',"+lec3id+");";
+      }
+
       try {
         var res = db.Execute(SQL);
-        if (res == 1) { return true; }
+        if (res >= 2) { return true; }
         else { return false; }
       }
       catch { return false; } 
     }
 
     //Delete a module from the database
-    dynamic setDeleteModule(Database db, string modulecode, string moduletitle, string deptcode) {
-      if (deptcode != modulecode.Substring(0,2) ) {
-        return false;
-      }
-      var SQL = "DELETE FROM dbo.module WHERE CONCAT(dept_code,module_part,module_code) LIKE '"+modulecode+"' AND module_title LIKE '"+moduletitle+"';";
+    dynamic setDeleteModule(Database db, string modulecode) {
+      var SQL = "DELETE FROM team04.[module-lecturer] WHERE CONCAT(department_code,module_part,module_code)='"+modulecode+"';";
       try {
         var res = db.Execute(SQL);
-        if (res > 0) { return true; }
-        else { return false; }
+        if (res == 0) { return false; }
+      }
+      catch { return false; }
+
+      SQL = "DELETE FROM dbo.module WHERE CONCAT(dept_code,module_part,module_code)='"+modulecode+"';";
+      try {
+        var res = db.Execute(SQL);
+        if (res == 0) { return false; }
       }
       catch { return false; } 
+
+      return true;
     }
 
     //Sets the notification status of a list of request ID's to 0 (From unread to READ)
@@ -575,6 +678,41 @@
       try {
         var res = db.Execute(SQL);
         if (res == 1) { return true; }
+        else { return false; }
+      } 
+      catch { return false; } 
+    }
+
+    //LOCALHOST/api?requestid=setPrivateRoom&roomcode=N.0.02&buildingcode=N&capacity=30&facilities=1,2,3,7
+    //set a private room in the database (with its facilities)
+    dynamic setPrivateRoom(Database db, string roomcode, string buildingcode, string deptcode, dynamic capacity, string facilities) {
+      //INSERT INTO dbo.room VALUES('N.0.02*','N',39,NULL,'CO');
+      roomcode = roomcode + "*";
+      var SQL = "INSERT INTO dbo.room VALUES('"+roomcode+"','"+buildingcode+"',"+capacity+",NULL,'"+deptcode+"');";
+
+      var facList = facilities.Split(',');
+      SQL += "INSERT INTO dbo.[facility-room] VALUES(4,'"+roomcode+"');";
+      for (var i=0; i<facList.Count(); i++) {
+        if (facList[i] != "4") {
+          SQL += "INSERT INTO dbo.[facility-room] VALUES("+facList[i]+",'"+roomcode+"');";
+        }
+      }
+      //return SQL;
+      try {
+        var res = db.Execute(SQL);
+        if (res >= 2) { return true; }
+        else { return false; }
+      } 
+      catch { return false; } 
+    }
+
+    //delete a private room from the database
+    dynamic setDeletePrivateRoom(Database db, string roomcode) {
+      var SQL = "DELETE FROM dbo.room WHERE room_code = '"+roomcode+"';";
+      SQL += "DELETE FROM dbo.[facility-room] WHERE room_code = '"+roomcode+"';";
+      try {
+        var res = db.Execute(SQL);
+        if (res >= 2) { return true; }
         else { return false; }
       } 
       catch { return false; } 
@@ -759,7 +897,11 @@
         var sql_round = round;                        
         var sql_semester = semester;
         var sql_year = yearCheck(DateTime.Now.Month);
-        var sql_roomcode = queueElem["roomcode"];
+        var sql_roomcode = queueElem["roomcode"];        
+        if (sql_roomcode.Substring(sql_roomcode.Length-1,1) == "*") {  //If this is a private room
+          status = "approved";
+          notification = 0;
+        }
         var sql_building = queueElem["buildingcode"];
         var sql_park = queueElem["park"];
         var sql_capacity = queueElem["capacity"];

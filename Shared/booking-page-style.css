@@ -257,7 +257,7 @@ LU dark purple: #361163;
   margin: 0px 15px 15px 0px;
 }
 .mo_info label {
-  width: 100px;
+  width: 110px;
 }
 label {
   display: inline-block;
@@ -571,4 +571,11 @@ tbody.collapse.in {
   -webkit-transition-timing-function: ease;
   -o-transition-timing-function: ease;
   transition-timing-function: ease;
+}
+
+#timetable-error-message {
+  text-align:center;
+  color:#d51668;
+  margin:0px 5px 15px 5px;
+  font-weight:700;
 }

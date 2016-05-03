@@ -107,8 +107,17 @@
                   <label>Building:</label>
                   <select id="select-building" class="form-dropdown-xlarge"></select>
                 </div>
+                <br/>
                 <div class="form-group">
-                  <label>Room use:</label>
+                  <label>Private rooms:</label>
+                  <select id="select-privaterooms" class="form-dropdown-medium">
+                    <option>Include</option>
+                    <option>Exclude</option>
+                    <option>Only</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label style="width:90px;margin-left:20px;">Room use:</label>
                   <select id="select-roomuse" class="form-dropdown-medium">
                     <option>Lecture</option>
                     <option>Lab</option>
@@ -117,7 +126,7 @@
                 </div>
                 <br/>
                 <div class="form-group">
-                  <label>Capacity:</label>
+                  <label>Students:</label>
                   <input type="text" name="name" class="form-control" id="form-capacity" placeholder="eg. 150">
                 </div>
                 <div class="form-group">
@@ -335,6 +344,8 @@
             </table>
           </div>
 
+          <div id="timetable-error-message" style="display:none;"><i class="fa fa-exclamation" aria-hidden="true" style="margin-right:5px;"></i>Note: &nbsp;&nbsp;Although this Private Room booking <i style="margin-right:1px;">can</i> be immediately allocated, it is not recommended due to an apparent clash.</div>
+
         </div>
 
         <div class="text-center pt20 clear align_center"><span id="submit-btn" class="btn-blue">Submit Bookings</span></div>
@@ -363,6 +374,7 @@
       <span id="form-capacity-tab1"></span>
       <span id="select-building-tab1"></span>
       <span id="select-buildingname-tab1"></span>
+      <span id="select-privaterooms-tab1"></span>
       <span id="select-roomuse-tab1"></span>
       <span id="form-priority-tab1"></span>
       <div class="requirements-tab1">
@@ -399,6 +411,7 @@
       <span id="form-capacity-tab2"></span>
       <span id="select-building-tab2"></span>
       <span id="select-buildingname-tab2"></span>
+      <span id="select-privaterooms-tab2"></span>
       <span id="select-roomuse-tab2"></span>
       <span id="form-priority-tab2"></span>
       <div class="requirements-tab2">
@@ -435,6 +448,7 @@
       <span id="form-capacity-tab3"></span>
       <span id="select-building-tab3"></span>
       <span id="select-buildingname-tab3"></span>
+      <span id="select-privaterooms-tab3"></span>
       <span id="select-roomuse-tab3"></span>
       <span id="form-priority-tab3"></span>
       <div class="requirements-tab3">
