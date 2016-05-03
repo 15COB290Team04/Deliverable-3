@@ -78,6 +78,7 @@ h1, h2, h3, h4, h5 {
   width:100%;
   background-color:#361163;
   min-width:1170px;
+	z-index:200;
 }
 a {
   text-decoration:none;
@@ -579,6 +580,8 @@ a {
   height:auto; 
   overflow:hidden;
   margin-top:120px;
+	z-index:100;
+	position:relative;
   /*background-color:white;*/
 }
 
