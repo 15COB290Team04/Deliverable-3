@@ -15,8 +15,8 @@ LU dark purple: #361163;
   margin:auto; 
   height:auto; 
   overflow:hidden;
-  margin-top:130px;
   padding:40px;
+  margin-top: 110px;
 }
 /*
 Timetabling Prototype Website
@@ -117,8 +117,8 @@ LU dark purple: #361163;
   align-content: center;
   height: 100%;
   display: inline-block;
-  margin: 20px;
-  padding: 10px;
+  margin: 20px 0 20px 0;
+  padding: 10px 0 10px 0;
 }
 h3 {
     font-size: 200%;
@@ -140,19 +140,25 @@ h3 {
   margin:10px
 }
 .form-control{
-    width:60%;
+    width:85%;
+    padding:4px;
 }
 .radio-checks{
-    margin-left: 25%;
+  /*margin-left: 25%;*/
+}
+.radio-views span {
+  color:rgba(254,254,255,1);
+  margin-left:6px;
+  font-weight:700;
 }
 .form-group{
     margin-left:35%
 }
 #search-fields{
     width: 100%;
-    margin-left: 5%;
-    margin-top: 5%;
-    margin-bottom: 5%;
+}
+.search-section {
+  padding:40px;
 }
 #Module-srch{
     width: 33%;
@@ -162,11 +168,12 @@ h3 {
 #Lecturer-srch{
     width: 33%;
     display: inline-block;
+    float: left;
 }
 #Course-srch{ 
     width: 33%;
     display: inline-block;
-    float: right;
+    float: left;
 }
 .div-splitter{
     margin-left:0%; 
@@ -180,4 +187,65 @@ h3 {
   background-color: #60ac48;
   margin-top: 1%;
   margin-left: 80%;
+}
+#search-fields h3 {
+  font-size:1.25em;
+}
+.radio-views {
+  background-color:#d51668;
+  padding:5px 10px;
+  border-radius:4px;
+  width:70px;
+}
+.radio-views:hover {
+  cursor: pointer;
+  background-color:#C22568;
+  transition-duration:0.2s;
+}
+#semester-holder {
+  margin-bottom: 40px;
+  margin-left: 40%;
+  margin-right: auto;
+  position: relative;
+  top: 40px;
+  width: 20%;
+}
+#timetable-container {
+  margin:20px 0;
+}
+
+#timetable-note {
+  margin-top:20px;
+  margin-left:40px;
+}
+#timetable-note-type {
+
+}
+#timetable-note-value {
+  font-weight:700;
+}
+td.timetable-taken:hover {
+  cursor:pointer;
+  background-color:#ff7878;
+}
+.timetable-data:hover {
+  cursor:default;
+  background-color:white;
+}
+#download-button-text {
+  text-align:right;
+  margin-right:40px;
+  margin-bottom:30px;
+  margin-top:-10px;
+  font-weight:700;
+  color: #d51668;
+  padding: 5px 0;
+}
+#download-button-text:hover {
+  transition-duration:0.2s;
+  cursor:pointer;
+  color:#96124B;
+}
+#download-button-text i {
+  margin-right: 10px;
 }
