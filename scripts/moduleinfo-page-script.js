@@ -148,22 +148,36 @@ function loadCourses(){
 }
 
 function saveTimetable(){
-    //Create text file
-
-    //Write to text file
-        //loop through the table
-
-    //save text file
     var canvas = document.getElementById("myCanvas");
     var context = canvas.getContext("2d");
     var imageObj = new Image();
-   
+    var correctContents = "";
+    $('.timetable-taken').each(function () {
+
+        var contents = $(this).find('.timetable-content-empty').html();
+        //get the details for the day of the week
+        var dayTitleInfo = contents.substring(51, 56);
+        var dayNameInfo = contents.substring(92, (contents.indexOf("<br>", 92)));
+        //get the deatails of the Period
+        var periodTitleInfo = contents.substring(contents.indexOf("Period"), (contents.indexOf("Period") + 8));
+        var periodTimeInfo = contents.substring((contents.indexOf("Period") + 14), (contents.indexOf("<br>", (contents.indexOf("Period") + 8))));
+        //get the details of the module
+        var moduleTitleInfo = contents.substring(contents.indexOf("The module"), (contents.indexOf("The module") + 11));
+        var moduleNameInfo = contents.substring((contents.indexOf("The module") + 14), (contents.indexOf("</b>", (contents.indexOf("The module") + 14)))); ;
+        //get the length of the booking 
+        var bookingTitleInfo = contents.substring(contents.indexOf(" has"), (contents.indexOf(" has") + 32));
+        var bookingLengthInfo = contents.substring((contents.indexOf(" has") + 36), (contents.indexOf("<p>", (contents.indexOf(" has") + 36))));
+        //concenate the data
+        var correctContents = dayTitleInfo + dayNameInfo + "\n" + periodTitleInfo + periodTimeInfo + "\n" + moduleTitleInfo + moduleNameInfo + "\n" + "It" + bookingTitleInfo + " " + bookingLengthInfo;
+
+        console.log(correctContents);
+
+        return correctContents;
+    });
+
         context.drawImage(imageObj, 10, 10);
         context.font = "20px Calibri";
-        context.fillText("This is where i'd put my team...", 10, 40);
-
-        context.font = "40px Calibri";
-        context.fillText("IF I HAD ONE!!!!", 10, 80)
+        context.fillText(correctContents, 10, 40);
 
         var win = window.open();
         win.document.write("<img src='" + canvas.toDataURL() + "'/>");
