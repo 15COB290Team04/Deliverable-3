@@ -49,6 +49,14 @@
 	  else if (requestid == "getModuleTimetable") {
       encodeJSON(getTimetable_Module(db,input("modulecode"), input("semester"), input("weeks")));
     }
+    else if (requestid == "getLecturerTimetable") {
+      encodeJSON(getTimetable_Lecturer(db,input("lecturer"), input("semester"), input("weeks")));
+      //?requestid=getLecturerTimetable&lecturer=André Schappo&semester=2&weeks=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16
+    }
+    else if (requestid == "getCourseTimetable") {
+      encodeJSON(getTimetable_Course(db,input("course"), input("semester"), input("weeks")));
+      //?requestid=getCourseTimetable&course=Computer%20Science%20Part%20B&semester=2&weeks=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16
+    }
 	  else if (requestid == "getReqList") {
       encodeJSON(getReqsList(db));
     }
@@ -434,6 +442,66 @@
       var year = yearCheck(@DateTime.Now.Month);
 
       var sql = "SELECT a.request_id, a.request_day, a.request_timestart, a.request_round, a.request_semester, a.request_year, a.room_code, a.building_code, a.park, a.capacity, a.module_code, a.request_priority, a.request_status, a.request_child, a.notification_status FROM dbo.request a LEFT JOIN dbo.[request-week] b ON a.request_id=b.request_id WHERE a.request_status LIKE 'approved' AND a.request_semester='"+semester+"' AND a.request_year='"+year+"' AND a.module_code='"+modulecode+"' AND week_number IN("+weeks+") GROUP BY a.request_id, a.request_day, a.request_timestart, a.request_round, a.request_semester, a.request_year, a.room_code, a.building_code, a.park, a.capacity, a.module_code, a.request_priority, a.request_status, a.request_child, a.notification_status;";
+      
+      var result = db.Query(sql);
+
+      var resultArrayLength = result.Count; //number of rows returned
+      var resultArray = result; 
+
+      dynamic[] res = new dynamic[resultArrayLength];
+
+      for (var i = 0; i < resultArrayLength; i++) {
+        var sqlWeekCheck = "SELECT week_number FROM dbo.[request-week] WHERE request_id='"+resultArray[i]["request_id"]+"';";
+        var week = db.Query(sqlWeekCheck);
+        res[i] = new {request_details = resultArray[i], weeks_active = week, weeks_range = getRanges(week)};
+      }
+      return res;
+    }
+
+    //Get a Lecturer's Timetable (A timetable of all the modules they teach)
+    dynamic getTimetable_Lecturer(Database db, string lecturername, dynamic semester, dynamic weeks) {
+      weeks = weeks.ToString();
+      if (weeks[weeks.Length-1] == ',') {
+        weeks = weeks.Substring(0,weeks.Length-1);
+      }
+      weeks = "'"+weeks+"'";
+      weeks = weeks.Replace("," , "','");
+
+      if (lecturername.IndexOf(';') > 0) {
+        return false;
+      }
+ 
+      var year = yearCheck(@DateTime.Now.Month);
+
+      var sql = "SELECT a.request_id, a.request_day, a.request_timestart, a.request_round, a.request_semester, a.request_year, a.room_code, a.building_code, a.park, a.capacity, a.module_code, a.request_priority, a.request_status, a.request_child, a.notification_status FROM dbo.request a LEFT JOIN dbo.[request-week] b ON a.request_id=b.request_id WHERE a.request_status LIKE 'approved' AND a.request_semester='"+semester+"' AND a.request_year='"+year+"' AND a.module_code IN(SELECT CONCAT(department_code,module_part,module_code) AS modcode FROM team04.[module-lecturer] WHERE lecturer_id = (SELECT lecturer_id FROM team04.lecturer WHERE CONCAT(lecturer_name,' ',lecturer_surname) = '"+lecturername+"')) AND week_number IN("+weeks+") GROUP BY a.request_id, a.request_day, a.request_timestart, a.request_round, a.request_semester, a.request_year, a.room_code, a.building_code, a.park, a.capacity, a.module_code, a.request_priority, a.request_status, a.request_child, a.notification_status;";
+      
+      var result = db.Query(sql);
+
+      var resultArrayLength = result.Count; //number of rows returned
+      var resultArray = result; 
+
+      dynamic[] res = new dynamic[resultArrayLength];
+
+      for (var i = 0; i < resultArrayLength; i++) {
+        var sqlWeekCheck = "SELECT week_number FROM dbo.[request-week] WHERE request_id='"+resultArray[i]["request_id"]+"';";
+        var week = db.Query(sqlWeekCheck);
+        res[i] = new {request_details = resultArray[i], weeks_active = week, weeks_range = getRanges(week)};
+      }
+      return res;
+    }
+
+    //Get a Course's Timetable (A timetable of all the modules in a course)
+    dynamic getTimetable_Course(Database db, string coursename, dynamic semester, dynamic weeks) {
+      weeks = weeks.ToString();
+      if (weeks[weeks.Length-1] == ',') {
+        weeks = weeks.Substring(0,weeks.Length-1);
+      }
+      weeks = "'"+weeks+"'";
+      weeks = weeks.Replace("," , "','");
+ 
+      var year = yearCheck(@DateTime.Now.Month);
+
+      var sql = "SELECT a.request_id, a.request_day, a.request_timestart, a.request_round, a.request_semester, a.request_year, a.room_code, a.building_code, a.park, a.capacity, a.module_code, a.request_priority, a.request_status, a.request_child, a.notification_status FROM dbo.request a LEFT JOIN dbo.[request-week] b ON a.request_id=b.request_id WHERE a.request_status LIKE 'approved' AND a.request_semester='"+semester+"' AND a.request_year='"+year+"' AND a.module_code IN(SELECT CONCAT(department_code,module_part,module_code) AS modcode FROM team04.[course-module] WHERE course_id = (SELECT course_id FROM team04.course WHERE course_name = '"+coursename+"')) AND week_number IN("+weeks+") GROUP BY a.request_id, a.request_day, a.request_timestart, a.request_round, a.request_semester, a.request_year, a.room_code, a.building_code, a.park, a.capacity, a.module_code, a.request_priority, a.request_status, a.request_child, a.notification_status;";
       
       var result = db.Query(sql);
 
