@@ -135,7 +135,7 @@ function loadCourses(){
     $.post("api.cshtml", { requestid: "getDeptCourses" },
       function (JSONresult) {
           for (var i = 0; i < JSONresult.length; i++) {
-              availableTags.push(JSONresult[i].name);
+              availableTags.push(JSONresult[i].course_name);
           }
       }, 'json');
     $("#input-courseInfo").autocomplete({
