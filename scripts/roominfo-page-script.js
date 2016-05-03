@@ -7,7 +7,6 @@
  */
 
 $(document).ready(function () {
-
   //AUTOFILL SEARCH FOR MODULE TITLE
   $(function () {
     var availableTags = [];
@@ -30,7 +29,9 @@ $(document).ready(function () {
 
   //Call functions at page load
   fillBuildingsList("Any");
+  fillPrivateBuildingsList();
   getSuitableRooms(); //call function to populate suitable rooms list
+  getSuitablePrivateRooms();
 
 
   //SUBMISSION LOG SLIDER
@@ -114,6 +115,32 @@ $(document).ready(function () {
   //PRIVATE ROOMS INPUT CHANGE
   $('#select-privaterooms').change(function () {
     getSuitableRooms();
+  });
+
+  //PRIVATE ROOM FACILITY SELECTION
+  $('.fac_list li span').click(function () {
+    //var requirement = $(this).attr('id');
+    $(this).toggleClass('list-activeFacility');
+    //getSuitableRooms();
+  });
+
+  //PRIVATE ROOM SELECTION
+  $('#form-roomSelectionPriv').change(function () {
+    var roomCode = $(this).find(":selected").text();
+    if (roomCode != "There are no private rooms to display") {
+      $('#selected-priv-room').val(roomCode);
+    }
+   
+  });
+
+  //CREATE PRIVATE ROOM
+  $('#create-priv').click(function () {
+    createPrivateRoom();
+  });
+
+  //DELETE PRIVATE ROOM
+  $('#delete-priv').click(function () {
+    deletePrivateRoom();
   });
 
   //ROOM CODE SELECTION (TEXT INPUT W/ JQUERY AUTOFILL) CHANGE
@@ -284,6 +311,35 @@ function fillBuildingsList(building) {
     else {
       $("#select-building").val(building);
     }
+  }, 'json');
+
+}
+
+function fillPrivateBuildingsList() {
+  //when park is selected, grab the new value, and update buildingList choice with buildings in that park
+  var park = "Any";
+
+  $.post("api.cshtml", { requestid: "getParkBuildings", park: park },
+  function (JSONresult) {
+
+    //var buildingList = "<option>Any</option>";
+    //for (var i = 0; i < JSONresult.length; i++) {
+    //  buildingList += "<option>" + JSONresult[i].building_code + " - " + JSONresult[i].building_name + "</option>";
+    //}
+    //$("#select-building").html(buildingList);
+
+    $(function () {
+      var availableBuildings = [];
+      for (var i = 0; i < JSONresult.length; i++) {
+        availableBuildings[i] = JSONresult[i].building_code + " - " + JSONresult[i].building_name;
+      }
+
+      $("#private-building").autocomplete({
+        source: availableBuildings,
+        close: function () { }
+      });
+    });
+
   }, 'json');
 
 }
@@ -586,3 +642,154 @@ var lat = "52.76268";
 	infoWindow.setContent(buildingname);														//Set content of the dropper to the building name (input into function)
 	map.setCenter(pos);
   }
+
+  function createPrivateRoom() { 
+    var roomcode = $('#private-roomcode').val();
+    var buildingcode = $('#private-building').val();
+    buildingcode = buildingcode.substr(0,buildingcode.indexOf(' '));
+    if (buildingcode == roomcode.substr(0,roomcode.indexOf('.'))) {
+      //Client-Side check TRUE
+      var capacity = $('#private-capacity').val();
+      capacity = parseInt(capacity);
+      if (isNaN(capacity) || capacity === null || capacity < 0 || capacity > 1000) {
+        capacity = 0;  
+      }
+      var faclist = "";
+
+      //Create faclist
+      var reqs = $('#select-facilities li').children('.list-activeFacility');
+      for (var i = 0; i < reqs.length; i++) {
+      switch (reqs[i].innerHTML) {
+        case "Laboratory":
+          faclist += "1,";
+          break;
+        case "Wheelchair Access":
+          faclist += "2,";
+          break;
+        case "Induction Loop":
+          faclist += "3,";
+          break;
+        case "Computer":
+          faclist += "4,";
+          break;
+        case "Projector":
+          faclist += "5,";
+          break;
+        case "Dual Projector":
+          faclist += "6,";
+          break;
+        case "OverHead Projector":
+          faclist += "7,";
+          break;
+        case "Visualiser":
+          faclist += "8,";
+          break;
+        case "DVD Player":
+          faclist += "9,";
+          break;
+        case "BluRay":
+          faclist += "10,";
+          break;
+        case "VHS":
+          faclist += "11,";
+          break;
+        case "Whiteboard":
+          faclist += "12,";
+          break;
+        case "Chalkboard":
+          faclist += "13,";
+          break;
+        case "Plasma Screen":
+          faclist += "14,";
+          break;
+        case "PA System":
+          faclist += "15,";
+          break;
+        case "Radio Mic":
+          faclist += "16,";
+          break;
+        case "ReVIEW Capture":
+          faclist += "17,";
+          break;
+        }
+      }
+
+      faclist = faclist.substring(0, faclist.length-1);
+
+      $.post("api.cshtml", { requestid: "setPrivateRoom", roomcode: roomcode, buildingcode: buildingcode, capacity: capacity, facilities: faclist },
+      function (JSONresult) {
+        $('#private-roomcode').val("");
+        $('#private-building').val("");
+        $('#private-capacity').val("");
+        alert("Successfully created new Private Room: " + roomcode);
+        getSuitablePrivateRooms();
+      }, 'json');
+      
+    }
+    else {
+      alert("Your building does not match the room code");
+    }
+  }
+
+//Fills private rooms selection list
+function getSuitablePrivateRooms() {
+  var park = "Any";
+  var capacity = 0;
+  var buildingcode = "Any";
+  var privateStatus = "Only";
+
+  var lab = 0;
+  var wheelchair = 0;
+  var hearingloop = 0;
+  var computer = 0;
+  var projector = 0;
+  var dprojector = 0;
+  var ohp = 0;
+  var visualiser = 0;
+  var dvd = 0;
+  var bluray = 0;
+  var vhs = 0;
+  var whiteboard = 0;
+  var chalkboard = 0;
+  var plasma = 0;
+  var pasystem = 0;
+  var radiomic = 0;
+  var review = 0;
+
+  $.post("api.cshtml", {
+    requestid: "getSuitableRooms", park: park, capacity: capacity, private: privateStatus, buildingcode: buildingcode, lab: lab, wheelchair: wheelchair,
+    hearingloop: hearingloop, computer: computer, projector: projector, dprojector: dprojector, ohp: ohp, visualiser: visualiser, video: dvd,
+    bluray: bluray, vhs: vhs, whiteboard: whiteboard, chalkboard: chalkboard, plasma: plasma, pasystem: pasystem, radiomic: radiomic, review: review
+  },
+  function (JSONresult) {
+
+    var roomList = "";
+    for (var j = 0; j < JSONresult.length; j++) {
+      roomList += "<option>" + JSONresult[j].room_code + "</option>";
+    }
+    $("#form-roomSelectionPriv").html(roomList);
+
+    loadRoomCodeChoices();
+
+  }, 'json');
+
+}
+
+//deletes a private room
+function deletePrivateRoom() { 
+  var roomcode = $('#selected-priv-room').val();
+
+  if (roomcode == "No room selected") {
+    alert("Please select a private room.");
+  }
+  else {
+    var r = confirm("Are you sure you wish to delete the selected Private Room?\n\nThis action cannot be undone.");
+    if (r) {
+      $.post("api.cshtml", { requestid: "setDeletePrivateRoom", roomcode: roomcode },
+      function (JSONresult) {
+        $('#selected-priv-room').val("No room selected");
+        getSuitablePrivateRooms();
+      }, 'json');
+    }
+  }
+}

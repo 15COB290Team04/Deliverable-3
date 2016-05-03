@@ -4,8 +4,7 @@
 //Handle the requests retrieved from client
   var requestid = input("requestid");
 
-  //TODO: Sort out sessions for deptcode
-  var deptcode = "CO";
+  var deptcode = Session["dept-code"].ToString();
 
   if (requestid.Substring(0,3) == "get") {
     //Get functions
@@ -13,8 +12,8 @@
       //encodeJSON( testFunction(db,"example") );
       //Response.Write(getLastID(db));
       //encodeJSON(gridDayToArray("3, 5, "));
-      //var sql = "SELECT building_name FROM dbo.building";
-      //encodeJSON(db.Query(sql));
+      var sql = "SELECT * FROM dbo.department WHERE department_code = '"+deptcode+"';";
+      encodeJSON(db.Query(sql));
     }
 
     if (requestid == "getDeptModuleList") {
@@ -42,7 +41,7 @@
       encodeJSON(getRequestLog_Allocation(db,input("semester"), input("year"), deptcode));
     } 
 	  else if (requestid == "getNotifications") {
-      encodeJSON(getNotifications(db));	//TODO: Include deptcode in here
+      encodeJSON(getNotifications(db, deptcode));
     } 
 	  else if (requestid == "getReqs") {
       encodeJSON(getRoomReqs(db,input("roomcode")));
@@ -130,7 +129,6 @@
     //Retrieve and Sanitize JSON inputs from the Client-Side
     dynamic getJSON() {
       var jsonInput = Request.Params["json"];
-      //TODO: Sanitize this input
       return Json.Decode(jsonInput);
     } 
 
@@ -442,7 +440,6 @@
 
     //Get the Submissions log data (on the Booking Page)
     dynamic getRequestLog_Booking(Database db, dynamic semester, string deptcode) {
-      //TODO: (After Conversion) Currently gives duplicate entries for multiple weeks
       var year = yearCheck(@DateTime.Now.Month);
       var sql = "SELECT a.request_id, a.request_day, a.request_timestart, a.request_round, a.request_semester, a.request_year, a.room_code, a.building_code, a.park, a.capacity, a.module_code, a.request_priority, a.request_status, a.request_child, a.notification_status, b.building_name, c.module_title FROM dbo.request a LEFT JOIN dbo.building b ON a.building_code=b.building_code LEFT JOIN dbo.module c ON a.module_code = CONCAT(c.dept_code,c.module_part,c.module_code) WHERE request_semester='"+semester+"' AND request_year='"+year+"' AND request_status IN('pending', 'rejected') AND a.module_code LIKE '"+deptcode+"%';";
       var result = db.Query(sql);
@@ -461,7 +458,7 @@
     }
 
     //Get the Submissions log data (on the Allocations Page)
-    dynamic getRequestLog_Allocation(Database db, dynamic semester, dynamic year, string deptcode) { //TODO: (After Conversion) Currently gives duplicate entries for multiple weeks
+    dynamic getRequestLog_Allocation(Database db, dynamic semester, dynamic year, string deptcode) { 
       var sql = "SELECT a.request_id, a.request_day, a.request_timestart, a.request_round, a.request_semester, a.request_year, a.room_code, a.building_code, a.park, a.capacity, a.module_code, a.request_priority, a.request_status, a.request_child, a.notification_status, b.building_name, c.module_title FROM dbo.request a LEFT JOIN dbo.building b ON a.building_code=b.building_code LEFT JOIN dbo.module c ON a.module_code=CONCAT(c.dept_code,c.module_part,c.module_code) WHERE request_semester='"+semester+"' AND request_year='"+year+"' AND a.module_code LIKE '"+deptcode+"%';";
       var result = db.Query(sql);
 
@@ -479,8 +476,8 @@
     }
 
     //Get the notifications (all unread requests)
-    dynamic getNotifications(Database db) {	//TODO: This needs to incorporate the department code to ONLY show notifications for a specific department rather than all
-      var sql = "SELECT a.request_id, a.request_day, a.request_timestart, a.room_code, a.module_code, a.request_child, a.request_status, a.notification_status FROM dbo.request AS a WHERE a.notification_status=1 AND a.request_status IN('approved', 'rejected');";
+    dynamic getNotifications(Database db, string deptcode) {
+      var sql = "SELECT a.request_id, a.request_day, a.request_timestart, a.room_code, a.module_code, a.request_child, a.request_status, a.notification_status FROM dbo.request AS a WHERE a.notification_status=1 AND a.request_status IN('approved', 'rejected') AND SUBSTRING(a.module_code, 1, 2) = '"+deptcode+"';";
       var result = db.Query(sql);
 
       var resultArrayLength = result.Count(); //number of rows returned

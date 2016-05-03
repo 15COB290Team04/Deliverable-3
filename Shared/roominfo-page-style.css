@@ -451,10 +451,11 @@ LU dark purple: #361163;
   padding: 5px 8px;
 }
 .btn{
-  padding: 5px 8px;
-  background: #ccc;
-  border:#0c0;
+  border: medium none #0c0;
+  border-radius: 4px;
   color: #fff;
+  font-size: 1em;
+  padding: 8px 10px;
 }
 .btn.ok{
   background-color: #60ac48;  
@@ -564,4 +565,108 @@ td.timetable-data:hover {
 
 .private-room-container {
   margin-top:20px;
+  padding:40px;
+  height: auto;
+  min-height:520px;
+}
+#manage-private-title {
+  font-size: 1.25em;
+}
+#create-private-section .form-label {
+  width:130px;
+  display:inline-block;
+}
+#create-private-section input {
+  display: inline-block;
+  width: 250px;
+}
+#mod-depcode {
+  border: none;
+}
+.private-section-header {
+  font-size: 1.1em;
+  margin: 10px 0;
+  font-weight:700;
+}
+#create-private-section, #delete-private-section {
+  margin:20px 0;
+  float: left;
+  display: inline-block;
+  width: 45%;
+}
+#create-priv {
+  margin-left:35%;
+  margin-top:10px;
+}
+#create-priv:hover {
+  cursor: pointer;
+  background-color: #83C46E;
+  transition-duration:0.1s;
+}
+
+#delete-priv {
+  margin-left:35%;
+  margin-top:10px;
+  background-color:#dc2827;
+}
+#delete-priv:hover {
+  cursor: pointer;
+  background-color: #F54765;
+  transition-duration:0.1s;
+}
+
+#fac-list-priv {
+  border-left:1px solid black;
+  padding-left:10px;
+  width:95%;
+  height:auto;
+  display: inline-block;
+  margin-top: 10px;
+}
+ul.fac_list{ 
+  list-style: none; 
+  margin: 0; 
+  padding: 0; 
+  display:block; 
+  vertical-align: top;
+}
+ul.fac_list li { 
+  display: inline-block; 
+  vertical-align: top; 
+  padding-bottom: 3px;
+  padding-top: 3px;
+  padding-left:2px;
+}
+.fac_list li span {	/* each selectable special requirement */
+  color:rgba(150,150,150,1);
+}
+.fac_list li span:hover {
+  cursor:pointer;
+  color:black;
+}
+
+#form-roomSelectionPriv {
+  max-height:150px;
+  overflow:scroll;
+  border-bottom:none;
+  padding:0;
+  color:black;
+  display:inline-block;
+  vertical-align:top;
+  width:300px;
+  border-bottom: 1px solid black;
+  margin-left: 5px;
+}
+#form-roomSelectionPriv option {
+  padding-bottom: 8px;
+  padding-top: 7px;
+  padding-left: 8px;
+}
+#form-roomSelectionPriv option:hover {
+  cursor:pointer;
+  background-color:rgba(54,17,99,0.1);
+}
+#selected-priv-room {
+  display: inline-block;
+  width: 200px;
 }
