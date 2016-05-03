@@ -47,8 +47,8 @@
       encodeJSON(getRoomReqs(db,input("roomcode")));
     } 
 	  else if (requestid == "getModuleTimetable") {
-      encodeJSON(getRequestTimetable_ModuleInfo(db,input("modulecode"), input("semester"), input("weeks")));
-    } 
+      encodeJSON(getTimetable_Module(db,input("modulecode"), input("semester"), input("weeks")));
+    }
 	  else if (requestid == "getReqList") {
       encodeJSON(getReqsList(db));
     }
@@ -60,6 +60,9 @@
     }
     else if (requestid == "getModuleLecturers") {
       encodeJSON(getModuleLecturers(db,input("modulecode")));
+    }
+    else if (requestid == "getDeptCourses") {
+      encodeJSON(getDeptCourses(db,deptcode));
     }
   }
   else if (requestid.Substring(0,3) == "set") {
@@ -420,13 +423,22 @@
     }
 
     //Get a Module's Timetable
-    dynamic getRequestTimetable_ModuleInfo(Database db, string modulecode, dynamic semester, dynamic weeks) {
-      var year = yearCheck(@DateTime.Now.Month);	//Have already converted yearCheck() in api.cshtml - Insert: @DateTime.Now.Month into the function
-      var sql = "SELECT a.request_id, a.request_day, a.request_timestart, a.request_round, a.request_semester, a.request_year, a.room_code, a.building_code, a.park, a.capacity, a.module_code, a.request_priority, a.request_status, a.request_child, a.notification_status FROM dbo.request a LEFT JOIN dbo.[request-week] b ON a.request_id=b.request_id WHERE a.request_status LIKE 'approved' AND a.request_semester='"+semester+"' AND a.request_year='"+year+"' AND a.module_code='"+modulecode+"' AND week_number IN('"+weeks+"');";//GROUP BY a.request_id usually in there need to have a play and figure out what this is about
+    dynamic getTimetable_Module(Database db, string modulecode, dynamic semester, dynamic weeks) {
+      weeks = weeks.ToString();
+      if (weeks[weeks.Length-1] == ',') {
+        weeks = weeks.Substring(0,weeks.Length-1);
+      }
+      weeks = "'"+weeks+"'";
+      weeks = weeks.Replace("," , "','");
+ 
+      var year = yearCheck(@DateTime.Now.Month);
+
+      var sql = "SELECT a.request_id, a.request_day, a.request_timestart, a.request_round, a.request_semester, a.request_year, a.room_code, a.building_code, a.park, a.capacity, a.module_code, a.request_priority, a.request_status, a.request_child, a.notification_status FROM dbo.request a LEFT JOIN dbo.[request-week] b ON a.request_id=b.request_id WHERE a.request_status LIKE 'approved' AND a.request_semester='"+semester+"' AND a.request_year='"+year+"' AND a.module_code='"+modulecode+"' AND week_number IN("+weeks+") GROUP BY a.request_id, a.request_day, a.request_timestart, a.request_round, a.request_semester, a.request_year, a.room_code, a.building_code, a.park, a.capacity, a.module_code, a.request_priority, a.request_status, a.request_child, a.notification_status;";
+      
       var result = db.Query(sql);
 
       var resultArrayLength = result.Count; //number of rows returned
-      var resultArray = result.ToArray; 
+      var resultArray = result; 
 
       dynamic[] res = new dynamic[resultArrayLength];
 
@@ -527,6 +539,13 @@
       //var modulepart = modulecode.Substring(2,1);
       //modulecode = modulecode.Substring(3);
       var sql = "SELECT CONCAT(b.lecturer_name, ' ', b.lecturer_surname) AS name FROM team04.[module-lecturer] a LEFT JOIN team04.lecturer b ON a.lecturer_id = b.lecturer_id WHERE CONCAT(a.department_code, a.module_part, a.module_code) = '"+modulecode+"';";
+      var res = db.Query(sql);
+      return res;
+    }
+
+    //Get all courses in a dept
+    dynamic getDeptCourses(Database db, string deptcode) {
+      var sql = "SELECT course_name FROM team04.course WHERE department_code = '"+deptcode+"';";
       var res = db.Query(sql);
       return res;
     }
