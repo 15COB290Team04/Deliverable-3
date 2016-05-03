@@ -567,18 +567,18 @@ td.timetable-data:hover {
   margin-top:20px;
   padding:40px;
   height: auto;
-  min-height:520px;
+  min-height:540px;
 }
 #manage-private-title {
   font-size: 1.25em;
 }
 #create-private-section .form-label {
-  width:130px;
+  width:140px;
   display:inline-block;
 }
 #create-private-section input {
   display: inline-block;
-  width: 250px;
+  width: 260px;
 }
 #mod-depcode {
   border: none;
