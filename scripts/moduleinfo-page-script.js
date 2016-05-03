@@ -148,5 +148,26 @@ function loadCourses(){
 }
 
 function saveTimetable(){
+    //Create text file
 
+    //Write to text file
+        //loop through the table
+
+    //save text file
+    var canvas = document.getElementById("myCanvas");
+    var context = canvas.getContext("2d");
+    var imageObj = new Image();
+   
+        context.drawImage(imageObj, 10, 10);
+        context.font = "20px Calibri";
+        context.fillText("This is where i'd put my team...", 10, 40);
+
+        context.font = "40px Calibri";
+        context.fillText("IF I HAD ONE!!!!", 10, 80)
+
+        var win = window.open();
+        win.document.write("<img src='" + canvas.toDataURL() + "'/>");
+    
+    imageObj.src = "mail-image.jpg"; 
 }
+
