@@ -31,7 +31,7 @@
     
     <!-- MAIN CONTENT -->
     <div id="page-content-container">
-      <div class='card-container'>
+      <div class='card-container search-section'>
 
           <div id="search-fields">
 
@@ -41,32 +41,37 @@
                 <p>Insert Module Name:</p>
                 <input type='text' placeholder='e.g. COB290 Team Projects' id='input-moduleInfo' class="form-control"/>
               </div>
-                  <input class="radio-checks" type="radio" name="view" value="module" checked>View<br>
-            </div>
-
-            <div id="Course-srch">
-                <h3>Course Search</h3>
-              <div class="editmodule-blocks" id="search-block">
-                <p>Insert Course:</p>
-                <input type='text' placeholder='e.g. Computer science' id='input-courseInfo' class="form-control"/>
-              </div>
-                      <input class="radio-checks" type="radio" name="view" value="course">View<br>
+                <div class="radio-views">
+                  <input class="radio-checks" type="radio" name="view" value="module" checked><span>View</span>
+                </div>
             </div>
 
             <div id="Lecturer-srch">
                 <h3>Lecturer Search</h3>
               <div class="editmodule-blocks" id="search-block">
                 <p>Insert Lecturer Name:</p>
-                <input type='text' placeholder='e.g. Ray Dawson' id='input-lecturerInfo' class="form-control"/>
+                <input type='text' placeholder='Enter Lecturer Name' id='input-lecturerInfo' class="form-control"/>
               </div>
-                  <input class="radio-checks" type="radio" name="view" value="lecturer">View<br>            
+              <div class="radio-views">
+                <input class="radio-checks" type="radio" name="view" value="lecturer"><span>View</span> 
+              </div>           
             </div>
+
+            <div id="Course-srch">
+                <h3>Course Search</h3>
+              <div class="editmodule-blocks" id="search-block">
+                <p>Insert Course:</p>
+                <input type='text' placeholder='e.g. Computer Science Part B' id='input-courseInfo' class="form-control"/>
+              </div>
+              <div class="radio-views">
+                <input class="radio-checks" type="radio" name="view" value="course"><span>View</span>
+              </div>
+            </div>
+
             <br/>
             <br/>
-            <hr class="div-splitter">
             <br/>
-            <br/>
-            <div class="form-group">
+            <div class="form-group" id="semester-holder">
                 <label>Semester:</label>
                 <select id="select-semester" class="form-dropdown-medium">
                   <option>1</option>
@@ -86,6 +91,9 @@
       </div>
 
       <div class='card-container'>
+
+        <div id="timetable-note">Showing <span id="timetable-note-type">module</span> timetable for: &nbsp;<span id="timetable-note-value">nothing selected</span></div>
+
         <div id="timetable-container">
           <table class="timetable-table">
             <tr class="timetable-row1-headings">
@@ -162,10 +170,8 @@
             </tr>
           </table>
         </div>
-        <canvas id="myCanvas" width="400" height="100" style="visibility: hidden;"></canvas>
-        <div>
-            <button id="dwnld-btn" onclick="saveTimetable();">Save this Timetable</button>
-        </div>
+        <canvas id="myCanvas" width="400" height="100" style="display:none;background-color: lightgrey;"></canvas>
+        <div id="download-button-text"><i class="fa fa-download fa-lg" aria-hidden="true"></i>Save and download this timetable</div>
       </div>
     </div>
   </body>
