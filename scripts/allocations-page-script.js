@@ -14,7 +14,7 @@ $(document).ready(function () {
   //ROOM SELECTION LOADS TIMETABLE
   $('#allocations-form-roomSearch').bind("input", function () {
     console.log($(this).val());
-    $('#allocations-selectedRoom').text($('#allocations-form-roomSearch').val());	//loads room	
+    $('#allocations-selectedRoom').text($('#allocations-form-roomSearch').val()); //loads room	
   });
 
   //SEM VALYE FOR LOG
@@ -74,11 +74,33 @@ $(document).ready(function () {
     $(this).find(".log-icon i").toggleClass("fa-angle-double-down fa-angle-double-up");
   });
 
+  //FILTER FOR APPROVED BLOCKS
+  $("#filter-approved").click(function () {
+    filterSubmissionLog(0); //0:clear
+    filterSubmissionLog(1); //1: approved
+  });
+
+  //FILTER FOR PENDING BLOCKS
+  $("#filter-pending").click(function () {
+    filterSubmissionLog(0); //0:clear
+    filterSubmissionLog(2); //2: pending
+  });
+
+  //FILTER FOR REJECTED BLOCKS
+  $("#filter-rejected").click(function () {
+    filterSubmissionLog(0); //0:clear
+    filterSubmissionLog(3); //3:rejected
+  });
+  
+  //CLEAR FIlTER
+  $("#filter-clear").click(function () {
+    filterSubmissionLog(0); //0:clear
+  });
 
   //AUTOFILL SEARCH FOR ROOM CODE SELECTION
   function loadRoomCodeChoices() {
     $(function () {
-      $.post("https://co-project.lboro.ac.uk/crew12/Deliverable%202/api.php", {
+      $.post("api.cshtml", {
         requestid: "getSuitableRooms", park: "Any", capacity: 0, buildingcode: "Any", lab: 0, wheelchair: 0, hearingloop: 0, computer: 0, projector: 0, dprojector: 0, ohp: 0, visualiser: 0, video: 0, bluray: 0, vhs: 0, whiteboard: 0, chalkboard: 0, plasma: 0, pasystem: 0, radiomic: 0, review: 0
       },
       function (JSONresult) {
@@ -125,17 +147,18 @@ function getRoomTimetable() {
       console.log("Semester: " + sem + "  Weeks: " + weeks + "  RoomCode: " + $('#form-booking-roomCode').val());
 
       //Perform API call to retrieve timetable bookings for times and weeks
-      $.post("https://co-project.lboro.ac.uk/crew12/Deliverable%202/api.php", {requestid: "getRoomTimetable", roomcode: $('#form-booking-roomCode').val(), weeks: weeks, semester: sem},
+      $.post("api.cshtml", {requestid: "getRoomTimetable", roomcode: $('#form-booking-roomCode').val(), weeks: weeks, semester: sem},
       function (JSONresult) {
 
-        //console.log( JSONresult[i]['request-details'].request_day );  or request_timestart, request_round, module_code, request_priority (null or string)
-        //console.log( JSONresult[i]['weeks-list'][j].week_number );
-        //console.log( JSONresult[i]['weeks-range'][j]);
-        //console.log( JSONresult[i]['weeks-range'].length );
+        //console.log( JSONresult[i]['request_details'].request_day );  or request_timestart, request_round, module_code, request_priority (null or string)
+        //console.log( JSONresult[i]['weeks_list'][j].week_number );
+        //console.log( JSONresult[i]['weeks_range'][j]);
+        //console.log( JSONresult[i]['weeks_range'].length );
 
         for (var i = 0; i < JSONresult.length; i++) {
-          var day = JSONresult[i]['request-details'].request_day;
-          var time = JSONresult[i]['request-details'].request_timestart;
+          var day = JSONresult[i]['request_details'].request_day;
+          var dayneat = day.replace(/\w\S*/g, function (txt) { return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(); });
+          var time = JSONresult[i]['request_details'].request_timestart;
 
           //if this slot is currently clear
           if (!$('.timetable-table tbody tr[class*="' + day + '"]').find('td[class*="period' + time + '"]').hasClass("timetable-taken")) {
@@ -146,12 +169,10 @@ function getRoomTimetable() {
             var content = "<span class='timetable-taken-text'>Booked</span><div class='timetable-content-empty'>";
 
             var popContent = "<b>Information for a booked timetable slot.</b><br/>";
-            popContent += "Day: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + day + "<br/>";
+            popContent += "Day: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + dayneat + "<br/>";
             popContent += "Period: &nbsp;" + time + "<br/><br/>";
-            popContent += "The module <b>" + JSONresult[i]['request-details'].module_code + "</b> has booked this slot for weeks:<br/>";
-            for (var j = 0; j < JSONresult[i]['weeks-range'].length; j++) {
-              popContent += JSONresult[i]['weeks-range'][j] + ", ";
-            }
+            popContent += "The module <b>" + JSONresult[i]['request_details'].module_code + "</b> has booked this slot for weeks:<br/>";
+            popContent += JSONresult[i]['weeks_range'];
             popContent += "<p></p>";
             popContent += "<p class='close'>Close</p>";
 
@@ -169,9 +190,9 @@ function getRoomTimetable() {
             var contentStart = currentContent.substring(0, currentContent.indexOf("<p></p>"));
             var contentEnd = currentContent.substring(currentContent.indexOf("<p></p>"));
 
-            contentStart += "<br/><br/>The module <b>" + JSONresult[i]['request-details'].module_code + "</b> has booked this slot for weeks:<br/>";
-            for (var j = 0; j < JSONresult[i]['weeks-range'].length; j++) {
-              contentStart += JSONresult[i]['weeks-range'][j] + ", ";
+            contentStart += "<br/><br/>The module <b>" + JSONresult[i]['request_details'].module_code + "</b> has booked this slot for weeks:<br/>";
+            for (var j = 0; j < JSONresult[i]['weeks_range'].length; j++) {
+              contentStart += JSONresult[i]['weeks_range'][j] + ", ";
             }
 
             newContent = contentStart + contentEnd;
@@ -208,15 +229,15 @@ function getSubmissionLog() {
   var sem = inp.substr(4, 1);
   var year = inp.substr(8, 4);
 
-  //call api.php with semester to return the submission log entries (pending this round, rejected previous rounds)
-  $.post("https://co-project.lboro.ac.uk/crew12/Deliverable%202/api.php", {requestid: "getRoomLogsAllocation", semester: sem, year: year},
+  //call api.cshtml with semester to return the submission log entries (pending this round, rejected previous rounds)
+  $.post("api.cshtml", {requestid: "getRoomLogsAllocation", semester: sem, year: year},
   function (JSONresult) {
     //JSONresult =  JSON.parse($($.parseHTML(JSONresult)).filter("#json").html());
 
-    //console.log( JSONresult[i]['request-details'].request_day );  or request_timestart, request_round, module_code, request_priority (null or string)
-    //console.log( JSONresult[i]['weeks-list'][j].week_number );
-    //console.log( JSONresult[i]['weeks-range'][j]);
-    //console.log( JSONresult[i]['weeks-range'].length );
+    //console.log( JSONresult[i]['request_details'].request_day );  or request_timestart, request_round, module_code, request_priority (null or string)
+    //console.log( JSONresult[i]['weeks_list'][j].week_number );
+    //console.log( JSONresult[i]['weeks_range'][j]);
+    //console.log( JSONresult[i]['weeks_range'].length );
 
     var logContent = "";
     var currentModules = [];	//list of modules currently grouped into submission log
@@ -224,7 +245,7 @@ function getSubmissionLog() {
     var logEntryAdditions = []; //Array in form ["module_code---Div contents..."] to add to existing logs
 
     for (var i = 0; i < JSONresult.length; i++) { //for each result in the return	
-
+      console.log(i);
       var skip = false;	//skip flag variable		
       for (var idx = 0; idx < exclusionIndices.length; idx++) {
         if (exclusionIndices[idx] == i) {
@@ -243,25 +264,25 @@ function getSubmissionLog() {
         var currentContentEnd = "";
 
         for (var k = 0; k < currentModules.length; k++) {
-          if (currentModules[k] == JSONresult[i]['request-details'].module_code) {
+          if (currentModules[k] == JSONresult[i]['request_details'].module_code) {
             isNew = false;
           }
         }
 
         if (isNew) {	//if there is no log group for this module
           //create a new log group and add this log entry
-          console.log("Created new log-group for " + JSONresult[i]['request-details'].module_code);
-          currentModules.push(JSONresult[i]['request-details'].module_code);
+          console.log("Created new log-group for " + JSONresult[i]['request_details'].module_code);
+          currentModules.push(JSONresult[i]['request_details'].module_code);
           currentContentStart += '<div class="log-group-container">';
 
-          currentContentStart += '<div class="log-group log-group-' + JSONresult[i]['request-details'].request_status + '">';
+          currentContentStart += '<div class="log-group log-group-' + JSONresult[i]['request_details'].request_status + '">';
 
           //module details
           currentContentStart += '<div class="log-heading">';
-          currentContentStart += '<span class="log-moduleCode">' + JSONresult[i]['request-details'].module_code + '</span>';
-          currentContentStart += '<span class="log-moduleTitle">' + JSONresult[i]['request-details'].module_title + '</span>';
+          currentContentStart += '<span class="log-moduleCode">' + JSONresult[i]['request_details'].module_code + '</span>';
+          currentContentStart += '<span class="log-moduleTitle">' + JSONresult[i]['request_details'].module_title + '</span>';
           currentContentStart += '<span class="log-icon"><i class="fa fa-angle-double-down fa-lg"></i></span>';
-          currentContentStart += '<span class="log-status">' + JSONresult[i]['request-details'].request_status + '</span>';
+          currentContentStart += '<span class="log-status">' + JSONresult[i]['request_details'].request_status + '</span>';
           currentContentStart += '</div>';
 
           currentContentStart += '</div>';
@@ -271,9 +292,9 @@ function getSubmissionLog() {
         }
 
         //log entry
-        currentContent += '<div class="log-entry-' + JSONresult[i]['request-details'].request_status + '">';
+        currentContent += '<div class="log-entry-' + JSONresult[i]['request_details'].request_status + '">';
         currentContent += '<div class="log-entry-icons">';
-        if (JSONresult[i]['request-details'].request_status == "rejected") {
+        if (JSONresult[i]['request_details'].request_status == "rejected") {
           currentContent += '<span class="log-entry-edit-icon"><i class="fa fa-pencil-square-o fa-lg"></i></span><span class="log-entry-copy-icon log-icon-unused"><i class="fa fa-files-o fa-lg"></i></span><span class="log-entry-delete-icon log-icon-unused"><i class="fa fa-close fa-lg"></i></span>';
         }
         else { //approved OR pending
@@ -282,92 +303,92 @@ function getSubmissionLog() {
         currentContent += '</div>';
 
         currentContent += '<div class="log-entry-information">';
-				currentContent += '<span class="log-entry-id" style="display:none;">'+JSONresult[i]['request-details'].request_id+'</span>';
-				currentContent += '<span class="log-entry-child" style="display:none;">'+JSONresult[i]['request-details'].request_child+'</span>';
-        currentContent += '<span class="log-entry-building">Building: ' + JSONresult[i]['request-details'].building_code + '</span>';
-        currentContent += '<span class="log-entry-park">(' + JSONresult[i]['request-details'].park + ')</span>';
-        currentContent += '<span class="log-entry-room">Room: ' + JSONresult[i]['request-details'].room_code + '</span>';
-        if (JSONresult[i]['request-details'].request_priority !== null) {
+				currentContent += '<span class="log-entry-id" style="display:none;">'+JSONresult[i]['request_details'].request_id+'</span>';
+				currentContent += '<span class="log-entry-child" style="display:none;">'+JSONresult[i]['request_details'].request_child+'</span>';
+        currentContent += '<span class="log-entry-building">Building: ' + JSONresult[i]['request_details'].building_code + '</span>';
+        currentContent += '<span class="log-entry-park">(' + JSONresult[i]['request_details'].park + ')</span>';
+        currentContent += '<span class="log-entry-room">Room: ' + JSONresult[i]['request_details'].room_code + '</span>';
+        if (JSONresult[i]['request_details'].request_priority !== null) {
           currentContent += '<span class="log-entry-priority">P<i class="fa fa-check"></i></span>';
         }
-        currentContent += '<div class="log-entry-status"><span class="log-entry-logStatus">' + JSONresult[i]['request-details'].request_status + '</span></div>';
+        currentContent += '<div class="log-entry-status"><span class="log-entry-logStatus">' + JSONresult[i]['request_details'].request_status + '</span></div>';
         currentContent += '<br/>';
         currentContent += '<span class="log-entry-weeks">Weeks: ';
-        for (var j = 0; j < JSONresult[i]['weeks-range'].length; j++) {
-          currentContent += JSONresult[i]['weeks-range'][j] + " ";
+        for (var j = 0; j < JSONresult[i]['weeks_range'].length; j++) {
+          currentContent += JSONresult[i]['weeks_range'][j] + " ";
         }
         currentContent += '</span>';
-        currentContent += '<span class="log-entry-semester">Semester: ' + JSONresult[i]['request-details'].request_semester + '</span>';
-        currentContent += '<span class="log-entry-day">Day: ' + JSONresult[i]['request-details'].request_day + '</span>';
-        currentContent += '<span class="log-entry-time">Period: ' + JSONresult[i]['request-details'].request_timestart + '</span>';
-        currentContent += '<span class="log-entry-round">Round: ' + JSONresult[i]['request-details'].request_round.toUpperCase() + '</span>';
+        currentContent += '<span class="log-entry-semester">Semester: ' + JSONresult[i]['request_details'].request_semester + '</span>';
+        currentContent += '<span class="log-entry-day">Day: ' + JSONresult[i]['request_details'].request_day + '</span>';
+        currentContent += '<span class="log-entry-time">Period: ' + JSONresult[i]['request_details'].request_timestart + '</span>';
+        currentContent += '<span class="log-entry-round">Round: ' + JSONresult[i]['request_details'].request_round.toUpperCase() + '</span>';
         currentContent += '</div>';
 
         currentContent += '</div>';
 
         //If log entry has child requests (ie. linked bookings)
-        if (JSONresult[i]['request-details'].request_child !== null) {
+        if (JSONresult[i]['request_details'].request_child !== null) {
 
-          var req_child = JSONresult[i]['request-details'].request_child;
+          var req_child = JSONresult[i]['request_details'].request_child;
           console.log("Booking has a child request of id:" + req_child);
 
           for (var y = i; y < JSONresult.length; y++) { //for each log entry following this one
-            if (JSONresult[y]['request-details'].request_id == req_child) {	//if the request id is this one's child
+            if (JSONresult[y]['request_details'].request_id == req_child) {	//if the request id is this one's child
               exclusionIndices.push(y);
 
               //LINKED ENTRY LOG BELOW									
               //log entry
-              currentContent += '<div class="log-entry-' + JSONresult[y]['request-details'].request_status + '">';
+              currentContent += '<div class="log-entry-' + JSONresult[y]['request_details'].request_status + '">';
 
               currentContent += '<div class="log-entry-information">';
-							currentContent += '<span class="log-entry-id" style="display:none;">'+JSONresult[y]['request-details'].request_id+'</span>';
-							currentContent += '<span class="log-entry-child" style="display:none;">'+JSONresult[y]['request-details'].request_child+'</span>';
-              currentContent += '<span class="log-entry-building">Building: ' + JSONresult[y]['request-details'].building_code + '</span>';
-              currentContent += '<span class="log-entry-park">(' + JSONresult[y]['request-details'].park + ')</span>';
-              currentContent += '<span class="log-entry-room">Room: ' + JSONresult[y]['request-details'].room_code + '</span>';
-              //currentContent += '<div class="log-entry-status"><span class="log-entry-logStatus">'+JSONresult[y]['request-details'].request_status+'</span></div>';
+							currentContent += '<span class="log-entry-id" style="display:none;">'+JSONresult[y]['request_details'].request_id+'</span>';
+							currentContent += '<span class="log-entry-child" style="display:none;">'+JSONresult[y]['request_details'].request_child+'</span>';
+              currentContent += '<span class="log-entry-building">Building: ' + JSONresult[y]['request_details'].building_code + '</span>';
+              currentContent += '<span class="log-entry-park">(' + JSONresult[y]['request_details'].park + ')</span>';
+              currentContent += '<span class="log-entry-room">Room: ' + JSONresult[y]['request_details'].room_code + '</span>';
+              //currentContent += '<div class="log-entry-status"><span class="log-entry-logStatus">'+JSONresult[y]['request_details'].request_status+'</span></div>';
               currentContent += '<br/>';
               currentContent += '<span class="log-entry-weeks">Weeks: ';
-              for (var j = 0; j < JSONresult[y]['weeks-range'].length; j++) {
-                currentContent += JSONresult[y]['weeks-range'][j] + " ";
+              for (var j = 0; j < JSONresult[y]['weeks_range'].length; j++) {
+                currentContent += JSONresult[y]['weeks_range'][j] + " ";
               }
               currentContent += '</span>';
-              currentContent += '<span class="log-entry-semester">Semester: ' + JSONresult[y]['request-details'].request_semester + '</span>';
-              currentContent += '<span class="log-entry-day">Day: ' + JSONresult[y]['request-details'].request_day + '</span>';
-              currentContent += '<span class="log-entry-time">Period: ' + JSONresult[y]['request-details'].request_timestart + '</span>';
+              currentContent += '<span class="log-entry-semester">Semester: ' + JSONresult[y]['request_details'].request_semester + '</span>';
+              currentContent += '<span class="log-entry-day">Day: ' + JSONresult[y]['request_details'].request_day + '</span>';
+              currentContent += '<span class="log-entry-time">Period: ' + JSONresult[y]['request_details'].request_timestart + '</span>';
               currentContent += '</div>';
 
               currentContent += '</div>';
 
-              if (JSONresult[y]['request-details'].request_child !== null) {	//if there is another child (last possible)
+              if (JSONresult[y]['request_details'].request_child !== null) {	//if there is another child (last possible)
 
-                var req_child2 = JSONresult[y]['request-details'].request_child;
+                var req_child2 = JSONresult[y]['request_details'].request_child;
                 console.log("Booking has a child request of id:" + req_child2);
 
                 for (var last = 0; last < JSONresult.length; last++) { //for each log entry
-                  if (JSONresult[last]['request-details'].request_id == req_child2) {	//if the request id is this one's child
+                  if (JSONresult[last]['request_details'].request_id == req_child2) {	//if the request id is this one's child
                     exclusionIndices.push(last);
 
                     //LINKED ENTRY LOG BELOW									
                     //log entry
-                    currentContent += '<div class="log-entry-' + JSONresult[last]['request-details'].request_status + '">';
+                    currentContent += '<div class="log-entry-' + JSONresult[last]['request_details'].request_status + '">';
 
                     currentContent += '<div class="log-entry-information">';
-										currentContent += '<span class="log-entry-id" style="display:none;">'+JSONresult[last]['request-details'].request_id+'</span>';
-										currentContent += '<span class="log-entry-child" style="display:none;">'+JSONresult[last]['request-details'].request_child+'</span>';
-                    currentContent += '<span class="log-entry-building">Building: ' + JSONresult[last]['request-details'].building_code + '</span>';
-                    currentContent += '<span class="log-entry-park">(' + JSONresult[last]['request-details'].park + ')</span>';
-                    currentContent += '<span class="log-entry-room">Room: ' + JSONresult[last]['request-details'].room_code + '</span>';
-                    //currentContent += '<div class="log-entry-status"><span class="log-entry-logStatus">'+JSONresult[last]['request-details'].request_status+'</span></div>';
+										currentContent += '<span class="log-entry-id" style="display:none;">'+JSONresult[last]['request_details'].request_id+'</span>';
+										currentContent += '<span class="log-entry-child" style="display:none;">'+JSONresult[last]['request_details'].request_child+'</span>';
+                    currentContent += '<span class="log-entry-building">Building: ' + JSONresult[last]['request_details'].building_code + '</span>';
+                    currentContent += '<span class="log-entry-park">(' + JSONresult[last]['request_details'].park + ')</span>';
+                    currentContent += '<span class="log-entry-room">Room: ' + JSONresult[last]['request_details'].room_code + '</span>';
+                    //currentContent += '<div class="log-entry-status"><span class="log-entry-logStatus">'+JSONresult[last]['request_details'].request_status+'</span></div>';
                     currentContent += '<br/>';
                     currentContent += '<span class="log-entry-weeks">Weeks: ';
-                    for (var j = 0; j < JSONresult[last]['weeks-range'].length; j++) {
-                      currentContent += JSONresult[last]['weeks-range'][j] + " ";
+                    for (var j = 0; j < JSONresult[last]['weeks_range'].length; j++) {
+                      currentContent += JSONresult[last]['weeks_range'][j] + " ";
                     }
                     currentContent += '</span>';
-                    currentContent += '<span class="log-entry-semester">Semester: ' + JSONresult[last]['request-details'].request_semester + '</span>';
-                    currentContent += '<span class="log-entry-day">Day: ' + JSONresult[last]['request-details'].request_day + '</span>';
-                    currentContent += '<span class="log-entry-time">Period: ' + JSONresult[last]['request-details'].request_timestart + '</span>';
+                    currentContent += '<span class="log-entry-semester">Semester: ' + JSONresult[last]['request_details'].request_semester + '</span>';
+                    currentContent += '<span class="log-entry-day">Day: ' + JSONresult[last]['request_details'].request_day + '</span>';
+                    currentContent += '<span class="log-entry-time">Period: ' + JSONresult[last]['request_details'].request_timestart + '</span>';
                     currentContent += '</div>';
 
                     currentContent += '</div>';
@@ -393,8 +414,8 @@ function getSubmissionLog() {
           //Put the log entry into the existing log-group for the module_code
           //Content of this entry is "currentContent"
           //Add it to array of additions: ["COB103---Div content here..."]
-          console.log("Loaded new " + JSONresult[i]['request-details'].module_code + " entry into existing log-group");
-          logEntryAdditions.push(JSONresult[i]['request-details'].module_code + "---" + currentContent);
+          console.log("Loaded new " + JSONresult[i]['request_details'].module_code + " entry into existing log-group");
+          logEntryAdditions.push(JSONresult[i]['request_details'].module_code + "---" + currentContent);
         }
       }
 
@@ -470,4 +491,37 @@ function getSubmissionLog() {
 		});
 
   }, 'json');
+}
+
+function filterSubmissionLog(choice) {
+  switch (choice) {
+    case 0: //clear filter
+      $(".log-group-container").each(function (index, element) {
+        $(element).css("display", "block");
+      });
+      break;
+    case 1: //approved only
+      $(".log-group-container").each(function (index, element) {
+        if (!($(element).find(".log-group-approved").length > 0)) {
+          $(element).css("display", "none");
+        }
+      });
+      break;
+    case 2: //pending only
+      $(".log-group-container").each(function (index, element) {
+        if (!($(element).find(".log-group-pending").length > 0)) {
+          $(element).css("display", "none");
+        }
+      });
+      break;
+    case 3: //rejected only
+      $(".log-group-container").each(function (index, element) {
+        if (!($(element).find(".log-group-rejected").length > 0)) {
+          $(element).css("display", "none");
+        }
+      });
+      break;
+    default:
+      alert("There has been a problem with the filter, please alert development team");
+  }
 }

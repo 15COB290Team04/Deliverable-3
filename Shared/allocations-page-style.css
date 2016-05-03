@@ -120,6 +120,40 @@ LU dark purple: #361163;
   color:dodgerblue;
 }
 
+/* FILTER OPTIONS */
+#filter-pending {
+  color: #587fb6;
+}
+#filter-pending:hover {
+  color: #eeeeee;
+  background-color: #6DA0E8;
+  cursor: pointer;
+}
+#filter-rejected {
+  color: #c55656
+}
+#filter-rejected:hover {
+  color: #eeeeee;
+  background-color: #FF7878;
+  cursor: pointer;
+}
+#filter-approved {
+  color: #53bd6c;
+}
+#filter-approved:hover {
+  color: #eeeeee;
+  background-color: #65E082;
+  cursor: pointer;
+}
+#filter-clear {
+  color: black;
+}
+#filter-clear:hover {
+  color: #eeeeee;
+  background-color: black;
+  cursor: pointer;
+}
+
 /* LOGS */
 .log-group {
   /*  background-color:lightgray;*/
