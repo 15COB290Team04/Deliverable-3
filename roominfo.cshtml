@@ -240,7 +240,62 @@
       </div>
 
       <div class="private-room-container card-container">
+        <h2 id="manage-private-title">Manage private rooms</h2>
 
+        <div id="create-private-section">
+          <div class="private-section-header">Create a private room</div>
+          <br/>
+          <span class="form-label">Department Code:</span>
+          <input type='text' placeholder='e.g. CO' id='mod-depcode' class="form-control" disabled="disabled" value='@Session["dept-code"]' />
+          <br/><br/>
+          <span class="form-label">Building:</span>
+          <input type='text' placeholder='e.g. N - Haslegrave' id='private-building' class="form-control" />
+          <br/><br/>
+          <span class="form-label">Room Code:</span>
+          <input type='text' placeholder='e.g. N.0.03' id='private-roomcode' class="form-control" />
+          <br/><br/>
+          <span class="form-label">Capacity:</span>
+          <input type='text' placeholder='e.g. 60' id='private-capacity' class="form-control" />
+          <br/><br/>
+          <span class="form-label">Facilities:</span>
+          <div class="section" id="fac-list-priv">
+            <ul id="select-facilities" class="fac_list">
+              <li><span id="private-PASystem" class="list-activeFacility">PA System</span> &nbsp;&nbsp;|&nbsp;&nbsp; <span
+                  id="private-RadioMic" class="list-activeFacility">Radio Mic</span></li>
+              <li> &nbsp;&nbsp;|&nbsp;&nbsp; <span id="private-Wheelchair">Wheelchair Access</span></li>
+              <li> &nbsp;&nbsp;|&nbsp;&nbsp; <span id="private-Computer" class="list-activeFacility">Computer</span></li>
+              <li><span id="private-Projector" class="list-activeFacility">Projector</span> &nbsp;&nbsp;|&nbsp;&nbsp; <span
+                  id="private-DualProjector">Dual Projector</span></li>
+              <li> &nbsp;&nbsp;|&nbsp;&nbsp; <span id="private-InductionLoop">Induction Loop</span></li>
+              <li><span id="private-DVD">DVD Player</span> &nbsp;&nbsp;|&nbsp;&nbsp; <span
+                  id="private-BluRay">BluRay</span> &nbsp;&nbsp;|&nbsp;&nbsp; <span
+                  id="private-VHS">VHS</span></li>
+              <li> &nbsp;&nbsp;|&nbsp;&nbsp; <span id="private-Whiteboard" class="list-activeFacility">Whiteboard</span> &nbsp;&nbsp;|&nbsp;&nbsp; <span
+                  id="private-Chalkboard">Chalkboard</span></li>
+              <li><span id="private-Visualiser">Visualiser</span> &nbsp;&nbsp;|&nbsp;&nbsp; <span
+                  id="private-OHP">OverHead Projector</span></li>
+              <li> &nbsp;&nbsp;|&nbsp;&nbsp; <span id="private-Plasma">Plasma Screen</span></li>
+              <li><span id="private-ReVIEW">ReVIEW Capture</span></li>
+              <li> &nbsp;&nbsp;|&nbsp;&nbsp; <span id="private-Lab">Laboratory</span></li>
+            </ul>
+          </div>
+          <br/><br/>
+          <button id='create-priv' class='btn ok'>CREATE</button>
+        </div>
+
+        <div id="delete-private-section" style="float:right;">
+          <div class="private-section-header">Delete a private room</div>
+          <br/>
+          <span class="form-label">Select a room:</span>
+          <select size="6" class="form-control" id="form-roomSelectionPriv">
+            <option>There are no private rooms to display</option>
+          </select>
+          <br/><br/><br/>
+          <span class="form-label">Selected room:</span>
+          <input type='text' id='selected-priv-room' class="form-control" disabled="disabled" value='No room selected' />
+          <br/><br/>
+          <button id='delete-priv' class='btn ok'>DELETE</button>
+        </div>
       </div>
 
     </div>
