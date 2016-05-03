@@ -18,10 +18,6 @@
 
 <!DOCTYPE html>
 <html>
-<head>
-<!--<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
-<script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>-->
-</head>
   <!-- Include the dependencies file -->
   @{
     var pageName = "roominfo";
@@ -37,99 +33,127 @@
     <div id="page-content-container">
       <div class="tab-content card-container">
         <div class="roomSearch-header roomSearch-header-bottomBorder"><span
-            id="roomSearch-title">Room Search</span>
-          <span id="roomSearch-reset"><i class="fa fa-repeat fa-flip-horizontal"></i> Reset Preferences</span>
-        </div>
-        <div class="roomSearch-container">
-          <form class="form-inline mo_info">
-            <div class="section" id="form-building-info">
-              <div class="form-group">
-                <label>Park:</label>
-                <select id="select-park" class="form-dropdown-medium">
-                  <option>Any</option>
-                  <option>Central</option>
-                  <option>East</option>
-                  <option>West</option>
-                  <option>London</option>
-                </select>
-              </div>
-              <br>
-              <div class="form-group">
-                <label>Building:</label>
-                <select id="select-building" class="form-dropdown-xlarge"></select>
-              </div>
-              <br/>
-              <div class="form-group">
-                <label>Capacity:</label>
-                <input type="text" name="name" class="form-control" id="form-capacity"
-                       placeholder="eg. 150">
-              </div>
-              <div id="wdytknbt">
-                <label>Room Code:</label>
-                <input type="text" name="name" class="form-control roomcode" id="form-booking-roomCode">
-                <label class="full" id="form-booking-roomName">No Room Selected</label>
+              id="roomSearch-title">Room Search</span>
+            <span id="roomSearch-reset"><i class="fa fa-repeat fa-flip-horizontal"></i> Reset Requirements</span>
+          </div>
+          <div class="roomSearch-container">
+            <form class="form-inline mo_info">
+              <div class="section" id="form-building-info">
+                <div class="form-group">
+                  <label>Park:</label>
+                  <select id="select-park" class="form-dropdown-medium">
+                    <option>Any</option>
+                    <option>Central</option>
+                    <option>East</option>
+                    <option>West</option>
+                    <option>London</option>
+                  </select>
+                </div>
+                <br>
+                <div class="form-group">
+                  <label>Building:</label>
+                  <select id="select-building" class="form-dropdown-xlarge"></select>
+                </div>
                 <br/>
                 <div class="form-group">
-                  <label>Semester:</label>
-                  <select id="select-semester" class="form-dropdown-medium">
-                    <option>1</option>
-                    <option>2</option>
+                  <label>Private rooms:</label>
+                  <select id="select-privaterooms" class="form-dropdown-medium">
+                    <option>Include</option>
+                    <option>Exclude</option>
+                    <option>Only</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label style="width:90px;margin-left:20px;">Room use:</label>
+                  <select id="select-roomuse" class="form-dropdown-medium">
+                    <option>Lecture</option>
+                    <option>Lab</option>
+                    <option>Seminar</option>
                   </select>
                 </div>
                 <br/>
-                <br>
-                <br>
-                <br/>
-                <br/>
+                <div class="form-group">
+                  <label>Students:</label>
+                  <input type="text" name="name" class="form-control" id="form-capacity" placeholder="eg. 150">
+                </div>
               </div>
-            </div>
-            <div class="section" id="form-specific-reqs">
-              <h2 class="mt0">Specific Requirements</h2>
-              <ul id="select-specificreqs" class="spe_list">
-                <li><span id="facility-PASystem">PA System</span> &nbsp;&nbsp;|&nbsp;&nbsp; <span
-                    id="facility-RadioMic">Radio Mic</span></li>
-                <li><span id="facility-Wheelchair">Wheelchair Access</span></li>
-                <li><span id="facility-Computer">Computer</span></li>
-                <li><span id="facility-Projector">Projector</span> &nbsp;&nbsp;|&nbsp;&nbsp; <span
-                    id="facility-DualProjector">Dual Projector</span></li>
-                <li><span id="facility-InductionLoop">Induction Loop</span></li>
-                <li><span id="facility-DVD">DVD Player</span> &nbsp;&nbsp;|&nbsp;&nbsp; <span
-                    id="facility-BluRay">BluRay</span> &nbsp;&nbsp;|&nbsp;&nbsp; <span
-                    id="facility-VHS">VHS</span></li>
-                <li><span id="facility-Whiteboard">Whiteboard</span> &nbsp;&nbsp;|&nbsp;&nbsp; <span
-                    id="facility-Chalkboard">Chalkboard</span></li>
-                <li><span id="facility-Visualiser">Visualiser</span> &nbsp;&nbsp;|&nbsp;&nbsp; <span
-                    id="facility-OHP">OverHead Projector</span></li>
-                <li><span id="facility-Plasma">Plasma Screen</span></li>
-                <li><span id="facility-ReVIEW">ReVIEW Capture</span></li>
-                <li><span id="facility-Lab">Laboratory</span></li>
-              </ul>
-            </div>
-            <div class="section" id="form-suitable-rooms">
-              <h2 class="mt0">Suitable Rooms <span id="form-numRooms"></span></h2>
-              <select size="12" class="form-control select_width" id="form-roomSelection"></select>
-            </div>
-          </form>
-        </div>
-<div id="mapid"></div>
+              <div class="section" id="form-specific-reqs">
+                <h2 class="mt0">Specific Requirements</h2>
+                <ul id="select-specificreqs" class="spe_list">
+                  <li><span id="facility-PASystem">PA System</span> &nbsp;&nbsp;|&nbsp;&nbsp; <span
+                      id="facility-RadioMic">Radio Mic</span></li>
+                  <li><span id="facility-Wheelchair">Wheelchair Access</span></li>
+                  <li><span id="facility-Computer">Computer</span></li>
+                  <li><span id="facility-Projector">Projector</span> &nbsp;&nbsp;|&nbsp;&nbsp; <span
+                      id="facility-DualProjector">Dual Projector</span></li>
+                  <li><span id="facility-InductionLoop">Induction Loop</span></li>
+                  <li><span id="facility-DVD">DVD Player</span> &nbsp;&nbsp;|&nbsp;&nbsp; <span
+                      id="facility-BluRay">BluRay</span> &nbsp;&nbsp;|&nbsp;&nbsp; <span
+                      id="facility-VHS">VHS</span></li>
+                  <li><span id="facility-Whiteboard">Whiteboard</span> &nbsp;&nbsp;|&nbsp;&nbsp; <span
+                      id="facility-Chalkboard">Chalkboard</span></li>
+                  <li><span id="facility-Visualiser">Visualiser</span> &nbsp;&nbsp;|&nbsp;&nbsp; <span
+                      id="facility-OHP">OverHead Projector</span></li>
+                  <li><span id="facility-Plasma">Plasma Screen</span></li>
+                  <li><span id="facility-ReVIEW">ReVIEW Capture</span></li>
+                  <li><span id="facility-Lab">Laboratory</span></li>
+                </ul>
+              </div>
+              <div class="section" id="form-suitable-rooms">
+                <h2 class="mt0">Suitable Rooms <span id="form-numRooms"></span></h2>
+                <select size="12" class="form-control select_width" id="form-roomSelection"></select>
+              </div>
+            </form>
+          </div>
+      </div>
+
+      <div class="selected-room-container card-container">
         <!-- Tab panes -->
         <div class="roomSearch-header roomSearch-header-bottomBorder">
-		<span id="roomSearch-booking">Selected Room</span>
+		    <span id="roomSearch-booking">Selected Room</span>
         </div>
         <form class="form-inline mo_info">
 
         </form>
+        <!-- SELECTED ROOM SECTION -->
+		    <div id='selected-room'>
 
-        </form>
-		<div id='selected-room'>
-        <div id='room-info'></div> <div id="googleMap"></div>
-		</div>
+          <!-- ROOM INFO -->
+          <div id='room-info'>
+            <div id="wdytknbt">
+              <div>
+                <label>Room Code:</label>
+                <input type="text" id="form-booking-roomCode" class="form-control roomcode ui-autocomplete-input" name="name" autocomplete="off">
+                <label id="form-booking-roomName" class="full">No Room Selected</label>
+              </div>
+            </div>
+            <div id="room-faclist">
+              <label>Facilities:</label>
+              <ul>
+              
+              </ul>
+            </div>
+            <div id="semester-container">
+              <div class="form-group">
+                <label>Semester:</label>
+                <select class="form-dropdown-medium" id="select-semester">
+                  <option>1</option>
+                  <option>2</option>
+                </select>
+              </div>
+            </div>
+          </div> 
+
+          <!-- MAP -->
+          <div id="googleMap"></div>
+
+		    </div>
 		
-        <br/>
+            <br/>
 		
 
         <!-- JQuery Message Popup Dialog -->
-        <div class="messagepop pop">
+        <div class="messagepop pop" style="margin-top:400px;">
           <b>Information for a booked timetable slot.</b><br/><br/><br/><br/><br/>
           <p></p>
           <p class='close'>Close</p>
@@ -214,62 +238,66 @@
         </div>
 
       </div>
-        <div id="page-content-container">
 
-      <div id="createmodule-container" class="card-container">
-        <div class='form-cont' id="form-createmodule">
-          <h3 style="margin:15px">Create Module</h3>
-          <div class="form-div">
-            <span class="form-label">Department Code</span>
-            <input type='text' placeholder='e.g. @*Variables from the session dept *@' id='mod-depcode' class="form-control" style="width:60%" disabled="disabled" value="@*Variables frome the session dept *@"/>
+      <div class="private-room-container card-container">
+        <h2 id="manage-private-title">Manage private rooms</h2>
+
+        <div id="create-private-section">
+          <div class="private-section-header">Create a private room</div>
+          <br/>
+          <span class="form-label">Department Code:</span>
+          <input type='text' placeholder='e.g. CO' id='mod-depcode' class="form-control" disabled="disabled" value='@Session["dept-code"]' />
+          <br/><br/>
+          <span class="form-label">Building:</span>
+          <input type='text' placeholder='e.g. N - Haslegrave' id='private-building' class="form-control" />
+          <br/><br/>
+          <span class="form-label">Room Code:</span>
+          <input type='text' placeholder='e.g. N.0.03' id='private-roomcode' class="form-control" />
+          <br/><br/>
+          <span class="form-label">Capacity:</span>
+          <input type='text' placeholder='e.g. 60' id='private-capacity' class="form-control" />
+          <br/><br/>
+          <span class="form-label">Facilities:</span>
+          <div class="section" id="fac-list-priv">
+            <ul id="select-facilities" class="fac_list">
+              <li><span id="private-PASystem" class="list-activeFacility">PA System</span> &nbsp;&nbsp;|&nbsp;&nbsp; <span
+                  id="private-RadioMic" class="list-activeFacility">Radio Mic</span></li>
+              <li> &nbsp;&nbsp;|&nbsp;&nbsp; <span id="private-Wheelchair">Wheelchair Access</span></li>
+              <li> &nbsp;&nbsp;|&nbsp;&nbsp; <span id="private-Computer" class="list-activeFacility">Computer</span></li>
+              <li><span id="private-Projector" class="list-activeFacility">Projector</span> &nbsp;&nbsp;|&nbsp;&nbsp; <span
+                  id="private-DualProjector">Dual Projector</span></li>
+              <li> &nbsp;&nbsp;|&nbsp;&nbsp; <span id="private-InductionLoop">Induction Loop</span></li>
+              <li><span id="private-DVD">DVD Player</span> &nbsp;&nbsp;|&nbsp;&nbsp; <span
+                  id="private-BluRay">BluRay</span> &nbsp;&nbsp;|&nbsp;&nbsp; <span
+                  id="private-VHS">VHS</span></li>
+              <li> &nbsp;&nbsp;|&nbsp;&nbsp; <span id="private-Whiteboard" class="list-activeFacility">Whiteboard</span> &nbsp;&nbsp;|&nbsp;&nbsp; <span
+                  id="private-Chalkboard">Chalkboard</span></li>
+              <li><span id="private-Visualiser">Visualiser</span> &nbsp;&nbsp;|&nbsp;&nbsp; <span
+                  id="private-OHP">OverHead Projector</span></li>
+              <li> &nbsp;&nbsp;|&nbsp;&nbsp; <span id="private-Plasma">Plasma Screen</span></li>
+              <li><span id="private-ReVIEW">ReVIEW Capture</span></li>
+              <li> &nbsp;&nbsp;|&nbsp;&nbsp; <span id="private-Lab">Laboratory</span></li>
+            </ul>
           </div>
-          <div class="form-div">
-            <span class="form-label">Module Code</span>
-            <input type='text' placeholder='e.g. @*Variables from the session dept*@>B290' id='mod-code' class="form-control" style="width:60%"/>
-          </div>
-          <div class="form-div">
-            <span class="form-label">Module Title</span>
-            <input type='text' placeholder='e.g. Team Projects' id='mod-title' class="form-control" style="width:70%"/>
-          </div>
-          <div class="form-div">
-            <button id='create-mod' class='btn ok' style="width:90%">CREATE</button>
-          </div>
+          <br/><br/>
+          <button id='create-priv' class='btn ok'>CREATE</button>
+        </div>
+
+        <div id="delete-private-section" style="float:right;">
+          <div class="private-section-header">Delete a private room</div>
+          <br/>
+          <span class="form-label">Select a room:</span>
+          <select size="6" class="form-control" id="form-roomSelectionPriv">
+            <option>There are no private rooms to display</option>
+          </select>
+          <br/><br/><br/>
+          <span class="form-label">Selected room:</span>
+          <input type='text' id='selected-priv-room' class="form-control" disabled="disabled" value='No room selected' />
+          <br/><br/>
+          <button id='delete-priv' class='btn ok'>DELETE</button>
         </div>
       </div>
-      <div id="editdeletemodule-container" class="card-container">
 
-        <div style="padding:20px;">
-          <h3>Modify Module</h3>
-          <div class="editmodule-blocks" id="search-block">
-            <p>Module Search:</p>
-            <input type='text' placeholder='e.g. COB290 Team Projects' id='input-moduleInfo' class="form-control" style="width:80%" />
-          </div>
-          <div class="editmodule-blocks" id="upd-block">
-            <p>Edit Module:</p>
-            <span class="form-label">Module Code</span>
-            <input type='text' placeholder='Module Code' id='modupd-code' class="form-control form-edit-input" style="width:67%" disabled="disabled"/>
-            <br/>
-            <span class="form-label">Module Title</span>
-            <input type='text' placeholder='Module Title' id='modupd-title' class="form-control form-edit-input" style="width:68%"/>
-            <br/>
-            <!--<center>-->
-              <button id='update-mod' class='btn ok' style="margin-top:15px; width: 97%">UPDATE</button>
-            <!--</center>-->
-          </div>
-          <div class="editmodule-blocks" id="del-block">
-            <p>Delete Module:</p>
-            <br/>
-            <button class='btn del' id='del-mod'>DELETE</button>
-          </div>
-        </div>
-      </div>
     </div>
-<script>
-/*var map = L.map('map').setView([51.505, -0.09], 13);
-L.tileLayer('http://{s}.tile.cloudmade.com/API-key/997/256/{z}/{x}/{y}.png', {
-    attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://cloudmade.com">CloudMade</a>[…]',
-    maxZoom: 18
-}).addTo(map);*/
- </script>
   </body>
 </html>

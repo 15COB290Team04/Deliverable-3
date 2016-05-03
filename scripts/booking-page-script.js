@@ -196,9 +196,11 @@ $(document).ready(function () {
       //prevent default clicks (selecting from parent class)
       if ($(this).parent().hasClass("timetable-selected")) {
         $(this).parent().removeClass("timetable-selected");
+        $('#timetable-error-message').hide();
       }
       else {
         $(this).parent().addClass("timetable-selected");
+        $('#timetable-error-message').slideDown();
       }
     }
   });
@@ -963,118 +965,6 @@ function getSubmissionLog() {
   }, 'json');
 }
 
-//function to submit all bookings //TODO: Delete this?
-function submitBookings() {
-  console.log("submitBookings() called");
-
-  //grab requested facilities
-  var park = $('#select-park').val();
-  var capacity = parseInt($('#form-capacity').val());
-  if (!checkInp("capacity", capacity)) {
-    capacity = 0;
-  }
-  var buildingcode = $('#select-building').val();
-  if (buildingcode == null) {
-    buildingcode = "Any"
-  } //to prevent error when 0 buildings are loaded
-  else {
-    buildingcode = buildingcode.substr(0, buildingcode.indexOf(' '));	//if building == "" then Any is selected	
-    if (buildingcode.length < 1) {
-      buildingcode = "Any"
-    }
-  }
-  var roomuse = $('#select-roomuse').val();
-  var priority = $('#form-priority').val();
-  if (priority.length == 0) {
-    priority = null;
-  }
-  var lab = 0;
-  var wheelchair = 0;
-  var hearingloop = 0;
-  var computer = 0;
-  var projector = 0;
-  var dprojector = 0;
-  var ohp = 0;
-  var visualiser = 0;
-  var video = 0;
-  var bluray = 0;
-  var vhs = 0;
-  var whiteboard = 0;
-  var chalkboard = 0;
-  var plasma = 0;
-  var pasystem = 0;
-  var radiomic = 0;
-  var review = 0;
-  var specificReqs = $('#select-specificreqs li').children('.list-activeFacility');
-  for (var i = 0; i < specificReqs.length; i++) {
-    switch (specificReqs[i].innerHTML) {
-      case "Laboratory":
-        lab = 1;
-        break;
-      case "Wheelchair Access":
-        wheelchair = 1;
-        break;
-      case "Induction Loop":
-        hearingloop = 1;
-        break;
-      case "Computer":
-        computer = 1;
-        break;
-      case "Projector":
-        projector = 1;
-        break;
-      case "Dual Projector":
-        dprojector = 1;
-        break;
-      case "OverHead Projector":
-        ohp = 1;
-        break;
-      case "Visualiser":
-        visualiser = 1;
-        break;
-      case "DVD Player":
-        video = 1;
-        break;
-      case "BluRay":
-        bluray = 1;
-        break;
-      case "VHS":
-        vhs = 1;
-        break;
-      case "Whiteboard":
-        whiteboard = 1;
-        break;
-      case "Chalkboard":
-        chalkboard = 1;
-        break;
-      case "Plasma Screen":
-        plasma = 1;
-        break;
-      case "PA System":
-        pasystem = 1;
-        break;
-      case "Radio Mic":
-        radiomic = 1;
-        break;
-      case "ReVIEW Capture":
-        review = 1;
-        break;
-    }
-  }
-
-  //grab the room information
-  var roomcode = $('#form-booking-roomCode').val();
-
-  var weeks = "";		//in form "1,2,5,6,12,"
-  $('#form-requiredWeeks-row1').find('.form-requiredWeeks-checkbox:checked').each(function () {	//iterates through checked weeks
-    var id = $(this).attr('id');
-    if (id != "form-requiredWeeks-all") {
-      id = id.substring(20);
-      weeks += id + ",";
-    }
-  });
-
-}
 
 //function to save state of tab-content
 function saveState(tabnumber) {
