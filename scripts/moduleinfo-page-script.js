@@ -305,6 +305,7 @@ function saveTimetable(){
     //var canvas = document.getElementById("myCanvas");
     //var context = canvas.getContext("2d");
     var finalContents = "";
+    var title = $("#timetable-note").text();
 
         $('.timetable-taken').each(function () {
         var contents = $(this).find('.timetable-content-empty').html();
@@ -356,10 +357,13 @@ function saveTimetable(){
         context.font = '10pt Calibri';
         context.fillStyle = '#333';
 
+        context.fillText(title, 40, 40);
+
         wrapText(context, text, x, y, maxWidth, lineHeight);
                 
         var win = window.open();
-        win.document.write("<img src='" + canvas.toDataURL() + "'/>");
+        win.document.write("<img id='timetable-img' src='" + canvas.toDataURL() + "'/>");
+        win.document.write("<a download='timetable-img-dwl.jpg' href=" + canvas.toDataURL() + " title='ImageName'>click to download</a>")
     //imageObj.src = "mail-image.jpg"; 
 }
 
@@ -382,3 +386,8 @@ function wrapText(context, text, x, y, maxWidth, lineHeight) {
         }
         context.fillText(line, x, y);
  }
+
+ function downloadCanvas(link, canvasId, filename) {
+    link.href = document.getElementById(canvasId).toDataURL();
+    link.download = filename;
+}
