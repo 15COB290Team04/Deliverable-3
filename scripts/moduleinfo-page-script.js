@@ -269,21 +269,6 @@ function loadLecturers() {
 
 //FUNCTION TO LOAD COURSES INTO UI
 function loadCourses(){
-    var availableTags = [];
-
-    $.post("api.cshtml", { requestid: "getDeptCourses" },
-      function (JSONresult) {
-          for (var i = 0; i < JSONresult.length; i++) {
-              availableTags.push(JSONresult[i].course_name);
-          }
-      }, 'json');
-    $("#input-courseInfo").autocomplete({
-        source: availableTags,
-        close: function () {
-            var Lecturer = $('#input-courseInfo').val();
-            $('#input-courseInfo').val(Lecturer);
-        }
-    });
   var availableTags = [];
 
   $.post("api.cshtml", { requestid: "getDeptCourses" },
@@ -302,69 +287,73 @@ function loadCourses(){
 
 //FUNCTION TO SAVE TIMETABLE INTO IMAGE
 function saveTimetable(){
-    //var canvas = document.getElementById("myCanvas");
-    //var context = canvas.getContext("2d");
-    var finalContents = "";
-    var title = $("#timetable-note").text();
+  //var canvas = document.getElementById("myCanvas");
+  //var context = canvas.getContext("2d");
+  var finalContents = "";
+  var title = $("#timetable-note").text();
 
-        $('.timetable-taken').each(function () {
-        var contents = $(this).find('.timetable-content-empty').html();
-        var correctContents = "";
-        //Sort out the double day booking example need to split the return values up some how
+    $('.timetable-taken').each(function () {
+    var contents = $(this).find('.timetable-content-empty').html();
+    var correctContents = "";
+    //Sort out the double day booking example need to split the return values up some how
 
 
-        //get the details for the day of the week
-        var dayTitleInfo = contents.substring(51, 56);
-        var dayNameInfo = contents.substring(92, (contents.indexOf("<br>", 92)));
-        //get the length of the booking 
-        var bookingLengthInfo = contents.substring((contents.indexOf("weeks") + 10), (contents.indexOf("<", (contents.indexOf("weeks") + 10))));
-        //the room and module codes using the bold tags they have
-        var roomCode1 = contents.substring((contents.indexOf("<b>", 5) + 3), (contents.indexOf("</b>", (contents.indexOf("<b>", 5)))));
-        var moduleCode1 = contents.substring((contents.indexOf("<b>", 138) + 3), (contents.indexOf("</b>", (contents.indexOf("<b>", 138)))));
-        //Secondary variables for storing if there are multiple bookings        
-        var roomCode2 = "";
-        var moduleCode2 = "";
-        var bookingLengthInfo2 = "";
+    //get the details for the day of the week
+    var dayTitleInfo = contents.substring(51, 56);
+    var dayNameInfo = contents.substring(92, (contents.indexOf("<br>", 92)));
+    //get the length of the booking 
+    var bookingLengthInfo = contents.substring((contents.indexOf("weeks") + 10), (contents.indexOf("<", (contents.indexOf("weeks") + 10))));
+    //the room and module codes using the bold tags they have
+    var roomCode1 = contents.substring((contents.indexOf("<b>", 5) + 3), (contents.indexOf("</b>", (contents.indexOf("<b>", 5)))));
+    var moduleCode1 = contents.substring((contents.indexOf("<b>", 138) + 3), (contents.indexOf("</b>", (contents.indexOf("<b>", 138)))));
+    //Secondary variables for storing if there are multiple bookings        
+    var roomCode2 = "";
+    var moduleCode2 = "";
+    var bookingLengthInfo2 = "";
 
-        var string = contents.substring((contents.indexOf("</b>", (contents.indexOf("<b>", 138)))), contents.length);
-        if (string.indexOf('<b>') > 0) {
+    var string = contents.substring((contents.indexOf("</b>", (contents.indexOf("<b>", 138)))), contents.length);
+    if (string.indexOf('<b>') > 0) {
 
-            var roomCode2 = string.substring((string.indexOf("<b>", 5) + 3), (string.indexOf("</b>", (string.indexOf("<b>", 5))))); ;
-            var moduleCode2 = string.substring((string.indexOf("<b>", 50) + 3), (string.indexOf("</b>", (string.indexOf("<b>", 50)))));
-            var bookingLengthInfo2 = string.substring((string.indexOf("weeks:", 15) + 10), (string.indexOf("<p>")));
-        }
-        //write the text that will be printed based on the variablesin the code
-        if (roomCode2 == "" && moduleCode2 == "" && bookingLengthInfo2 == "") {
-            finalContents += dayTitleInfo + " " + dayNameInfo + ": " + "\n" + "\n" + "The room " + roomCode1 + " is booked by " + moduleCode1 + ": " + "\n" + "On the weeks " + bookingLengthInfo + "\n" + ": ";
-        } else {
-            finalContents += dayTitleInfo + " " + dayNameInfo + ": " + "\n" + "\n" + "The room  " + roomCode1 + " is booked by " + moduleCode1 + ": " + "\n" + "On the weeks " + bookingLengthInfo + "\n" + "\n" + ": " + "The room " + roomCode2 + " is booked by  " + moduleCode2 + ": " + "\n" + "On the weeks " + bookingLengthInfo2 + "\n" + ": ";
-        }
+        var roomCode2 = string.substring((string.indexOf("<b>", 5) + 3), (string.indexOf("</b>", (string.indexOf("<b>", 5))))); ;
+        var moduleCode2 = string.substring((string.indexOf("<b>", 50) + 3), (string.indexOf("</b>", (string.indexOf("<b>", 50)))));
+        var bookingLengthInfo2 = string.substring((string.indexOf("weeks:", 15) + 10), (string.indexOf("<p>")));
+    }
+    //write the text that will be printed based on the variablesin the code
+    if (roomCode2 == "" && moduleCode2 == "" && bookingLengthInfo2 == "") {
+        finalContents += dayTitleInfo + " " + dayNameInfo + ": " + "\n" + "\n" + "The room " + roomCode1 + " is booked by " + moduleCode1 + ": " + "\n" + "On the weeks " + bookingLengthInfo + "\n" + ": ";
+    } else {
+        finalContents += dayTitleInfo + " " + dayNameInfo + ": " + "\n" + "\n" + "The room  " + roomCode1 + " is booked by " + moduleCode1 + ": " + "\n" + "On the weeks " + bookingLengthInfo + "\n" + "\n" + ": " + "The room " + roomCode2 + " is booked by  " + moduleCode2 + ": " + "\n" + "On the weeks " + bookingLengthInfo2 + "\n" + ": ";
+    }
 
-        //console.log(correctContents);
+    //console.log(correctContents);
 
-        //finalContents += correctContents;
-        return finalContents;
-    });
-    
-        var canvas = document.getElementById('myCanvas');
-        var context = canvas.getContext('2d');
-        var maxWidth = 100;
-        var lineHeight = 25;
-        var x = (canvas.width - maxWidth) / 2;
-        var y = 60;
-        var text = finalContents;
+    //finalContents += correctContents;
+    return finalContents;
+  });
+  
+  //find canvas & get context  
+  var canvas = document.getElementById('myCanvas');
+  var context = canvas.getContext('2d');
 
-        context.font = '10pt Calibri';
-        context.fillStyle = '#333';
+  var maxWidth = 100;
+  var lineHeight = 25;
 
-        context.fillText(title, 40, 40);
+  var x = (canvas.width - maxWidth) / 2;
+  var y = 60;
+  var text = finalContents;
 
-        wrapText(context, text, x, y, maxWidth, lineHeight);
-                
-        var win = window.open();
-        win.document.write("<img id='timetable-img' src='" + canvas.toDataURL() + "'/>");
-        win.document.write("<a download='timetable-img-dwl.jpg' href=" + canvas.toDataURL() + " title='ImageName'>click to download</a>")
-    //imageObj.src = "mail-image.jpg"; 
+  context.font = '10pt Calibri';
+  context.fillStyle = '#333';
+
+  context.fillText(title, 40, 40);
+
+  wrapText(context, text, x, y, maxWidth, lineHeight);
+
+  var file = canvas.toDataURL("image/png;base64");
+  var filename = $('#timetable-note-type').text() + "-timetable-" + $('#timetable-note-value').text() + ".png";
+  saveAs(file, filename);
+
+  context.clearRect(0, 0, canvas.width, canvas.height);
 }
 
 function wrapText(context, text, x, y, maxWidth, lineHeight) {
@@ -387,7 +376,21 @@ function wrapText(context, text, x, y, maxWidth, lineHeight) {
         context.fillText(line, x, y);
  }
 
- function downloadCanvas(link, canvasId, filename) {
-    link.href = document.getElementById(canvasId).toDataURL();
+function saveAs(uri, filename) {
+  var link = document.createElement('a');
+  if (typeof link.download === 'string') {
+    link.href = uri;
     link.download = filename;
+
+    //Firefox requires the link to be in the body
+    document.body.appendChild(link);
+    
+    //simulate click
+    link.click();
+
+    //remove the link when done
+    document.body.removeChild(link);
+  } else {
+    window.open(uri);
+  }
 }
