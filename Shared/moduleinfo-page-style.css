@@ -142,6 +142,8 @@ h3 {
 .form-control{
     width:85%;
     padding:4px;
+    position:relative;
+    z-index:1000;
 }
 .radio-checks{
   /*margin-left: 25%;*/
@@ -207,6 +209,7 @@ h3 {
   margin-left: 40%;
   margin-right: auto;
   position: relative;
+  z-index: 900;
   top: 40px;
   width: 20%;
 }
