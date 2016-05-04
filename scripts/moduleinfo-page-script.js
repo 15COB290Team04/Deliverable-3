@@ -269,7 +269,6 @@ function loadLecturers() {
 
 //FUNCTION TO LOAD COURSES INTO UI
 function loadCourses(){
-<<<<<<< HEAD
     var availableTags = [];
 
     $.post("api.cshtml", { requestid: "getDeptCourses" },
@@ -285,7 +284,6 @@ function loadCourses(){
             $('#input-courseInfo').val(Lecturer);
         }
     });
-=======
   var availableTags = [];
 
   $.post("api.cshtml", { requestid: "getDeptCourses" },
@@ -300,48 +298,87 @@ function loadCourses(){
       getTimetable();
     }
   });
->>>>>>> refs/remotes/origin/master
 }
 
 //FUNCTION TO SAVE TIMETABLE INTO IMAGE
 function saveTimetable(){
-    var canvas = document.getElementById("myCanvas");
-    var context = canvas.getContext("2d");
-    //var imageObj = new Image();
+    //var canvas = document.getElementById("myCanvas");
+    //var context = canvas.getContext("2d");
     var finalContents = "";
 
-    $('.timetable-taken').each(function () {
-      var contents = $(this).find('.timetable-content-empty').html();
-      //get the details for the day of the week
-      var dayTitleInfo = contents.substring(51, 56);
-      var dayNameInfo = contents.substring(92, (contents.indexOf("<br>", 92)));
-      //get the deatails of the Period
-      var periodTitleInfo = contents.substring(contents.indexOf("Period"), (contents.indexOf("Period") + 8));
-      var periodTimeInfo = contents.substring((contents.indexOf("Period") + 14), (contents.indexOf("<br>", (contents.indexOf("Period") + 8))));
-      //get the details of the module
-      var moduleTitleInfo = contents.substring(contents.indexOf("The module"), (contents.indexOf("The module") + 11));
-      var moduleNameInfo = contents.substring((contents.indexOf("The module") + 14), (contents.indexOf("</b>", (contents.indexOf("The module") + 14)))); ;
-      //get the length of the booking 
-      var bookingTitleInfo = contents.substring(contents.indexOf(" has"), (contents.indexOf(" has") + 32));
-      var bookingLengthInfo = contents.substring((contents.indexOf(" has") + 36), (contents.indexOf("<p>", (contents.indexOf(" has") + 36))));
-      //concenate the data
-      var correctContents = dayTitleInfo + dayNameInfo + "\n" + periodTitleInfo + periodTimeInfo + "\n" + moduleTitleInfo + moduleNameInfo + "\n" + "It" + bookingTitleInfo + " " + bookingLengthInfo;
+        $('.timetable-taken').each(function () {
+        var contents = $(this).find('.timetable-content-empty').html();
+        var correctContents = "";
+        //Sort out the double day booking example need to split the return values up some how
 
-      finalContents += correctContents;
+
+        //get the details for the day of the week
+        var dayTitleInfo = contents.substring(51, 56);
+        var dayNameInfo = contents.substring(92, (contents.indexOf("<br>", 92)));
+        //get the length of the booking 
+        var bookingLengthInfo = contents.substring((contents.indexOf("weeks") + 10), (contents.indexOf("<", (contents.indexOf("weeks") + 10))));
+        //the room and module codes using the bold tags they have
+        var roomCode1 = contents.substring((contents.indexOf("<b>", 5) + 3), (contents.indexOf("</b>", (contents.indexOf("<b>", 5)))));
+        var moduleCode1 = contents.substring((contents.indexOf("<b>", 138) + 3), (contents.indexOf("</b>", (contents.indexOf("<b>", 138)))));
+        //Secondary variables for storing if there are multiple bookings        
+        var roomCode2 = "";
+        var moduleCode2 = "";
+        var bookingLengthInfo2 = "";
+
+        var string = contents.substring((contents.indexOf("</b>", (contents.indexOf("<b>", 138)))), contents.length);
+        if (string.indexOf('<b>') > 0) {
+
+            var roomCode2 = string.substring((string.indexOf("<b>", 5) + 3), (string.indexOf("</b>", (string.indexOf("<b>", 5))))); ;
+            var moduleCode2 = string.substring((string.indexOf("<b>", 50) + 3), (string.indexOf("</b>", (string.indexOf("<b>", 50)))));
+            var bookingLengthInfo2 = string.substring((string.indexOf("weeks:", 15) + 10), (string.indexOf("<p>")));
+        }
+        //write the text that will be printed based on the variablesin the code
+        if (roomCode2 == "" && moduleCode2 == "" && bookingLengthInfo2 == "") {
+            finalContents += dayTitleInfo + " " + dayNameInfo + ": " + "\n" + "\n" + "The room " + roomCode1 + " is booked by " + moduleCode1 + ": " + "\n" + "On the weeks " + bookingLengthInfo + "\n" + ": ";
+        } else {
+            finalContents += dayTitleInfo + " " + dayNameInfo + ": " + "\n" + "\n" + "The room  " + roomCode1 + " is booked by " + moduleCode1 + ": " + "\n" + "On the weeks " + bookingLengthInfo + "\n" + "\n" + ": " + "The room " + roomCode2 + " is booked by  " + moduleCode2 + ": " + "\n" + "On the weeks " + bookingLengthInfo2 + "\n" + ": ";
+        }
+
+        //console.log(correctContents);
+
+        //finalContents += correctContents;
+        return finalContents;
     });
+    
+        var canvas = document.getElementById('myCanvas');
+        var context = canvas.getContext('2d');
+        var maxWidth = 100;
+        var lineHeight = 25;
+        var x = (canvas.width - maxWidth) / 2;
+        var y = 60;
+        var text = finalContents;
 
-        //context.drawImage(imageObj, 10, 10);
-        context.font = "20px Calibri";
-        context.fillText(finalContents, 10, 40);
+        context.font = '10pt Calibri';
+        context.fillStyle = '#333';
 
-        //@BEN
-        //IF YOU TEST THIS OUT IT NOW PUTS SOME DATA INTO THE IMAGE
-        //However the image is the wrong size
-        //Try finding out how you set the canvas size in JS?
-
+        wrapText(context, text, x, y, maxWidth, lineHeight);
+                
         var win = window.open();
         win.document.write("<img src='" + canvas.toDataURL() + "'/>");
-    
     //imageObj.src = "mail-image.jpg"; 
 }
 
+function wrapText(context, text, x, y, maxWidth, lineHeight) {
+        var words = text.split(/\: /);
+        var line = '';
+
+        for(var n = 0; n < words.length; n++) {
+          var testLine = line + words[n] + ' ';
+          var metrics = context.measureText(testLine);
+          var testWidth = metrics.width;
+          if (testWidth > maxWidth && n > 0) {
+            context.fillText(line, x, y);
+            line = words[n] + ' ';
+            y += lineHeight;
+          }
+          else {
+            line = testLine;
+          }
+        }
+        context.fillText(line, x, y);
+ }
