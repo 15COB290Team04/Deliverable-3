@@ -131,6 +131,10 @@ LU dark purple: #361163;
     margin-left:2%; 
     width:60%;
 }
+#lecturer4{
+    margin-left:2%; 
+    width:60%;
+}
 #mod-details{
     margin-left: 30%;
 }
@@ -195,6 +199,10 @@ LU dark purple: #361163;
     margin-left:2%; 
     width:60%;
 }
+#lecturer4-upd{
+    margin-left:2%; 
+    width:60%;
+}
 #mod-change-btn {
     margin-right: 20%;
     width: 100%;
@@ -216,7 +224,7 @@ LU dark purple: #361163;
     padding:20px;
 }
 
-.form-hidden-1, .form-hidden-2 {
+.form-hidden-1, .form-hidden-2, .form-hidden-3 {
   display:none;
 }
 #toggle-btn {

@@ -25,6 +25,7 @@ $(document).ready(function () {
           if (i == 0) { $("#lecturer1-upd").val(JSONresult[i].name); }
           else if (i == 1) { $("#lecturer2-upd").val(JSONresult[i].name); }
           else if (i == 2) { $("#lecturer3-upd").val(JSONresult[i].name); }
+          else if (i == 3) { $("#lecturer4-upd").val(JSONresult[i].name); }
         }
 
       }, 'json');
@@ -47,6 +48,7 @@ $(document).ready(function () {
           $("#lecturer1-upd").val("");
           $("#lecturer2-upd").val(""); 
           $("#lecturer3-upd").val("");
+          $("#lecturer4-upd").val("");
           alert("Module Deleted.");
           loadModules();
         } else {
@@ -76,7 +78,11 @@ $(document).ready(function () {
       if ($("#lecturer3-upd").val() != null) {
         modLec3 += $("#lecturer3-upd").val();
       }
-      var json = JSON.stringify({ modulecode: modulecode, moduletitle: modtitle, lecturer1: modLec1, lecturer2: modLec2, lecturer3: modLec3 });
+      var modLec4 = "";
+      if ($("#lecturer4-upd").val() != null) {
+        modLec3 += $("#lecturer4-upd").val();
+      }
+      var json = JSON.stringify({ modulecode: modulecode, moduletitle: modtitle, lecturer1: modLec1, lecturer2: modLec2, lecturer3: modLec3, lecturer4: modLec4 });
       console.log(json);
       $.post("api.cshtml", { requestid: "setUpdateModule", json: json },
             function (JSONresult) {
@@ -87,6 +93,7 @@ $(document).ready(function () {
                 $("#lecturer1").val(""); /*Added*/
                 $("#lecturer2").val(""); /*Added*/
                 $("#lecturer3").val(""); /*Added*/
+                $("#lecturer4").val(""); /*Added*/
                 alert("Module Updated.");
                 loadModules();
               } else {
@@ -116,8 +123,12 @@ function addMod() {
   if ($("#lecturer3").val() != null) {
     modLec3 += $("#lecturer3").val();
   }
+  var modLec4 = "";
+  if ($("#lecturer4").val() != null) {
+    modLec4 += $("#lecturer4").val();
+  }
 
-  var json = JSON.stringify({deptcode: modDepCode, modulepart: modPart, modulecode: modCode, moduletitle: modtitle, lecturer1: modLec1, lecturer2: modLec2, lecturer3: modLec3});
+  var json = JSON.stringify({deptcode: modDepCode, modulepart: modPart, modulecode: modCode, moduletitle: modtitle, lecturer1: modLec1, lecturer2: modLec2, lecturer3: modLec3, lecturer4: modLec4});
   $.post("api.cshtml", {requestid: "setNewModule", json: json},
   function (JSONresult) {
     console.log("Response: " + JSONresult);
@@ -128,10 +139,11 @@ function addMod() {
       $("#lecturer1").val("");/*Added*/
       $("#lecturer2").val("");/*Added*/
       $("#lecturer3").val("");/*Added*/
+      $("#lecturer4").val("");/*Added*/
       alert("Module Added.");
       loadModules();
     } else {
-      alert("Error. Operation FAILED!");
+      alert("Oops. Something went wrong.");
       loadModules();
     }
   }, 'json');
@@ -188,6 +200,13 @@ function loadLecturers(){
               $('#lecturer3').val(Lecturer);
           }
       });
+      $("#lecturer4").autocomplete({
+          source: availableTags,
+          close: function () {
+              var Lecturer = $('#lecturer4').val();
+              $('#lecturer4').val(Lecturer);
+          }
+      });
       //sort it out so it works with the additional lecturers 
       $("#lecturer1-upd").autocomplete({
           source: availableTags,
@@ -210,6 +229,13 @@ function loadLecturers(){
               $('#lecturer3-upd').val(Lecturer);
           }
       });
+      $("#lecturer4-upd").autocomplete({
+          source: availableTags,
+          close: function () {
+              var Lecturer = $('#lecturer4-upd').val();
+              $('#lecturer4-upd').val(Lecturer);
+          }
+      });
 }
 
 var count = 0;
@@ -224,5 +250,12 @@ function addLecturers(){
     count++;
     $('.form-hidden-2').show();
     console.log("Showing extra lecturer (Lec 3)");
+  }
+  else if (count == 2) {
+    count++;
+    $('.form-hidden-3').show();
+    console.log("Showing extra lecturer (Lec 4)");
+    $('#toggle-btn').css('opacity', '0.2');
+    $('#toggle-btn:hover').css('cursor','default');
   }
 }
