@@ -601,3 +601,9 @@ a {
 .log-entry-icons span.log-icon-unused {
   cursor:default;
 }
+#google_translate_element {
+  margin-top:130px;
+  position:absolute;
+  z-index:1000;
+  margin-left:4px;
+}
