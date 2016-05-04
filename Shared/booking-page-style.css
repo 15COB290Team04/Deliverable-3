@@ -17,7 +17,7 @@ LU dark purple: #361163;
 #help-bookingPage {
   float:right;
   margin-top:40px;
-  margin-right:40px;
+  /*margin-right:40px;*/
   margin-left: 1050px;
   position: absolute;
   z-index:1000;

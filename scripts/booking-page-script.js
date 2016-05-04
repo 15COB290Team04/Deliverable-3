@@ -9,6 +9,9 @@
  */
 $(document).ready(function () {
 
+  var isEditedRequest = false;
+  var editedIdList = "";
+
   //AUTOFILL SEARCH FOR MODULE TITLE
   $(function () {
     var availableTags = [];
@@ -71,7 +74,16 @@ $(document).ready(function () {
     var authenticated = authenticateSubmission();
     console.log("Authentication is :" + authenticated);
     if (authenticated) {
-      allRoomBookings();
+      if (isEditedRequest) {
+        var r = confirm("You are EDITING a booking.\n\nIf you confirm this, you will cancel the old request and submit this new one instead.");
+        if (r) {
+          cancelRequest(editedIdList); //cancel old request
+          allRoomBookings();
+        }
+      }
+      else {
+        allRoomBookings();
+      }
     }
     else {
       //location.reload();
@@ -317,6 +329,226 @@ $(document).ready(function () {
   //REQUIRED WEEKS SELECTION
   $('.form-requiredWeeks-checkbox').change(function () {
     getRoomTimetable();
+  });
+
+  //LOG ENTRY DELETE CLICK
+  $(document).on('click', '.log-entry-delete-icon', function () {
+    var idList = "";
+
+    if (!$(this).hasClass('log-icon-unused')) {
+
+      var r = confirm("Are you sure you wish to cancel this request?");
+      if (r) {
+
+        var thisReqId = $(this).parent().next().find('.log-entry-id').text();
+        idList += thisReqId;
+
+        var childReqId = $(this).parent().next().find('.log-entry-child').text();
+        console.log("THIS: " + thisReqId + ", CHILD: " + childReqId);
+
+        while (childReqId != "null") {
+          idList += "," + childReqId;
+          var child = $(".log-entry-id").filter(function () { return ($(this).text() === childReqId) });
+          childReqId = child.next('.log-entry-child').text();
+        }
+
+        //Returns list of requestid's in form "30,31,32,33"
+        console.log(idList);
+
+        cancelRequest(idList);
+      }
+    }
+    else {
+      console.log("You cant cancel a rejected request!");
+    }
+  });
+
+  //LOG ENTRY COPY CLICK
+  $(document).on('click', '.log-entry-copy-icon', function () {
+    var idList = "";
+
+    if (!$(this).hasClass('log-icon-unused')) {
+      var thisReqId = $(this).parent().next().find('.log-entry-id').text();
+      idList += thisReqId;
+
+      var childReqId = $(this).parent().next().find('.log-entry-child').text();
+
+      while (childReqId != "null") {
+        idList += "," + childReqId;
+        var child = $(".log-entry-id").filter(function () { return ($(this).text() === childReqId) });
+        childReqId = child.next('.log-entry-child').text();
+      }
+      //Returns list of requestid's in form "30,31,32,33"
+      console.log(idList);
+
+      var ids = idList.split(",");
+
+      //FIND REQUEST'S INFORMATION
+      var req = $(".log-entry-id").filter(function () { return ($(this).text() === ids[0]) });
+      req = req.parent();
+
+      var roomcode = req.find('.log-entry-room').text();
+      roomcode = roomcode.substring(6);
+
+      var building = req.find('.log-entry-building').text();
+      building = building.substring(10);
+
+      var park = req.find('.log-entry-park').text();
+      park = park.substring(1, park.length - 1);
+
+      var day = req.find('.log-entry-day').text();
+      day = day.substring(5);
+      var time = req.find('.log-entry-time').text();
+      time = time.substring(8);
+
+      var weeks = req.find('.log-entry-weeks').text();
+      weeks = weeks.substring(7);
+      weeks = weeks.replace(/ /g, '');
+      if (weeks.indexOf('-') > 0) {
+        var weekstart = parseInt(weeks.substr(0, weeks.indexOf('-')));
+        var weekend = parseInt(weeks.substr(weeks.indexOf('-') + 1));
+      }
+      else {
+        var weekstart = parseInt(weeks);
+        var weekend = parseInt(weeks);
+      }
+
+      var moduleInfo = req.parents('.log-group-container').find('.log-moduleCode').text() + " " + req.parents('.log-group-container').find('.log-moduleTitle').text();
+
+      //Request Information variables:
+      //roomcode, park, building, day, time, weekstart, weekend, moduleInfo
+
+      //UPDATE THE UI
+      resetPreferences(1);
+
+      $('#input-moduleInfo').val(moduleInfo);
+
+      var row = "2";
+      if (day == "monday") { row = "2"; }
+      if (day == "tuesday") { row = "3"; }
+      if (day == "wednesday") { row = "4"; }
+      if (day == "thursday") { row = "5"; }
+      if (day == "friday") { row = "6"; }
+      var timeSlot = parseInt(time);
+      //Select slot on timetable
+      $('.timetable-table').find(".timetable-row" + row + "-" + day).find('.timetable-col' + (timeSlot + 1) + '-period' + timeSlot).addClass("timetable-selected");
+
+      //insert roomcode
+      $('#form-booking-roomCode').val(roomcode);
+      loadRoomBuildingInfo(roomcode);
+
+      //select weeks
+      $('#form-requiredWeeks-row1').find('.form-requiredWeeks-checkbox').each(function () {	//iterates through checked weeks
+        $(this).prop('checked', false);
+      });
+      for (var i = weekstart; i < weekend + 1; i++) {
+        $('#form-requiredWeeks-w' + i).prop('checked', true);
+      }
+
+      //insert park and building
+      $('#select-park').val(park);
+      $('#select-building').val(building);
+      getSuitableRooms();
+    }
+    else {
+      console.log("You cant copy this!");
+    }
+  });
+
+  //LOG ENTRY EDIT CLICK
+  $(document).on('click', '.log-entry-edit-icon', function () {
+    var idList = "";
+
+    if (!$(this).hasClass('log-icon-unused')) {
+      var thisReqId = $(this).parent().next().find('.log-entry-id').text();
+      idList += thisReqId;
+
+      var childReqId = $(this).parent().next().find('.log-entry-child').text();
+
+      while (childReqId != "null") {
+        idList += "," + childReqId;
+        var child = $(".log-entry-id").filter(function () { return ($(this).text() === childReqId) });
+        childReqId = child.next('.log-entry-child').text();
+      }
+      //Returns list of requestid's in form "30,31,32,33"
+      console.log(idList);
+
+      var ids = idList.split(",");
+
+      //FIND REQUEST'S INFORMATION
+      var req = $(".log-entry-id").filter(function () { return ($(this).text() === ids[0]) });
+      req = req.parent();
+
+      var roomcode = req.find('.log-entry-room').text();
+      roomcode = roomcode.substring(6);
+
+      var building = req.find('.log-entry-building').text();
+      building = building.substring(10);
+
+      var park = req.find('.log-entry-park').text();
+      park = park.substring(1, park.length - 1);
+
+      var day = req.find('.log-entry-day').text();
+      day = day.substring(5);
+      var time = req.find('.log-entry-time').text();
+      time = time.substring(8);
+
+      var weeks = req.find('.log-entry-weeks').text();
+      weeks = weeks.substring(7);
+      weeks = weeks.replace(/ /g, '');
+      if (weeks.indexOf('-') > 0) {
+        var weekstart = parseInt(weeks.substr(0, weeks.indexOf('-')));
+        var weekend = parseInt(weeks.substr(weeks.indexOf('-') + 1));
+      }
+      else {
+        var weekstart = parseInt(weeks);
+        var weekend = parseInt(weeks);
+      }
+
+      var moduleInfo = req.parents('.log-group-container').find('.log-moduleCode').text() + " " + req.parents('.log-group-container').find('.log-moduleTitle').text();
+
+      //Request Information variables:
+      //roomcode, park, building, day, time, weekstart, weekend, moduleInfo
+
+      //UPDATE THE UI
+      resetPreferences(1);
+
+      $('#input-moduleInfo').val(moduleInfo);
+
+      var row = "2";
+      if (day == "monday") { row = "2"; }
+      if (day == "tuesday") { row = "3"; }
+      if (day == "wednesday") { row = "4"; }
+      if (day == "thursday") { row = "5"; }
+      if (day == "friday") { row = "6"; }
+      var timeSlot = parseInt(time);
+      //Select slot on timetable
+      $('.timetable-table').find(".timetable-row" + row + "-" + day).find('.timetable-col' + (timeSlot + 1) + '-period' + timeSlot).addClass("timetable-selected");
+
+      //insert roomcode
+      $('#form-booking-roomCode').val(roomcode);
+      loadRoomBuildingInfo(roomcode);
+
+      //select weeks
+      $('#form-requiredWeeks-row1').find('.form-requiredWeeks-checkbox').each(function () {	//iterates through checked weeks
+        $(this).prop('checked', false);
+      });
+      for (var i = weekstart; i < weekend + 1; i++) {
+        $('#form-requiredWeeks-w' + i).prop('checked', true);
+      }
+
+      //insert park and building
+      $('#select-park').val(park);
+      $('#select-building').val(building);
+      getSuitableRooms();
+
+      editedIdList = idList;
+      isEditedRequest = true;
+      console.log("YOU ARE EDITING A BOOKING");
+    }
+    else {
+      console.log("You cant copy this!");
+    }
   });
 
 });
@@ -1414,4 +1646,11 @@ function resetPreferences(tab) {
   });
 
   $('#form-booking-roomName').text("No Room Selected");
+}
+
+function cancelRequest(idList) { 
+  $.post("api.cshtml", { requestid: "setCancelRequest", idlist: idList },
+  function (JSONresult) {
+    getSubmissionLog();
+  }, 'json');
 }
