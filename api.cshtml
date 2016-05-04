@@ -77,11 +77,11 @@
     //Set functions
     if (requestid == "setNewModule") {
       var json = getJSON();
-      encodeJSON(setNewModule(db, json["modulepart"], json["modulecode"], json["moduletitle"], json["deptcode"], json["lecturer1"], json["lecturer2"], json["lecturer3"]));
+      encodeJSON(setNewModule(db, json["modulepart"], json["modulecode"], json["moduletitle"], json["deptcode"], json["lecturer1"], json["lecturer2"], json["lecturer3"], json["lecturer4"]));
     }
     else if (requestid == "setUpdateModule") {
       var json = getJSON();
-      encodeJSON(setUpdateModule(db, json["modulecode"], json["moduletitle"], deptcode, json["lecturer1"], json["lecturer2"], json["lecturer3"]));
+      encodeJSON(setUpdateModule(db, json["modulecode"], json["moduletitle"], deptcode, json["lecturer1"], json["lecturer2"], json["lecturer3"], json["lecturer4"]));
     } 
     else if (requestid == "setDeleteModule") {
       encodeJSON(setDeleteModule(db, input("modulecode")));
@@ -110,6 +110,9 @@
     else if (requestid == "setDeletePrivateRoom") {
       encodeJSON(setDeletePrivateRoom(db, input("roomcode")));
       //LOCALHOST/api?requestid=setDeletePrivateRoom&roomcode=N.0.02*
+    }
+    else if (requestid == "setCancelRequest") {
+      encodeJSON(setCancelRequest(db, input("idlist")));
     }
   }
 
@@ -473,7 +476,7 @@
  
       var year = yearCheck(@DateTime.Now.Month);
 
-      var sql = "SELECT a.request_id, a.request_day, a.request_timestart, a.request_round, a.request_semester, a.request_year, a.room_code, a.building_code, a.park, a.capacity, a.module_code, a.request_priority, a.request_status, a.request_child, a.notification_status FROM dbo.request a LEFT JOIN dbo.[request-week] b ON a.request_id=b.request_id WHERE a.request_status LIKE 'approved' AND a.request_semester='"+semester+"' AND a.request_year='"+year+"' AND a.module_code IN(SELECT CONCAT(department_code,module_part,module_code) AS modcode FROM team04.[module-lecturer] WHERE lecturer_id = (SELECT lecturer_id FROM team04.lecturer WHERE CONCAT(lecturer_name,' ',lecturer_surname) = '"+lecturername+"')) AND week_number IN("+weeks+") GROUP BY a.request_id, a.request_day, a.request_timestart, a.request_round, a.request_semester, a.request_year, a.room_code, a.building_code, a.park, a.capacity, a.module_code, a.request_priority, a.request_status, a.request_child, a.notification_status;";
+      var sql = "SELECT a.request_id, a.request_day, a.request_timestart, a.request_round, a.request_semester, a.request_year, a.room_code, a.building_code, a.park, a.capacity, a.module_code, a.request_priority, a.request_status, a.request_child, a.notification_status FROM dbo.request a LEFT JOIN dbo.[request-week] b ON a.request_id=b.request_id WHERE a.request_status LIKE 'approved' AND a.request_semester='"+semester+"' AND a.request_year='"+year+"' AND a.module_code IN(SELECT CONCAT(department_code,module_part,module_code) AS modcode FROM team04.[module-lecturer] WHERE lecturer_id = (SELECT lecturer_id FROM team04.lecturer WHERE CONCAT(lecturer_name,' ',lecturer_surname) = N'"+lecturername+"')) AND week_number IN("+weeks+") GROUP BY a.request_id, a.request_day, a.request_timestart, a.request_round, a.request_semester, a.request_year, a.room_code, a.building_code, a.park, a.capacity, a.module_code, a.request_priority, a.request_status, a.request_child, a.notification_status;";
       
       var result = db.Query(sql);
 
@@ -620,11 +623,12 @@
 
 //libDatabaseSet functions
     //Insert a new module into the database
-    dynamic setNewModule(Database db, string modulepart, string modulecode, string moduletitle, string deptcode, string lecturer1, string lecturer2, string lecturer3) {
+    dynamic setNewModule(Database db, string modulepart, string modulecode, string moduletitle, string deptcode, string lecturer1, string lecturer2, string lecturer3, string lecturer4) {
 
       dynamic lec1id = 0;
       dynamic lec2id = 0;
       dynamic lec3id = 0;
+      dynamic lec4id = 0;
       //get id of lecturers
       var lec1sql = "SELECT lecturer_id FROM team04.lecturer WHERE CONCAT (lecturer_name, ' ', lecturer_surname) = '"+lecturer1+"';";
       lec1id = db.Query(lec1sql);
@@ -648,14 +652,25 @@
         }
         catch { lecturer3 = ""; }
       }
+      if (!String.IsNullOrEmpty(lecturer4)) {
+        var lec4sql = "SELECT lecturer_id FROM team04.lecturer WHERE CONCAT (lecturer_name, ' ', lecturer_surname) = '"+lecturer4+"';";
+        lec4id = db.Query(lec4sql);
+        try {
+          lec4id = lec4id[0].lecturer_id;
+        }
+        catch { lecturer4 = ""; }
+      }
 
-      var SQL = "INSERT INTO dbo.module (dept_code,module_part,module_code,module_title) VALUES ('"+deptcode+"','"+modulepart+"','"+modulecode+"','"+moduletitle+"');";
+      var SQL = "INSERT INTO dbo.module (dept_code,module_part,module_code,module_title) VALUES ('"+deptcode+"','"+modulepart+"','"+modulecode+"',N'"+moduletitle+"');";
       SQL += "INSERT INTO team04.[module-lecturer] VALUES('"+deptcode+"','"+modulepart+"','"+modulecode+"',"+lec1id+");";
       if (!String.IsNullOrEmpty(lecturer2)) {
         SQL += "INSERT INTO team04.[module-lecturer] VALUES('"+deptcode+"','"+modulepart+"','"+modulecode+"',"+lec2id+");";
       }
       if (!String.IsNullOrEmpty(lecturer3)) {
         SQL += "INSERT INTO team04.[module-lecturer] VALUES('"+deptcode+"','"+modulepart+"','"+modulecode+"',"+lec3id+");";
+      }
+      if (!String.IsNullOrEmpty(lecturer4)) {
+        SQL += "INSERT INTO team04.[module-lecturer] VALUES('"+deptcode+"','"+modulepart+"','"+modulecode+"',"+lec4id+");";
       }
 
       try {
@@ -671,7 +686,7 @@
 
     //encodeJSON(setUpdateModule(db, json["modulecode"], json["moduletitle"], deptcode, json["lecturer1"], json["lecturer2"], json["lecturer3"]));
     //Update a module's details in the database
-    dynamic setUpdateModule(Database db, string modulecode, string moduletitle, string deptcode, string lecturer1, string lecturer2, string lecturer3) {
+    dynamic setUpdateModule(Database db, string modulecode, string moduletitle, string deptcode, string lecturer1, string lecturer2, string lecturer3, string lecturer4) {
       if (deptcode != modulecode.Substring(0,2) ) {
         return false;
       }
@@ -682,6 +697,7 @@
       dynamic lec1id = 0;
       dynamic lec2id = 0;
       dynamic lec3id = 0;
+      dynamic lec4id = 0;
       //get id of lecturers
       var lec1sql = "SELECT lecturer_id FROM team04.lecturer WHERE CONCAT (lecturer_name, ' ', lecturer_surname) = '"+lecturer1+"';";
       lec1id = db.Query(lec1sql);
@@ -705,10 +721,18 @@
         }
         catch { lecturer3 = ""; }
       }
+      if (!String.IsNullOrEmpty(lecturer4)) {
+        var lec4sql = "SELECT lecturer_id FROM team04.lecturer WHERE CONCAT (lecturer_name, ' ', lecturer_surname) = '"+lecturer4+"';";
+        lec4id = db.Query(lec4sql);
+        try {
+          lec4id = lec4id[0].lecturer_id;
+        }
+        catch { lecturer4 = ""; }
+      }
 
       var SQL = "DELETE FROM team04.[module-lecturer] WHERE CONCAT(department_code,module_part,module_code)='"+fullmodulecode+"';";
 
-      SQL += "UPDATE dbo.module SET module_title='"+moduletitle+"' WHERE CONCAT(dept_code,module_part,module_code)='"+fullmodulecode+"';";
+      SQL += "UPDATE dbo.module SET module_title=N'"+moduletitle+"' WHERE CONCAT(dept_code,module_part,module_code)='"+fullmodulecode+"';";
 
       SQL += "INSERT INTO team04.[module-lecturer] VALUES('"+deptcode+"','"+modulepart+"','"+modulecode+"',"+lec1id+");";
       if (!String.IsNullOrEmpty(lecturer2)) {
@@ -716,6 +740,9 @@
       }
       if (!String.IsNullOrEmpty(lecturer3)) {
         SQL += "INSERT INTO team04.[module-lecturer] VALUES('"+deptcode+"','"+modulepart+"','"+modulecode+"',"+lec3id+");";
+      }
+      if (!String.IsNullOrEmpty(lecturer4)) {
+        SQL += "INSERT INTO team04.[module-lecturer] VALUES('"+deptcode+"','"+modulepart+"','"+modulecode+"',"+lec4id+");";
       }
 
       try {
@@ -797,6 +824,24 @@
       try {
         var res = db.Execute(SQL);
         if (res >= 2) { return true; }
+        else { return false; }
+      } 
+      catch { return false; } 
+    }
+
+    //Set request_status to cancelled for a list of request_id's
+    dynamic setCancelRequest(Database db, string idlist) {
+      var idArr = idlist.Split(',');
+      idlist = "";
+      for (var i=0; i<idArr.Length; i++) {
+        idlist += "'"+idArr[i]+"',";
+      } 
+      idlist = idlist.Substring(0,idlist.Length-1);
+      var SQL = "UPDATE dbo.request SET request_status = 'cancelled' WHERE request_id IN ("+idlist+");";
+
+      try {
+        var res = db.Execute(SQL);
+        if (res >= 1) { return true; }
         else { return false; }
       } 
       catch { return false; } 

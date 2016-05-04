@@ -594,3 +594,10 @@ a {
   -moz-box-shadow:0 5px 5px rgba(0, 0, 0, 0.08);
   -webkit-box-shadow:0 5px 5px rgba(0, 0, 0, 0.08);
 }
+
+.log-entry-delete-icon, .log-entry-edit-icon, .log-entry-copy-icon {
+  cursor:pointer;
+}
+.log-entry-icons span.log-icon-unused {
+  cursor:default;
+}
