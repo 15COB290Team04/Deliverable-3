@@ -24,6 +24,11 @@ $(document).ready(function () {
     }
   }
 
+  //Language icon click
+  $('#language-icon').click(function () {
+    $('#google_translate_element').slideToggle();
+  });
+
   //HELP ICON CLICKS
   $(".help-icon").click(function () {
     //Get id

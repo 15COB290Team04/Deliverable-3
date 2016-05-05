@@ -526,14 +526,14 @@ LU dark purple: #361163;
   float:left;
   width: 35%;
   height: auto;
-  min-height: 350px;
+  min-height: 400px;
   margin-left: 20px;
   margin-bottom: 30px;
 }
 #googleMap {
   float:right;
   width:60%;
-  height: 350px;
+  height: 400px;
   margin-right: 20px;
   margin-bottom: 30px;
 }
