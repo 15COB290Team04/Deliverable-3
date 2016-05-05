@@ -1,6 +1,11 @@
+var headerImg = new Image();
+
 $(document).ready(function () {
   loadLecturers();
   loadCourses();
+
+  //var headerImg = new Image(); 
+  headerImg.src = "Images/timetable-download-header.png";
 
   $('.radio-views').click(function () {
     $('.radio-checks').each(function () {
@@ -302,9 +307,6 @@ function saveTimetable(){
   context.fill();
 
   //Give header to timetable
-  var img = document.getElementById("scream");
-  headerImg = new Image(); 
-  headerImg.src = "Images/timetable-download-header.png";
   context.drawImage(headerImg,0,0);
 
   //Create title of timetable
@@ -431,6 +433,7 @@ function saveAs(uri, filename) {
     
     //simulate click
     link.click();
+    
 
     //remove the link when done
     document.body.removeChild(link);

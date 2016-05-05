@@ -630,14 +630,14 @@
       dynamic lec3id = 0;
       dynamic lec4id = 0;
       //get id of lecturers
-      var lec1sql = "SELECT lecturer_id FROM team04.lecturer WHERE CONCAT (lecturer_name, ' ', lecturer_surname) = '"+lecturer1+"';";
+      var lec1sql = "SELECT lecturer_id FROM team04.lecturer WHERE CONCAT (lecturer_name, ' ', lecturer_surname) = N'"+lecturer1+"';";
       lec1id = db.Query(lec1sql);
       try {
         lec1id = lec1id[0].lecturer_id;
       } 
       catch {return false;}
       if (!String.IsNullOrEmpty(lecturer2)) {
-        var lec2sql = "SELECT lecturer_id FROM team04.lecturer WHERE CONCAT (lecturer_name, ' ', lecturer_surname) = '"+lecturer2+"';";
+        var lec2sql = "SELECT lecturer_id FROM team04.lecturer WHERE CONCAT (lecturer_name, ' ', lecturer_surname) = N'"+lecturer2+"';";
         lec2id = db.Query(lec2sql);
         try {
           lec2id = lec2id[0].lecturer_id;
@@ -645,7 +645,7 @@
         catch { lecturer2 = ""; }
       }
       if (!String.IsNullOrEmpty(lecturer3)) {
-        var lec3sql = "SELECT lecturer_id FROM team04.lecturer WHERE CONCAT (lecturer_name, ' ', lecturer_surname) = '"+lecturer3+"';";
+        var lec3sql = "SELECT lecturer_id FROM team04.lecturer WHERE CONCAT (lecturer_name, ' ', lecturer_surname) = N'"+lecturer3+"';";
         lec3id = db.Query(lec3sql);
         try {
           lec3id = lec3id[0].lecturer_id;
@@ -653,7 +653,7 @@
         catch { lecturer3 = ""; }
       }
       if (!String.IsNullOrEmpty(lecturer4)) {
-        var lec4sql = "SELECT lecturer_id FROM team04.lecturer WHERE CONCAT (lecturer_name, ' ', lecturer_surname) = '"+lecturer4+"';";
+        var lec4sql = "SELECT lecturer_id FROM team04.lecturer WHERE CONCAT (lecturer_name, ' ', lecturer_surname) = N'"+lecturer4+"';";
         lec4id = db.Query(lec4sql);
         try {
           lec4id = lec4id[0].lecturer_id;
@@ -699,14 +699,14 @@
       dynamic lec3id = 0;
       dynamic lec4id = 0;
       //get id of lecturers
-      var lec1sql = "SELECT lecturer_id FROM team04.lecturer WHERE CONCAT (lecturer_name, ' ', lecturer_surname) = '"+lecturer1+"';";
+      var lec1sql = "SELECT lecturer_id FROM team04.lecturer WHERE CONCAT (lecturer_name, ' ', lecturer_surname) = N'"+lecturer1+"';";
       lec1id = db.Query(lec1sql);
       try {
         lec1id = lec1id[0].lecturer_id;
       } 
       catch {return false;}
       if (!String.IsNullOrEmpty(lecturer2)) {
-        var lec2sql = "SELECT lecturer_id FROM team04.lecturer WHERE CONCAT (lecturer_name, ' ', lecturer_surname) = '"+lecturer2+"';";
+        var lec2sql = "SELECT lecturer_id FROM team04.lecturer WHERE CONCAT (lecturer_name, ' ', lecturer_surname) = N'"+lecturer2+"';";
         lec2id = db.Query(lec2sql);
         try {
           lec2id = lec2id[0].lecturer_id;
@@ -714,7 +714,7 @@
         catch { lecturer2 = ""; }
       }
       if (!String.IsNullOrEmpty(lecturer3)) {
-        var lec3sql = "SELECT lecturer_id FROM team04.lecturer WHERE CONCAT (lecturer_name, ' ', lecturer_surname) = '"+lecturer3+"';";
+        var lec3sql = "SELECT lecturer_id FROM team04.lecturer WHERE CONCAT (lecturer_name, ' ', lecturer_surname) = N'"+lecturer3+"';";
         lec3id = db.Query(lec3sql);
         try {
           lec3id = lec3id[0].lecturer_id;
@@ -722,7 +722,7 @@
         catch { lecturer3 = ""; }
       }
       if (!String.IsNullOrEmpty(lecturer4)) {
-        var lec4sql = "SELECT lecturer_id FROM team04.lecturer WHERE CONCAT (lecturer_name, ' ', lecturer_surname) = '"+lecturer4+"';";
+        var lec4sql = "SELECT lecturer_id FROM team04.lecturer WHERE CONCAT (lecturer_name, ' ', lecturer_surname) = N'"+lecturer4+"';";
         lec4id = db.Query(lec4sql);
         try {
           lec4id = lec4id[0].lecturer_id;
