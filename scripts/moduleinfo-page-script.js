@@ -1,8 +1,10 @@
+var headerImg = new Image();
+
 $(document).ready(function () {
   loadLecturers();
   loadCourses();
 
-  var headerImg = new Image(); 
+  //var headerImg = new Image(); 
   headerImg.src = "Images/timetable-download-header.png";
 
   $('.radio-views').click(function () {
