@@ -80,7 +80,7 @@ $(document).ready(function () {
       }
       var modLec4 = "";
       if ($("#lecturer4-upd").val() != null) {
-        modLec3 += $("#lecturer4-upd").val();
+        modLec4 += $("#lecturer4-upd").val();
       }
       var json = JSON.stringify({ modulecode: modulecode, moduletitle: modtitle, lecturer1: modLec1, lecturer2: modLec2, lecturer3: modLec3, lecturer4: modLec4 });
       console.log(json);
