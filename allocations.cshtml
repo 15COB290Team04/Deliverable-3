@@ -53,10 +53,19 @@
           </select>
 
         </div>
-        <br />
-        <div>
-          Filters: <span id="filter-approved">Approved</span> <span id="filter-pending">Pending</span> <span id="filter-rejected">Rejected</span> <span id="filter-clear">Clear</span> 
-        </div>
+        <br /><br />
+          <form class="form-inline mo_info">
+            <h4>Filters:</h4>
+            <br /><label>State:   </label><span id="filter-approved">Approved</span> <span id="filter-pending">Pending</span> <span id="filter-rejected">Rejected</span>
+
+            <div id="wdytknbt">
+                        <br/>
+              <label>Room Code:</label>
+              <input type="text" name="name" class="form-control roomcode" id="form-booking-roomCode" style="width:10%;">
+              <label class="full" id="form-booking-roomName"></label>
+            </div>
+            <br /><span id="filter-clear">Clear Filter</span> 
+          </form>
         <div id="submissions-tabs">
           <ul>
             <li class="submissions-tab tab-active" id="tab-roundPriority">Priority Round</li>
@@ -99,7 +108,7 @@
           </div>
         </div>
       </div>
-
+<!-- Room Timetable moved to timetable page
       <div id="allocations-container" class="card-container">
         <div id="allocations-form">
           <h3 style="display:inline;">Room Allocations</h3>
@@ -125,14 +134,14 @@
         <div id="allocations-display">
           <p style="text-align:center;">Showing timetable for room: <span id="allocations-selectedRoom"></span></p>
 
-          <!-- JQuery Message Popup Dialog -->
+          <!-- JQuery Message Popup Dialog
           <div class="messagepop pop">
             <b>Information for a booked timetable slot.</b><br/><br/><br/><br/><br/>
             <p></p>
             <p class='close'>Close</p>
           </div>
 
-          <!-- TIMETABLE -->
+          <!-- TIMETABLE
           <div id="timetable-container">
             <table class="timetable-table">
               <tr class="timetable-row1-headings">
@@ -212,8 +221,9 @@
 
         </div>
       </div>
-
+       -->
     </div>
+   
 
 
   </body>

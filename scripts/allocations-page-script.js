@@ -12,19 +12,13 @@ $(document).ready(function () {
   getSubmissionLog();
 
   //ROOM SELECTION LOADS TIMETABLE
-  $('#allocations-form-roomSearch').bind("input", function () {
-    console.log($(this).val());
-    $('#allocations-selectedRoom').text($('#allocations-form-roomSearch').val()); //loads room	
+  $('#form-booking-roomCode').on("input", function () {
+    loadRoomCodeChoices();
   });
 
   //SEM VALYE FOR LOG
   $('#semester-choice').change(function () {
     getSubmissionLog();
-  });
-
-  //SEM VALUE FOR TIMETABLE
-  $('#select-semester').change(function () {
-    getRoomTimetable();
   });
 
   //TIMETABLE FUNCTIONS
@@ -76,32 +70,68 @@ $(document).ready(function () {
 
   //FILTER FOR APPROVED BLOCKS
   $("#filter-approved").click(function () {
-    filterSubmissionLog(0); //0:clear
-    filterSubmissionLog(1); //1: approved
+    //filterSubmissionLog(0, null); //0:clear
+    filterSubmissionLog(1, "approved"); //1: state -> approved
   });
 
   //FILTER FOR PENDING BLOCKS
   $("#filter-pending").click(function () {
-    filterSubmissionLog(0); //0:clear
-    filterSubmissionLog(2); //2: pending
+    //filterSubmissionLog(0); //0:clear
+    filterSubmissionLog(1, "pending"); //1: state -> pending
   });
 
   //FILTER FOR REJECTED BLOCKS
   $("#filter-rejected").click(function () {
-    filterSubmissionLog(0); //0:clear
-    filterSubmissionLog(3); //3:rejected
+    //filterSubmissionLog(0); //0:clear
+    filterSubmissionLog(1, "rejected"); //1: state -> rejected
   });
-  
+
   //CLEAR FIlTER
   $("#filter-clear").click(function () {
     filterSubmissionLog(0); //0:clear
   });
 
+  $(document).on('click', '.log-entry-delete-icon', function () {
+    var idList = "";
+
+    if (!$(this).hasClass('log-icon-unused')) {
+
+      var r = confirm("Are you sure you wish to cancel this request?");
+      if (r) {
+
+        var thisReqId = $(this).parent().next().find('.log-entry-id').text();
+        idList += thisReqId;
+
+        var childReqId = $(this).parent().next().find('.log-entry-child').text();
+        console.log("THIS: " + thisReqId + ", CHILD: " + childReqId);
+
+        while (childReqId != "null") {
+          idList += "," + childReqId;
+          var child = $(".log-entry-id").filter(function () { return ($(this).text() === childReqId) });
+          childReqId = child.next('.log-entry-child').text();
+        }
+
+        //Returns list of requestid's in form "30,31,32,33"
+        console.log(idList);
+
+        cancelRequest(idList);
+      }
+    }
+    else {
+      console.log("You cant cancel a rejected request!");
+    }
+  });
+
+});
+
+
+
   //AUTOFILL SEARCH FOR ROOM CODE SELECTION
   function loadRoomCodeChoices() {
+    console.log("loadRoomCodeChoices called");
     $(function () {
       $.post("api.cshtml", {
-        requestid: "getSuitableRooms", park: "Any", capacity: 0, buildingcode: "Any", lab: 0, wheelchair: 0, hearingloop: 0, computer: 0, projector: 0, dprojector: 0, ohp: 0, visualiser: 0, video: 0, bluray: 0, vhs: 0, whiteboard: 0, chalkboard: 0, plasma: 0, pasystem: 0, radiomic: 0, review: 0
+        requestid: "getSuitableRooms", private: "Any", park: "Any", capacity: 0, buildingcode: "Any", lab: 0, wheelchair: 0, hearingloop: 0, computer: 0, projector: 0, dprojector: 0, ohp: 0, visualiser: 0, video: 0, bluray: 0, vhs: 0, whiteboard: 0, chalkboard: 0, plasma: 0, pasystem: 0, radiomic: 0, review: 0
       },
       function (JSONresult) {
         var roomList = [];
@@ -112,22 +142,14 @@ $(document).ready(function () {
         $("#form-booking-roomCode").autocomplete({
           source: roomList,
           close: function () {
-            //if ( checkRoomIsValid($('#form-booking-roomCode').val(),roomList) ) {
-            //  loadRoomBuildingInfo($('#form-booking-roomCode'));
-            getRoomTimetable();
-            //CALL THE GET TIMETABLE FUNCTION
-            //}
-            //else {
-            // $('#form-booking-roomName').text("Invalid Room Code");
+            //alert("roomcode changed. "+$("#form-booking-roomCode").val());
+            filterSubmissionLog(2, $("#form-booking-roomCode").val()); //2: room -> room name
           }
         });
 
       }, 'json');
     });
   }
-
-
-});
 
 function getRoomTimetable() {
 
@@ -147,7 +169,7 @@ function getRoomTimetable() {
       console.log("Semester: " + sem + "  Weeks: " + weeks + "  RoomCode: " + $('#form-booking-roomCode').val());
 
       //Perform API call to retrieve timetable bookings for times and weeks
-      $.post("api.cshtml", {requestid: "getRoomTimetable", roomcode: $('#form-booking-roomCode').val(), weeks: weeks, semester: sem},
+      $.post("api.cshtml", { requestid: "getRoomTimetable", roomcode: $('#form-booking-roomCode').val(), weeks: weeks, semester: sem },
       function (JSONresult) {
 
         //console.log( JSONresult[i]['request_details'].request_day );  or request_timestart, request_round, module_code, request_priority (null or string)
@@ -493,35 +515,67 @@ function getSubmissionLog() {
   }, 'json');
 }
 
-function filterSubmissionLog(choice) {
+function filterSubmissionLog(choice, data) {
   switch (choice) {
     case 0: //clear filter
+      $("#form-booking-roomCode").val("");
       $(".log-group-container").each(function (index, element) {
         $(element).css("display", "block");
+        $(element).find(".log-contents-container").first().children().each(function (i, e) {
+          $(e).css("display", "block");
+        });
       });
       break;
-    case 1: //approved only
+    case 1: //filter by state
+      findString = "";
+      switch (data) {
+        case "approved":
+          groupString = ".log-group-approved";
+          entryString = "log-entry-approved";
+          break;
+        case "pending":
+          groupString = ".log-group-pending";
+          entryString = "log-entry-pending";
+          break;
+        case "rejected":
+          groupString = ".log-group-rejected";
+          entryString = "log-entry-rejected";
+          break;
+        default:
+          alert("there is a problem with the filter data value, please alert dev team")
+          break;
+      }
       $(".log-group-container").each(function (index, element) {
-        if (!($(element).find(".log-group-approved").length > 0)) {
+        if (!($(element).find(groupString).length > 0)) { //Hide blocks not containing relevant items
           $(element).css("display", "none");
+        } else {
+          $(element).find(".log-contents-container").first().children().each(function (i, e) {
+            if (!($(e).hasClass(entryString))) {
+              $(e).css("display", "none");
+            }
+          });
         }
       });
       break;
-    case 2: //pending only
-      $(".log-group-container").each(function (index, element) {
-        if (!($(element).find(".log-group-pending").length > 0)) {
-          $(element).css("display", "none");
-        }
-      });
-      break;
-    case 3: //rejected only
-      $(".log-group-container").each(function (index, element) {
-        if (!($(element).find(".log-group-rejected").length > 0)) {
-          $(element).css("display", "none");
-        }
+    case 2: //filter by room
+      roomString = data;
+      $(".log-group-container").each(function (gindex, gelement) {
+        $(gelement).find(".log-contents-container").first().children().each(function (cindex, celement) {
+          if (!($(celement).find(".log-entry-information").first().find(".log-entry-room").first().text().indexOf(roomString) >= 0)) {
+            $(celement).css("display", "none");
+            $(gelement).css("display", "none");
+          }
+        });
       });
       break;
     default:
-      alert("There has been a problem with the filter, please alert development team");
+      alert("There has been a problem with the filter id, please alert development team");
   }
+}
+
+function cancelRequest(idList) { 
+  $.post("api.cshtml", { requestid: "setCancelRequest", idlist: idList },
+  function (JSONresult) {
+    getSubmissionLog();
+  }, 'json');
 }
